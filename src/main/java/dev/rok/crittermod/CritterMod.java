@@ -2,6 +2,9 @@ package dev.rok.crittermod;
 
 import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
+import dev.rok.crittermod.client.MissingHud;
+import dev.rok.crittermod.client.WumpaAlert;
+import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
@@ -32,7 +35,10 @@ public class CritterMod implements ClientModInitializer {
 		// they append never reach the parser.
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay) return;
-			SessionManager.onChatMessage(message.getString());
+			String line = ChatParser.clean(message.getString());
+			if (line.isEmpty()) return;
+			SessionManager.onChatMessage(line);
+			WumpaAlert.onChatMessage(line);
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> SessionManager.tick());
@@ -44,6 +50,14 @@ public class CritterMod implements ClientModInitializer {
 			VanillaHudElements.CHAT,
 			Identifier.fromNamespaceAndPath(MOD_ID, "safari_progress"),
 			new CritterHud());
+		HudElementRegistry.attachElementBefore(
+			VanillaHudElements.CHAT,
+			Identifier.fromNamespaceAndPath(MOD_ID, "safari_missing"),
+			new MissingHud());
+		HudElementRegistry.attachElementBefore(
+			VanillaHudElements.CHAT,
+			Identifier.fromNamespaceAndPath(MOD_ID, "wumpa_alert"),
+			new WumpaAlert());
 
 		LOGGER.info("Critter Safari tracker ready");
 	}
