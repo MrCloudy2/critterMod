@@ -1,0 +1,64 @@
+plugins {
+	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+}
+
+version = project.mod_version
+group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
+
+dependencies {
+	minecraft "com.mojang:minecraft:${project.minecraft_version}"
+
+	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+}
+
+processResources {
+	def expandProps = [version: project.version, minecraft_depends: project.minecraft_depends]
+	inputs.properties expandProps
+
+	filesMatching("fabric.mod.json") {
+		expand expandProps
+	}
+}
+
+tasks.withType(JavaCompile).configureEach {
+	it.options.release = 25
+}
+
+java {
+	sourceCompatibility = JavaVersion.VERSION_25
+	targetCompatibility = JavaVersion.VERSION_25
+}
+
+// --- Parser test harness ----------------------------------------------------
+// ChatParser and the data registry are plain Java with no Minecraft imports, so
+// they can be exercised against the real Hypixel logs without launching the
+// game. `./gradlew replayLogs -Plogs=<dir>` prints a session-by-session report.
+tasks.register('replayLogs', JavaExec) {
+	description = 'Replay Hypixel chat logs through ChatParser and print session stats.'
+	group = 'verification'
+	classpath = sourceSets.main.output + configurations.runtimeClasspath
+	mainClass = 'dev.rok.crittermod.importer.LogReplayMain'
+	if (project.hasProperty('logs')) args project.property('logs')
+}
+
+// --- Auto-deploy to the AtLauncher test instance ----------------------------
+def deployDir = file(project.findProperty('deployDir')
+		?: '/home/rok/.local/share/atlauncher/instances/SkyBlockEnhancedModernEdition/mods')
+
+tasks.register('deployToInstance', Copy) {
+	description = 'Copy the built mod jar into the AtLauncher SkyBlock instance.'
+	group = 'fabric'
+	dependsOn tasks.named('jar')
+	onlyIf { deployDir.isDirectory() }
+	doFirst { delete fileTree(deployDir) { include 'crittermod-*.jar' } }
+	from tasks.named('jar')
+	into deployDir
+	doLast { logger.lifecycle("deployToInstance -> ${deployDir}") }
+}
+
+tasks.named('jar') { finalizedBy 'deployToInstance' }

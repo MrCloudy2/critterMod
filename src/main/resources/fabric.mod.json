@@ -1,0 +1,19 @@
+{
+	"schemaVersion": 1,
+	"id": "crittermod",
+	"version": "${version}",
+	"name": "Critter Safari Tracker",
+	"description": "Tracks Critter Safari progress per run: unique species caught by you and by your party, overall and per biome.",
+	"authors": ["Rok"],
+	"license": "MIT",
+	"environment": "client",
+	"entrypoints": {
+		"client": ["dev.rok.crittermod.CritterMod"]
+	},
+	"depends": {
+		"fabricloader": ">=0.19.0",
+		"minecraft": "${minecraft_depends}",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}
