@@ -24,6 +24,28 @@ Species counts per biome: Forest 9, Cavern 9, Icy 9, Haunted 10 — **37** total
 A run starts when you enter the Critter Safari and ends when you leave. The finished
 run stays viewable until the next one begins.
 
+## On screen
+
+**Top left** — run timer, party and personal dex bars, a progress bar per biome, and
+a per-player coverage line. Columns are laid out from measured pixel widths, so they
+line up despite Minecraft's proportional font.
+
+**Top right** — what is still uncaught **in the biome you are standing in**: the
+working list for whoever is assigned that biome. Names are coloured by rarity, and a
+species you have already thrown capsules at is marked `n tried`, so "hasn't been
+found yet" is distinguishable from "keeps escaping". Species caught by a partymate
+count as done, since the goal is party-wide coverage.
+
+**Wumpa alert** — a scaled banner, a sound and a chat line when the Icy Biome
+encounter opens up. Hypixel announces it in three stages and the mod fires on each,
+rising in pitch:
+
+| Message | Alert |
+|---|---|
+| `A rumbling sound can be heard, and the door … opens...` | **WUMPA READY** — chamber open |
+| `You hear the sound of massive footsteps …` | **WUMPA INCOMING** — wakes in ~30s |
+| `The Wumpa has awoken.` | **WUMPA AWAKE** — fight live |
+
 ## Usage
 
 | Command | Effect |
@@ -32,11 +54,15 @@ run stays viewable until the next one begins.
 | `/critters missing` | Species nobody has caught yet, grouped by biome |
 | `/critters players` | Unique catches per player per biome |
 | `/critters reset` | Clear the current run's tallies |
-| `/critters hud` | Toggle the overlay |
+| `/critters hud` | Toggle the main overlay |
+| `/critters panel` | Toggle the top-right missing list |
+| `/critters wumpa` | Toggle the Wumpa alert |
+| `/critters testalert` | Fire the Wumpa alert now, to check it anywhere |
 | `/critters history` | Replay this instance's logs and list past runs |
 
 The HUD appears automatically while you're in the Safari. Settings live in
-`config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `onlyInSafari`, `hudX`, `hudY`).
+`config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
+`onlyInSafari`, `hudX`, `hudY`).
 
 ## How it works
 

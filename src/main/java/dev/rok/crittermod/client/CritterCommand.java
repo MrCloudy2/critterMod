@@ -50,6 +50,28 @@ public final class CritterCommand {
 					"HUD " + (config.hudEnabled ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
+			.then(ClientCommands.literal("panel").executes(ctx -> {
+				CritterConfig config = CritterConfig.get();
+				config.showMissing = !config.showMissing;
+				config.save();
+				ctx.getSource().sendFeedback(prefixed("Top-right missing panel "
+					+ (config.showMissing ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+				return 1;
+			}))
+			.then(ClientCommands.literal("wumpa").executes(ctx -> {
+				CritterConfig config = CritterConfig.get();
+				config.wumpaAlert = !config.wumpaAlert;
+				config.save();
+				ctx.getSource().sendFeedback(prefixed("Wumpa alert "
+					+ (config.wumpaAlert ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+				return 1;
+			}))
+			.then(ClientCommands.literal("testalert").executes(ctx -> {
+				// Fires the alert without waiting for a real Wumpa, so its banner,
+				// sound and placement can be checked anywhere.
+				WumpaAlert.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
+				return 1;
+			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {
 				history(ctx.getSource());
 				return 1;
@@ -96,7 +118,7 @@ public final class CritterCommand {
 				.map(Critter::name).reduce((a, b) -> a + ", " + b).orElse(""))
 				.withStyle(ChatFormatting.LIGHT_PURPLE));
 		}
-		source.sendFeedback(Component.literal("  /critters missing · players · reset · hud · history")
+		source.sendFeedback(Component.literal("  /critters missing · players · reset · hud · panel · wumpa · history")
 			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
