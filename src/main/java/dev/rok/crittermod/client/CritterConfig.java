@@ -25,6 +25,10 @@ public final class CritterConfig {
 	public boolean showPerPlayer = true;
 	/** Hide the HUD when not in the Critter Safari. */
 	public boolean onlyInSafari = true;
+	/** Top-right panel listing what is still uncaught in the biome you are standing in. */
+	public boolean showMissing = true;
+	/** Banner and sound when the Wumpa chamber opens. */
+	public boolean wumpaAlert = true;
 	public int hudX = 4;
 	public int hudY = 4;
 
