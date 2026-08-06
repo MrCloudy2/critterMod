@@ -1,5 +1,6 @@
 package dev.rok.crittermod;
 
+import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.MissingHud;
@@ -41,7 +42,10 @@ public class CritterMod implements ClientModInitializer {
 			WumpaAlert.onChatMessage(line);
 		});
 
-		ClientTickEvents.END_CLIENT_TICK.register(client -> SessionManager.tick());
+		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			SessionManager.tick();
+			ChatQueue.tick();
+		});
 
 		ClientCommandRegistrationCallback.EVENT.register(
 			(dispatcher, registryAccess) -> CritterCommand.register(dispatcher));

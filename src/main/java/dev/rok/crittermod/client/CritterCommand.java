@@ -5,6 +5,7 @@ import dev.rok.crittermod.data.Critter;
 import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.importer.LogScanner;
+import dev.rok.crittermod.session.MissingReport;
 import dev.rok.crittermod.session.SafariSession;
 import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
@@ -35,6 +36,14 @@ public final class CritterCommand {
 			}))
 			.then(ClientCommands.literal("players").executes(ctx -> {
 				players(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("copy").executes(ctx -> {
+				copy(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("share").executes(ctx -> {
+				share(ctx.getSource());
 				return 1;
 			}))
 			.then(ClientCommands.literal("reset").executes(ctx -> {
@@ -118,7 +127,7 @@ public final class CritterCommand {
 				.map(Critter::name).reduce((a, b) -> a + ", " + b).orElse(""))
 				.withStyle(ChatFormatting.LIGHT_PURPLE));
 		}
-		source.sendFeedback(Component.literal("  /critters missing · players · reset · hud · panel · wumpa · history")
+		source.sendFeedback(Component.literal("  /critters missing · copy · share · players · reset · hud · panel · wumpa · history")
 			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
@@ -166,6 +175,44 @@ public final class CritterCommand {
 		});
 		source.sendFeedback(Component.literal("  F=Forest C=Cavern I=Icy H=Haunted")
 			.withStyle(ChatFormatting.DARK_GRAY));
+	}
+
+	/** Puts the missing-species report on the clipboard, and previews it in chat. */
+	private static void copy(FabricClientCommandSource source) {
+		SafariSession session = SessionManager.currentOrLast();
+		if (session == null) {
+			source.sendFeedback(prefixed("No Critter Safari run tracked yet.", ChatFormatting.GRAY));
+			return;
+		}
+
+		String report = MissingReport.text(session);
+		source.getClient().keyboardHandler.setClipboard(report);
+
+		source.sendFeedback(header("Copied to clipboard"));
+		for (String line : report.split("\n")) {
+			source.sendFeedback(Component.literal("  " + line).withStyle(ChatFormatting.WHITE));
+		}
+	}
+
+	/** Posts the same report to party chat, one line at a time. */
+	private static void share(FabricClientCommandSource source) {
+		SafariSession session = SessionManager.currentOrLast();
+		if (session == null) {
+			source.sendFeedback(prefixed("No Critter Safari run tracked yet.", ChatFormatting.GRAY));
+			return;
+		}
+
+		List<String> lines = MissingReport.lines(session);
+		if (lines.isEmpty()) lines = List.of(MissingReport.text(session));
+
+		String channel = CritterConfig.get().shareCommand;
+		boolean asCommand = channel != null && !channel.isBlank();
+		for (String line : lines) {
+			ChatQueue.enqueue(asCommand ? channel.trim() + " " + line : line, asCommand);
+		}
+
+		source.sendFeedback(prefixed("Posting %d line(s) to %s…".formatted(
+			lines.size(), asCommand ? "/" + channel.trim() : "chat"), ChatFormatting.YELLOW));
 	}
 
 	/** Replays this instance's log directory and reports past runs. */

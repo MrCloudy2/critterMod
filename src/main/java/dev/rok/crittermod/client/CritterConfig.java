@@ -29,6 +29,11 @@ public final class CritterConfig {
 	public boolean showMissing = true;
 	/** Banner and sound when the Wumpa chamber opens. */
 	public boolean wumpaAlert = true;
+	/**
+	 * Chat command {@code /critters share} posts through, without the slash.
+	 * {@code "pc"} is party chat; {@code "ac"} is all chat. Blank posts to normal chat.
+	 */
+	public String shareCommand = "pc";
 	public int hudX = 4;
 	public int hudY = 4;
 

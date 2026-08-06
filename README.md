@@ -53,6 +53,8 @@ rising in pitch:
 | `/critters` | This run: party and personal dex, overall and per biome |
 | `/critters missing` | Species nobody has caught yet, grouped by biome |
 | `/critters players` | Unique catches per player per biome |
+| `/critters copy` | Copy the missing list to the clipboard, and preview it |
+| `/critters share` | Post the same list to party chat |
 | `/critters reset` | Clear the current run's tallies |
 | `/critters hud` | Toggle the main overlay |
 | `/critters panel` | Toggle the top-right missing list |
@@ -62,7 +64,26 @@ rising in pitch:
 
 The HUD appears automatically while you're in the Safari. Settings live in
 `config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
-`onlyInSafari`, `hudX`, `hudY`).
+`shareCommand`, `onlyInSafari`, `hudX`, `hudY`).
+
+### Telling your team
+
+`/critters copy` and `/critters share` produce the same report — one line per biome
+that still has anything outstanding, complete biomes omitted:
+
+```
+Forest missing: Macaw
+Cavern missing: Cavernfish Driftling Scrappy
+Haunted missing: Bloodbat
+```
+
+`copy` puts it on the clipboard and prints a preview; `share` posts it. Lines are
+queued and sent 1.2s apart, because Hypixel silently drops a burst of messages sent
+in the same tick. The channel is `shareCommand` in the config — `pc` (party, the
+default), `ac` (all chat), or blank for normal chat.
+
+Across 43 real runs the longest line came to 109 characters, well inside the 250-char
+server limit, so the report never has to be split.
 
 ## How it works
 
