@@ -110,6 +110,22 @@ public final class AreaDetector {
 
 	// --- combined ------------------------------------------------------------
 
+	/**
+	 * The {@code ⏣ <island>} line from the SkyBlock sidebar, or {@code null} if the
+	 * sidebar has none (loading, or not on SkyBlock).
+	 *
+	 * <p>Only this line identifies the island. The {@code ⚑ <zone>} line below it names
+	 * a sub-area, and one of those sub-areas is literally "Critter Safari Entrance" —
+	 * so testing every sidebar line for "Critter Safari" would report being inside the
+	 * Safari while standing outside its door.
+	 */
+	public static String islandLine() {
+		for (String line : sidebarLines()) {
+			if (line.startsWith("⏣") || line.startsWith("ф")) return line;
+		}
+		return null;
+	}
+
 	/** Biome named by the sidebar or tab list, if either does. */
 	public static SafariBiome biomeFromText() {
 		for (String line : sidebarLines()) {
@@ -135,22 +151,25 @@ public final class AreaDetector {
 	/**
 	 * Whether the player is inside the Critter Safari.
 	 *
-	 * <p>Text sources are authoritative when they mention the Safari. Otherwise this
-	 * falls back to the chat-driven state, since entering is announced but leaving is
-	 * not — a server transfer is what ends a run.
+	 * <p>The sidebar's island line settles it when it names the Safari. Otherwise the
+	 * player is treated as inside only until that line changes to a different island —
+	 * leaving the Safari produces no chat message at all, so the island line changing
+	 * is the only evidence available.
 	 */
 	public static boolean inSafari() {
-		for (String line : sidebarLines()) {
-			if (mentionsSafari(line)) return true;
-		}
-		for (String entry : tabListEntries()) {
-			if (mentionsSafari(entry)) return true;
-		}
-		return SafariPresence.inSafari();
-	}
+		String island = islandLine();
 
-	private static boolean mentionsSafari(String text) {
-		return text.contains("Critter Safari") || SafariBiome.fromAreaName(text) != null;
+		if (island != null && island.contains("Critter Safari") && !island.contains("Entrance")) {
+			SafariPresence.enter(island);
+			return true;
+		}
+
+		if (SafariPresence.movedAwayFrom(island)) {
+			SafariPresence.clear();
+			return false;
+		}
+
+		return SafariPresence.inSafari();
 	}
 
 	/** Strips §-codes and the invisible padding Hypixel pads sidebar lines with. */
