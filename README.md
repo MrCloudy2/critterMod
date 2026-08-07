@@ -71,6 +71,7 @@ someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 | Command | Effect |
 |---|---|
 | `/critters`, `/ct` | Open the run screen |
+| `/crittermod`, `/cm` | Open the settings screen |
 | `/critters text` | The same summary printed to chat instead |
 | `/critters missing` | Species nobody has caught yet, grouped by biome |
 | `/critters players` | Unique catches per player per biome |
@@ -86,8 +87,9 @@ someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 | `/critters history` | Replay this instance's logs and list past runs |
 | `/critters debug` | Dump every area source and what each resolves to |
 
-The HUD appears automatically while you're in the Safari. Settings live in
-`config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
+The HUD appears automatically while you're in the Safari. `/cm` opens a settings
+screen for all of it — every control saves as you click, so there is no apply step.
+The same values live in `config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
 `bossAlerts`, `bossPartyNotify`, `biomeDoneNotify`, `shareCommand`, `onlyInSafari`,
 `hudX`, `hudY`).
 

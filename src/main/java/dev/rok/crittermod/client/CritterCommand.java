@@ -124,6 +124,21 @@ public final class CritterCommand {
 			openScreen();
 			return 1;
 		}));
+
+		// Settings live on their own command so the run view stays a single keystroke.
+		dispatcher.register(ClientCommands.literal("crittermod").executes(ctx -> {
+			openSettings();
+			return 1;
+		}));
+		dispatcher.register(ClientCommands.literal("cm").executes(ctx -> {
+			openSettings();
+			return 1;
+		}));
+	}
+
+	private static void openSettings() {
+		Minecraft client = Minecraft.getInstance();
+		client.execute(() -> client.setScreen(new CritterSettingsScreen()));
 	}
 
 	/**
@@ -175,7 +190,7 @@ public final class CritterCommand {
 				.map(Critter::name).reduce((a, b) -> a + ", " + b).orElse(""))
 				.withStyle(ChatFormatting.LIGHT_PURPLE));
 		}
-		source.sendFeedback(Component.literal("  /ct opens the screen · text · missing · copy · share · players · reset · hud · panel · alerts · notify · biomedone")
+		source.sendFeedback(Component.literal("  /ct run screen · /cm settings · text · missing · copy · share · players · reset · history")
 			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
