@@ -248,9 +248,9 @@ public final class CritterCommand {
 		Vec3 pos = source.getPlayer().position();
 		source.sendFeedback(Component.literal("  position: %.1f %.1f %.1f"
 			.formatted(pos.x, pos.y, pos.z)).withStyle(ChatFormatting.YELLOW));
-		AreaDetector.centreDistances().forEach((biome, distance) ->
-			source.sendFeedback(Component.literal("    %-8s %.1f blocks".formatted(biome.displayName(), distance))
-				.withStyle(style(biome))));
+		source.sendFeedback(Component.literal("    nearest mapped node: %.1f blocks (of %d)"
+			.formatted(AreaDetector.distanceToNearestNode(), SafariAreaMap.nodeCount()))
+			.withStyle(ChatFormatting.GRAY));
 
 		source.sendFeedback(Component.literal("  resolved:").withStyle(ChatFormatting.YELLOW));
 		source.sendFeedback(Component.literal("    from text     " + nameOf(AreaDetector.biomeFromText()))
