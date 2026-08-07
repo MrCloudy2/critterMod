@@ -16,7 +16,7 @@
 		"minecraft": "${minecraft_depends}",
 		"java": ">=25",
 		"fabric-api": "*",
-		"cloth-config": ">=26.1.0"
+		"fabric-language-kotlin": ">=1.13.0"
 	},
 	"recommends": {
 		"modmenu": "*"

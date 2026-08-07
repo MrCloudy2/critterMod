@@ -26,12 +26,12 @@ public final class CritterHud implements HudElement {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-		CritterConfig config = CritterConfig.get();
-		if (!config.hudEnabled) return;
+		CritterConfig config = ConfigManager.get();
+		if (!config.display.hudEnabled) return;
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.options.hideGui) return;
-		if (config.onlyInSafari && SessionManager.current() == null) return;
+		if (config.display.onlyInSafari && SessionManager.current() == null) return;
 
 		SafariSession session = SessionManager.currentOrLast();
 		if (session == null) return;
@@ -58,7 +58,7 @@ public final class CritterHud implements HudElement {
 				complete ? DONE : 0xFF000000 | biome.colour());
 		}
 
-		if (config.showPerPlayer) {
+		if (config.display.showPerPlayer) {
 			Map<String, Map<SafariBiome, Integer>> perPlayer = session.uniquePerPlayer();
 			if (perPlayer.size() > 1) {
 				panel.blank();
@@ -67,7 +67,7 @@ public final class CritterHud implements HudElement {
 			}
 		}
 
-		panel.render(graphics, client.font, config.hudX, config.hudY, false);
+		panel.render(graphics, client.font, config.display.hudX, config.display.hudY, false);
 	}
 
 	/** A player's coverage as {@code "Icy 9, Haunted 2"}, busiest biome first. */
