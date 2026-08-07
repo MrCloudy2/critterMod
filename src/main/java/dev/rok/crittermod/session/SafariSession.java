@@ -138,9 +138,20 @@ public final class SafariSession {
 		return critter.hasQuota() ? critter.spawnQuota() : 1;
 	}
 
-	/** True once the run is finished with {@code critter} as far as is known. */
+	/**
+	 * True once the run is finished with {@code critter}, either by catching enough or
+	 * because the run can no longer produce it. Treating the impossible as settled is
+	 * what lets a biome read as complete instead of stalling forever on a species that
+	 * is never coming.
+	 */
 	public boolean isComplete(Critter critter) {
+		if (TrackingMode.isUnavailable(critter) && partyCatches(critter) == 0) return true;
 		return partyCatches(critter) >= required(critter);
+	}
+
+	/** True when the run cannot produce {@code critter} and none was caught. */
+	public boolean isUnavailable(Critter critter) {
+		return TrackingMode.isUnavailable(critter) && partyCatches(critter) == 0;
 	}
 
 	/** How many more of {@code critter} are known to be left, never negative. */

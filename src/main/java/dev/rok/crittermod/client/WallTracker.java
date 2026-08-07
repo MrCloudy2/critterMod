@@ -26,6 +26,7 @@ public final class WallTracker {
 		{-114, 39, 87},
 		{-70, 39, 68},
 		{-96, 40, 17},
+		{-95, 40, 42},
 	};
 
 	public enum State {
@@ -69,5 +70,17 @@ public final class WallTracker {
 	/** Walls known to still be standing. Unknown ones are not counted either way. */
 	public static long intactCount() {
 		return walls().stream().filter(w -> w.state() == State.INTACT).count();
+	}
+
+	/**
+	 * True only when every wall has been <em>confirmed</em> broken.
+	 *
+	 * <p>A wall in an unloaded chunk does not count: air and out-of-range look
+	 * identical from here, and concluding "all broken" from chunks nobody has visited
+	 * would be exactly backwards.
+	 */
+	public static boolean allConfirmedBroken() {
+		List<Wall> walls = walls();
+		return !walls.isEmpty() && walls.stream().allMatch(w -> w.state() == State.BROKEN);
 	}
 }
