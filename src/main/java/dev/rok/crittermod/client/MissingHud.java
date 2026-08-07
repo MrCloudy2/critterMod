@@ -35,10 +35,19 @@ public final class MissingHud implements HudElement {
 		SafariBiome biome = AreaDetector.currentBiome();
 		if (biome == null) return;
 
+		HudPanel panel = buildPanel(biome, SessionManager.currentOrLast());
+		HudBox box = HudBox.MISSING;
+		panel.render(graphics, client.font,
+			box.pixelX(graphics.guiWidth(), panel, client.font),
+			box.pixelY(graphics.guiHeight(), panel, client.font),
+			box.scale());
+	}
+
+	/** Builds the list for {@code biome}; {@code session} may be null before the first catch. */
+	static HudPanel buildPanel(SafariBiome biome, SafariSession session) {
 		// Before the first catch there is no session yet, but standing in a biome with
 		// nothing caught is exactly when the full list is most useful — so fall back
 		// to the whole roster rather than hiding the panel.
-		SafariSession session = SessionManager.currentOrLast();
 		List<Critter> missing = session == null ? Critters.inBiome(biome) : session.missing(biome);
 
 		HudPanel panel = new HudPanel();
@@ -59,7 +68,6 @@ public final class MissingHud implements HudElement {
 			}
 		}
 
-		int right = graphics.guiWidth() - config.display.hudX;
-		panel.render(graphics, client.font, right, config.display.hudY, true);
+		return panel;
 	}
 }
