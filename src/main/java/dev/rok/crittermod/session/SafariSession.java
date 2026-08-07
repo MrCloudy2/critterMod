@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.UUID;
 
 /**
  * Tally for one Critter Safari run, from entry until the player leaves.
@@ -37,6 +38,8 @@ public final class SafariSession {
 	/** critter -> partymate name -> how many times they caught it. */
 	private final Map<Critter, Map<String, Integer>> sharedCatches = new LinkedHashMap<>();
 	private final Set<Critter> sparklings = new LinkedHashSet<>();
+	/** Distinct label entities seen per species — how many actually spawned. */
+	private final Map<Critter, Set<UUID>> seenEntities = new LinkedHashMap<>();
 
 	private int ownShards;
 	private int sharedShards;
@@ -106,17 +109,38 @@ public final class SafariSession {
 		return caughtByYou(critter) || sharedCatches.containsKey(critter);
 	}
 
-	/**
-	 * True once {@code critter} is finished with under the current
-	 * {@link TrackingMode} — every spawn taken, or just one when counting uniques.
-	 */
-	public boolean isComplete(Critter critter) {
-		return partyCatches(critter) >= TrackingMode.required(critter);
+	/** Records a distinct label entity for {@code critter}; repeats are ignored. */
+	public void markSeen(Critter critter, UUID entityId) {
+		seenEntities.computeIfAbsent(critter, c -> new LinkedHashSet<>()).add(entityId);
 	}
 
-	/** How many more of {@code critter} the run still has to give, never negative. */
+	/** How many distinct spawns of {@code critter} have been seen in the world. */
+	public int seen(Critter critter) {
+		return seenEntities.getOrDefault(critter, Set.of()).size();
+	}
+
+	/**
+	 * How many of {@code critter} the run is considered to hold.
+	 *
+	 * <p>A fixed quota wins where one is known. Otherwise the count of spawns actually
+	 * seen is used, since most species spawn a randomised number and no table can say.
+	 * That is a floor — it only ever grows as more of the biome is explored — so a
+	 * species can go back to incomplete after looking as though it was finished.
+	 */
+	public int required(Critter critter) {
+		if (TrackingMode.uniqueOnly()) return 1;
+		if (critter.hasQuota()) return critter.spawnQuota();
+		return Math.max(1, Math.max(seen(critter), partyCatches(critter)));
+	}
+
+	/** True once the run is finished with {@code critter} as far as is known. */
+	public boolean isComplete(Critter critter) {
+		return partyCatches(critter) >= required(critter);
+	}
+
+	/** How many more of {@code critter} are known to be left, never negative. */
 	public int remaining(Critter critter) {
-		return Math.max(0, TrackingMode.required(critter) - partyCatches(critter));
+		return Math.max(0, required(critter) - partyCatches(critter));
 	}
 
 	/**
