@@ -85,6 +85,12 @@ public final class Critters {
 		BY_NAME_LENGTH_DESC = List.copyOf(byLength);
 	}
 
+	/**
+	 * The Forest legendary. It only appears via the Birdfeeder and is not guaranteed
+	 * to show up in a run, so "everything but this" is a milestone worth its own alert.
+	 */
+	public static final Critter MACAW = BY_NAME.get("Macaw");
+
 	private Critters() {
 	}
 

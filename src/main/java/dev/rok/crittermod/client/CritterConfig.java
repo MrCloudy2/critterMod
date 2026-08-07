@@ -106,6 +106,18 @@ public class CritterConfig extends Config {
 		@ConfigOption(name = "Biome complete", desc = "Announce \"<Biome> Done!\" once every species there has been caught by someone.")
 		@ConfigEditorBoolean
 		public boolean biomeDoneNotify = false;
+
+		@ConfigOption(
+			name = "All but Macaw",
+			desc = "Announce \"Everything except Macaw done!\" when the only species left is the Macaw.\n" +
+				"§7The Macaw only comes to the Birdfeeder and is not guaranteed in a run, so this is\n" +
+				"§7usually the real finish line.")
+		@ConfigEditorBoolean
+		public boolean allButMacawNotify = false;
+
+		@ConfigOption(name = "Everything done", desc = "Announce \"Everything Done!\" once all 37 species have been caught by someone.")
+		@ConfigEditorBoolean
+		public boolean allDoneNotify = false;
 	}
 
 	public static class PartyConfig {
