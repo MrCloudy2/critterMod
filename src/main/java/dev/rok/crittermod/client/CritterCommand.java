@@ -12,6 +12,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -83,6 +84,10 @@ public final class CritterCommand {
 			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {
 				history(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("debug").executes(ctx -> {
+				debug(ctx.getSource());
 				return 1;
 			})));
 	}
@@ -213,6 +218,53 @@ public final class CritterCommand {
 
 		source.sendFeedback(prefixed("Posting %d line(s) to %s…".formatted(
 			lines.size(), asCommand ? "/" + channel.trim() : "chat"), ChatFormatting.YELLOW));
+	}
+
+	/**
+	 * Dumps every area source so the biome detection can be pinned to real client
+	 * data instead of assumptions. Run it while standing in a biome.
+	 */
+	private static void debug(FabricClientCommandSource source) {
+		source.sendFeedback(header("Area sources"));
+
+		List<String> sidebar = AreaDetector.sidebarLines();
+		source.sendFeedback(Component.literal("  sidebar (" + sidebar.size() + " lines):")
+			.withStyle(ChatFormatting.YELLOW));
+		for (String line : sidebar) {
+			source.sendFeedback(Component.literal("    | " + line).withStyle(ChatFormatting.GRAY));
+		}
+
+		// Most tab entries are player names; only metadata rows matter here.
+		List<String> interesting = AreaDetector.tabListEntries().stream()
+			.filter(e -> e.contains("Area") || e.contains("Biome") || e.contains("⏣")
+				|| e.contains("Safari") || e.contains("Zone"))
+			.toList();
+		source.sendFeedback(Component.literal("  tab list matches (" + interesting.size() + "):")
+			.withStyle(ChatFormatting.YELLOW));
+		for (String entry : interesting) {
+			source.sendFeedback(Component.literal("    | " + entry).withStyle(ChatFormatting.GRAY));
+		}
+
+		Vec3 pos = source.getPlayer().position();
+		source.sendFeedback(Component.literal("  position: %.1f %.1f %.1f"
+			.formatted(pos.x, pos.y, pos.z)).withStyle(ChatFormatting.YELLOW));
+		AreaDetector.centreDistances().forEach((biome, distance) ->
+			source.sendFeedback(Component.literal("    %-8s %.1f blocks".formatted(biome.displayName(), distance))
+				.withStyle(style(biome))));
+
+		source.sendFeedback(Component.literal("  resolved:").withStyle(ChatFormatting.YELLOW));
+		source.sendFeedback(Component.literal("    from text     " + nameOf(AreaDetector.biomeFromText()))
+			.withStyle(ChatFormatting.GRAY));
+		source.sendFeedback(Component.literal("    from position " + nameOf(AreaDetector.biomeFromPosition()))
+			.withStyle(ChatFormatting.GRAY));
+		source.sendFeedback(Component.literal("    currentBiome  " + nameOf(AreaDetector.currentBiome()))
+			.withStyle(ChatFormatting.WHITE));
+		source.sendFeedback(Component.literal("    inSafari      " + AreaDetector.inSafari()
+			+ "  (chat flag: " + SafariPresence.inSafari() + ")").withStyle(ChatFormatting.WHITE));
+	}
+
+	private static String nameOf(SafariBiome biome) {
+		return biome == null ? "none" : biome.displayName();
 	}
 
 	/** Replays this instance's log directory and reports past runs. */
