@@ -138,7 +138,7 @@ public final class CritterCommand {
 
 	private static void openSettings() {
 		Minecraft client = Minecraft.getInstance();
-		client.execute(() -> client.setScreen(new CritterSettingsScreen()));
+		client.execute(() -> client.setScreen(CritterConfigScreen.create(null)));
 	}
 
 	/**

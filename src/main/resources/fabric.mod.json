@@ -8,12 +8,17 @@
 	"license": "MIT",
 	"environment": "client",
 	"entrypoints": {
-		"client": ["dev.rok.crittermod.CritterMod"]
+		"client": ["dev.rok.crittermod.CritterMod"],
+		"modmenu": ["dev.rok.crittermod.client.ModMenuIntegration"]
 	},
 	"depends": {
 		"fabricloader": ">=0.19.0",
 		"minecraft": "${minecraft_depends}",
 		"java": ">=25",
-		"fabric-api": "*"
+		"fabric-api": "*",
+		"cloth-config": ">=26.1.0"
+	},
+	"recommends": {
+		"modmenu": "*"
 	}
 }
