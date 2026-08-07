@@ -28,6 +28,8 @@ public final class CritterCommand {
 
 	/** Wide enough to cover a biome's worth of spawns without scanning the whole map. */
 	private static final double ENTITY_SCAN_RADIUS = 48.0;
+	/** Close enough that whatever you are stood on is at the top of the list. */
+	private static final double NEARBY_SCAN_RADIUS = 8.0;
 
 	private CritterCommand() {
 	}
@@ -130,6 +132,10 @@ public final class CritterCommand {
 			}))
 			.then(ClientCommands.literal("entities").executes(ctx -> {
 				entities(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("nearby").executes(ctx -> {
+				nearby(ctx.getSource());
 				return 1;
 			})));
 
@@ -394,6 +400,55 @@ public final class CritterCommand {
 		matched.stream().limit(20).forEach(line ->
 			source.sendFeedback(Component.literal(line).withStyle(ChatFormatting.WHITE)));
 		source.sendFeedback(Component.literal("  types: " + byType).withStyle(ChatFormatting.DARK_GRAY));
+	}
+
+	/**
+	 * Dumps the closest entities of any type, so the objects critters hide inside can
+	 * be identified — shells, ice, walls, the Birdfeeder.
+	 *
+	 * <p>Only 15 of the 37 species label themselves with an armour stand. The rest are
+	 * behind something breakable or interactive, which shows up as an unnamed
+	 * interaction or display entity. Stand on one and run this to see what it is.
+	 */
+	private static void nearby(FabricClientCommandSource source) {
+		Minecraft client = source.getClient();
+		if (client.level == null) {
+			source.sendError(prefixed("No world loaded.", ChatFormatting.RED));
+			return;
+		}
+
+		Vec3 origin = source.getPlayer().position();
+		record Near(double distance, String line) {
+		}
+		List<Near> found = new ArrayList<>();
+
+		for (Entity entity : client.level.entitiesForRendering()) {
+			double distance = Math.sqrt(entity.position().distanceToSqr(origin));
+			if (distance > NEARBY_SCAN_RADIUS) continue;
+
+			String type = entity.getType().toString();
+			type = type.substring(type.lastIndexOf('.') + 1);
+			String custom = entity.hasCustomName() ? stripCodes(entity.getCustomName().getString()) : "";
+			String display = stripCodes(entity.getDisplayName().getString());
+			// The display name falls back to the type for unnamed entities, which is
+			// noise here; only show it when it says something the type does not.
+			String label = !custom.isEmpty() ? custom
+				: display.equalsIgnoreCase(type.replace('_', ' ')) ? "" : display;
+
+			found.add(new Near(distance, "  %-16s %4.1fm  %d %d %d  %s".formatted(
+				type, distance,
+				entity.blockPosition().getX(), entity.blockPosition().getY(),
+				entity.blockPosition().getZ(),
+				label.isEmpty() ? "-" : label)));
+		}
+
+		found.sort((a, b) -> Double.compare(a.distance(), b.distance()));
+		source.sendFeedback(header("Closest entities within %.0f blocks".formatted(NEARBY_SCAN_RADIUS)));
+		found.stream().limit(18).forEach(n ->
+			source.sendFeedback(Component.literal(n.line()).withStyle(ChatFormatting.WHITE)));
+		if (found.isEmpty()) {
+			source.sendFeedback(Component.literal("  nothing in range").withStyle(ChatFormatting.DARK_GRAY));
+		}
 	}
 
 	private static String stripCodes(String text) {

@@ -39,6 +39,8 @@ public final class CritterSpotter {
 		if (++ticks < SCAN_INTERVAL_TICKS) return;
 		ticks = 0;
 
+		if (!ConfigManager.get().display.countSpawns) return;
+
 		SafariSession session = SessionManager.current();
 		if (session == null || !AreaDetector.inSafari()) return;
 
