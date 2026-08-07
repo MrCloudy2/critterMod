@@ -3,6 +3,7 @@ package dev.rok.crittermod.session;
 import dev.rok.crittermod.client.AreaDetector;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.SafariPresence;
+import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
@@ -139,6 +140,7 @@ public final class SessionManager {
 		announcedAllButMacaw = false;
 		announcedAllDone = false;
 		EncounterAlerts.reset();
+		TraderWatch.reset();
 	}
 
 	private static void endSession() {
