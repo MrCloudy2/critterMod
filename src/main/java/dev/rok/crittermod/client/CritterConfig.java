@@ -54,6 +54,9 @@ public class CritterConfig extends Config {
 	@Category(name = "Party", desc = "What gets announced to your team")
 	public PartyConfig party = new PartyConfig();
 
+	@Category(name = "Advanced", desc = "Diagnostics and unfinished work")
+	public AdvancedConfig advanced = new AdvancedConfig();
+
 	public static class DisplayConfig {
 
 		@ConfigOption(name = "Progress HUD", desc = "Top-left panel: run timer, party and personal dex, a bar per biome.")
@@ -142,6 +145,26 @@ public class CritterConfig extends Config {
 		public float missingY = 0.006f;
 		public float tradesX = 0.006f;
 		public float tradesY = 0.62f;
+	}
+
+	public static class AdvancedConfig {
+
+		@ConfigOption(
+			name = "Diagnostic commands",
+			desc = "Register /critters debug, entities, nearby and block.\n" +
+				"§7Tools for working out how the Safari represents things; of no use in a\n" +
+				"§7normal run. Takes effect on the next world join, since commands are\n" +
+				"§7registered as you connect.")
+		@ConfigEditorBoolean
+		public boolean debugCommands = false;
+
+		@ConfigOption(
+			name = "Rockmite mounds",
+			desc = "Count the mounds broken this run and how many held a Rockmite.\n" +
+				"§7Off by default: only the outcome is known, from chat. How many mounds are\n" +
+				"§7left nearby needs whatever a mound is to the client, which is still open.")
+		@ConfigEditorBoolean
+		public boolean showMounds = false;
 	}
 
 	public static class AlertConfig {
