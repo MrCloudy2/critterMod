@@ -54,7 +54,9 @@ public final class SessionManager {
 			return;
 		}
 
-		if (!wasInSafari) return;
+		// A session can also be opened by a catch arriving, so closing must not depend
+		// on this path having opened it.
+		if (!wasInSafari && current == null) return;
 		if (++ticksOutsideSafari < LEAVE_GRACE_TICKS) return;
 		endSession();
 		wasInSafari = false;
@@ -80,7 +82,7 @@ public final class SessionManager {
 		// A catch or capsule throw only happens inside the Safari, so it is proof of
 		// presence in its own right. Relying on the entry banner alone would leave
 		// the mod blind after joining mid-run or missing that one message.
-		SafariPresence.set(true);
+		SafariPresence.enter(AreaDetector.islandLine());
 
 		if (current == null) startSession();
 		current.record(event, System.currentTimeMillis());
