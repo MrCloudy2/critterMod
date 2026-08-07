@@ -33,8 +33,21 @@ public final class CritterHud implements HudElement {
 		if (client.player == null || client.options.hideGui) return;
 		if (config.display.onlyInSafari && SessionManager.current() == null) return;
 
+		HudPanel panel = buildPanel();
+		if (panel == null) return;
+
+		HudBox box = HudBox.PROGRESS;
+		panel.render(graphics, client.font,
+			box.pixelX(graphics.guiWidth(), panel, client.font),
+			box.pixelY(graphics.guiHeight(), panel, client.font),
+			box.scale());
+	}
+
+	/** Builds the panel for the current run, or {@code null} when there is nothing to show. */
+	static HudPanel buildPanel() {
+		CritterConfig config = ConfigManager.get();
 		SafariSession session = SessionManager.currentOrLast();
-		if (session == null) return;
+		if (session == null) return null;
 
 		int total = Critters.total();
 		boolean live = SessionManager.current() != null;
@@ -67,7 +80,7 @@ public final class CritterHud implements HudElement {
 			}
 		}
 
-		panel.render(graphics, client.font, config.display.hudX, config.display.hudY, false);
+		return panel;
 	}
 
 	/** A player's coverage as {@code "Icy 9, Haunted 2"}, busiest biome first. */

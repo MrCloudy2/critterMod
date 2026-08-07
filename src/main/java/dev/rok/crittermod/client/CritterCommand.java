@@ -126,14 +126,24 @@ public final class CritterCommand {
 		}));
 
 		// Settings live on their own command so the run view stays a single keystroke.
-		dispatcher.register(ClientCommands.literal("crittermod").executes(ctx -> {
-			openSettings();
-			return 1;
-		}));
-		dispatcher.register(ClientCommands.literal("cm").executes(ctx -> {
-			openSettings();
-			return 1;
-		}));
+		dispatcher.register(ClientCommands.literal("crittermod")
+			.executes(ctx -> {
+				openSettings();
+				return 1;
+			})
+			.then(ClientCommands.literal("gui").executes(ctx -> {
+				HudEditorScreen.open();
+				return 1;
+			})));
+		dispatcher.register(ClientCommands.literal("cm")
+			.executes(ctx -> {
+				openSettings();
+				return 1;
+			})
+			.then(ClientCommands.literal("gui").executes(ctx -> {
+				HudEditorScreen.open();
+				return 1;
+			})));
 	}
 
 	private static void openSettings() {

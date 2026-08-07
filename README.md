@@ -72,6 +72,7 @@ someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 |---|---|
 | `/critters`, `/ct` | Open the run screen |
 | `/crittermod`, `/cm` | Open the settings screen |
+| `/cm gui` | Open the drag-to-place HUD editor |
 | `/critters text` | The same summary printed to chat instead |
 | `/critters missing` | Species nobody has caught yet, grouped by biome |
 | `/critters players` | Unique catches per player per biome |
@@ -92,7 +93,13 @@ built with **MoulConfig** — the same config GUI SkyHanni uses, by Moulberry an
 so it is the framed, searchable panel you already know. Also reachable from the Config
 button in Mod Menu. Options are grouped into Display, Alerts and Party, and MoulConfig
 owns saving, so edits persist as you make them. Values live in
-`config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
+`config/crittermod.json`.
+
+**Edit positions** (in Display, or `/cm gui`) opens a drag-to-place editor for the
+on-screen boxes: drag one to move it, scroll over it to resize. Boxes with nothing to
+show appear as labelled placeholders, so positions can be set outside a run. Positions
+are stored as fractions of the screen, so a box stays where you put it across
+resolution and GUI-scale changes. Each box also has a scale slider in the settings (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
 `bossAlerts`, `bossPartyNotify`, `biomeDoneNotify`, `shareCommand`, `onlyInSafari`,
 `hudX`, `hudY`).
 
