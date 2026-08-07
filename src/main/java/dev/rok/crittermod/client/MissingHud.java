@@ -24,6 +24,7 @@ public final class MissingHud implements HudElement {
 
 	private static final int DONE = 0xFF55FF55;
 	private static final int DIM = 0xFF888888;
+	private static final int WALL = 0xFFFFAA00;
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
@@ -77,6 +78,37 @@ public final class MissingHud implements HudElement {
 			}
 		}
 
+		appendWalls(panel, biome);
 		return panel;
+	}
+
+	/**
+	 * Lists the Cavern walls still to break. They want doing every run to check behind
+	 * them, and being blocks rather than entities they can be read exactly.
+	 */
+	private static void appendWalls(HudPanel panel, SafariBiome biome) {
+		if (biome != SafariBiome.CAVERN) return;
+		if (!ConfigManager.get().display.showWalls) return;
+
+		List<WallTracker.Wall> walls = WallTracker.walls();
+		if (walls.isEmpty()) return;
+
+		long intact = walls.stream().filter(w -> w.state() == WallTracker.State.INTACT).count();
+		long unknown = walls.stream().filter(w -> w.state() == WallTracker.State.UNKNOWN).count();
+		if (intact == 0 && unknown == 0) {
+			panel.blank();
+			panel.line("walls all broken", DONE);
+			return;
+		}
+
+		panel.blank();
+		panel.title("Walls to break: " + intact + (unknown > 0 ? " (+" + unknown + "?)" : ""), WALL);
+		for (WallTracker.Wall wall : walls) {
+			if (wall.state() == WallTracker.State.BROKEN) continue;
+			String mark = wall.state() == WallTracker.State.UNKNOWN ? "?" : "";
+			panel.pair("  %d %d %d%s".formatted(
+					wall.pos().getX(), wall.pos().getY(), wall.pos().getZ(), mark),
+				"%dm".formatted(Math.round(wall.distance())), WALL, DIM);
+		}
 	}
 }
