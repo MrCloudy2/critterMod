@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
-import java.util.UUID;
 
 /**
  * Tally for one Critter Safari run, from entry until the player leaves.
@@ -38,8 +37,14 @@ public final class SafariSession {
 	/** critter -> partymate name -> how many times they caught it. */
 	private final Map<Critter, Map<String, Integer>> sharedCatches = new LinkedHashMap<>();
 	private final Set<Critter> sparklings = new LinkedHashSet<>();
-	/** Distinct label entities seen per species — how many actually spawned. */
-	private final Map<Critter, Set<UUID>> seenEntities = new LinkedHashMap<>();
+	/**
+	 * How many of each species are loaded right now, replaced wholesale each scan.
+	 *
+	 * <p>Deliberately not cumulative. Counting distinct entity ids over time measures
+	 * how many entity instances have been observed, not how many exist: a critter that
+	 * escapes a capsule comes back as a new entity, so the total climbs forever.
+	 */
+	private final Map<Critter, Integer> nearbyCounts = new LinkedHashMap<>();
 
 	private int ownShards;
 	private int sharedShards;
@@ -109,29 +114,28 @@ public final class SafariSession {
 		return caughtByYou(critter) || sharedCatches.containsKey(critter);
 	}
 
-	/** Records a distinct label entity for {@code critter}; repeats are ignored. */
-	public void markSeen(Critter critter, UUID entityId) {
-		seenEntities.computeIfAbsent(critter, c -> new LinkedHashSet<>()).add(entityId);
+	/** Replaces the live nearby counts with a fresh scan of what is loaded. */
+	public void setNearby(Map<Critter, Integer> counts) {
+		nearbyCounts.clear();
+		nearbyCounts.putAll(counts);
 	}
 
-	/** How many distinct spawns of {@code critter} have been seen in the world. */
-	public int seen(Critter critter) {
-		return seenEntities.getOrDefault(critter, Set.of()).size();
+	/** How many of {@code critter} are loaded near the player right now. */
+	public int nearby(Critter critter) {
+		return nearbyCounts.getOrDefault(critter, 0);
 	}
 
 	/**
 	 * How many of {@code critter} the run is considered to hold.
 	 *
-	 * <p>A fixed quota wins where one is known. Otherwise the count of spawns actually
-	 * seen is used, since most species spawn a randomised number and no table can say.
-	 * That is a floor — it only ever grows as more of the biome is explored — so a
-	 * species can go back to incomplete after looking as though it was finished.
+	 * <p>Only a fixed quota can answer this. The client cannot see the whole map, and a
+	 * partymate catching something out of render distance is never observed at all, so
+	 * nothing counted locally is a valid target — it would be wrong in exactly the
+	 * four-player runs this mod exists for.
 	 */
 	public int required(Critter critter) {
 		if (TrackingMode.uniqueOnly()) return 1;
-		if (critter.hasQuota()) return critter.spawnQuota();
-		if (!TrackingMode.countSpawns()) return 1;
-		return Math.max(1, Math.max(seen(critter), partyCatches(critter)));
+		return critter.hasQuota() ? critter.spawnQuota() : 1;
 	}
 
 	/** True once the run is finished with {@code critter} as far as is known. */
