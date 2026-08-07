@@ -132,6 +132,21 @@ public final class SafariSession {
 			.mapToInt(Integer::intValue).sum();
 	}
 
+	/** How many times {@code critter} was caught this run by anyone in the party. */
+	public int partyCatches(Critter critter) {
+		int shared = sharedCatches.getOrDefault(critter, Map.of()).values().stream()
+			.mapToInt(Integer::intValue).sum();
+		return ownCatches.getOrDefault(critter, 0) + shared;
+	}
+
+	/** Who caught {@code critter} this run, local player included, in catch order. */
+	public List<String> catchersOf(Critter critter) {
+		List<String> names = new ArrayList<>();
+		if (caughtByYou(critter)) names.add(selfName);
+		names.addAll(sharedCatches.getOrDefault(critter, Map.of()).keySet());
+		return names;
+	}
+
 	/** True once every species in {@code biome} has been caught by someone. */
 	public boolean biomeComplete(SafariBiome biome) {
 		return partyUnique(biome) == Critters.totalIn(biome);
