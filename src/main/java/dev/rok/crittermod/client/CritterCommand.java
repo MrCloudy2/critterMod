@@ -13,15 +13,21 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import java.util.Map;
 
 /** {@code /critters} — reports the current run in chat. */
 public final class CritterCommand {
+
+	/** Wide enough to cover a biome's worth of spawns without scanning the whole map. */
+	private static final double ENTITY_SCAN_RADIUS = 48.0;
 
 	private CritterCommand() {
 	}
@@ -120,6 +126,10 @@ public final class CritterCommand {
 			}))
 			.then(ClientCommands.literal("debug").executes(ctx -> {
 				debug(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("entities").executes(ctx -> {
+				entities(ctx.getSource());
 				return 1;
 			})));
 
@@ -337,6 +347,57 @@ public final class CritterCommand {
 
 	private static String nameOf(SafariBiome biome) {
 		return biome == null ? "none" : biome.displayName();
+	}
+
+	/**
+	 * Dumps nearby entities so critter mobs can be identified from real data.
+	 *
+	 * <p>Groundwork for counting how many of a species actually spawned this run: most
+	 * species spawn a randomised number, so no static table can say how many there are
+	 * to catch. Seeing them as entities could.
+	 */
+	private static void entities(FabricClientCommandSource source) {
+		Minecraft client = source.getClient();
+		if (client.level == null) {
+			source.sendError(prefixed("No world loaded.", ChatFormatting.RED));
+			return;
+		}
+
+		Vec3 origin = source.getPlayer().position();
+		List<String> matched = new ArrayList<>();
+		Map<String, Integer> byType = new TreeMap<>();
+		int total = 0;
+
+		for (Entity entity : client.level.entitiesForRendering()) {
+			double distance = Math.sqrt(entity.position().distanceToSqr(origin));
+			if (distance > ENTITY_SCAN_RADIUS) continue;
+			total++;
+
+			String type = entity.getType().toString();
+			type = type.substring(type.lastIndexOf('.') + 1);
+			byType.merge(type, 1, Integer::sum);
+
+			String custom = entity.hasCustomName() ? stripCodes(entity.getCustomName().getString()) : "";
+			String display = stripCodes(entity.getDisplayName().getString());
+			String label = !custom.isEmpty() ? custom : display;
+			Critter critter = label.isEmpty() ? null : Critters.findIn(label);
+			if (critter == null) continue;
+
+			matched.add("  %-13s %-9s %.0fm  %s  uuid %s".formatted(
+				critter.name(), type, distance, label,
+				entity.getUUID().toString().substring(0, 8)));
+		}
+
+		source.sendFeedback(header("Entities within %.0f blocks: %d".formatted(ENTITY_SCAN_RADIUS, total)));
+		source.sendFeedback(Component.literal("  matching a critter name: " + matched.size())
+			.withStyle(ChatFormatting.YELLOW));
+		matched.stream().limit(20).forEach(line ->
+			source.sendFeedback(Component.literal(line).withStyle(ChatFormatting.WHITE)));
+		source.sendFeedback(Component.literal("  types: " + byType).withStyle(ChatFormatting.DARK_GRAY));
+	}
+
+	private static String stripCodes(String text) {
+		return text.replaceAll("\u00a7.", "").replaceAll("[\\p{Cf}\\p{Co}]", "").trim();
 	}
 
 	/** Replays this instance's log directory and reports past runs. */
