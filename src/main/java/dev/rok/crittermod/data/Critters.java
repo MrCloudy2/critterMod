@@ -19,6 +19,10 @@ import java.util.Map;
  * 21 of 23, Hideyho on 1 in 20 of 22. Species without a quota show no such ceiling:
  * Honeybug ranged from 1 to 13.
  *
+ * <p>The Macaw looks quota-like in the logs (2 in 4 of the 5 runs that caught one) but
+ * has none: it is Birdfeeder RNG, can come more than once, and is not guaranteed at
+ * all. Five runs was simply too small a sample to tell those apart.
+ *
  * <p>Species names are matched against chat text, so the longest names must be
  * tried first — "Mantis Shrimp" would otherwise never match if a shorter name
  * were a prefix of it. {@link #findIn(String)} handles that ordering.
@@ -35,7 +39,7 @@ public final class Critters {
 		new Critter("Fluffling", SafariBiome.FOREST, Rarity.RARE),
 		new Critter("Hideonfloor", SafariBiome.FOREST, Rarity.RARE),
 		new Critter("Parakeet", SafariBiome.FOREST, Rarity.RARE),
-		new Critter("Macaw", SafariBiome.FOREST, Rarity.LEGENDARY, 2),
+		new Critter("Macaw", SafariBiome.FOREST, Rarity.LEGENDARY),
 
 		// --- Cavern (9) ---
 		new Critter("Cavernfish", SafariBiome.CAVERN, Rarity.COMMON),
