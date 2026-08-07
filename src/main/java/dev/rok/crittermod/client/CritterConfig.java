@@ -70,8 +70,8 @@ public class CritterConfig extends Config {
 				"§7Off by default: species that spawn a fixed number of times per run stay\n" +
 				"§7listed until every one is caught, so a run is only finished when it has\n" +
 				"§7given up every shard it can.\n" +
-				"§7Quotas: §fMacaw 2 · Gemzie 3 · Billygoat 1 · Troodon 3 · Wumpa 1 ·\n" +
-				"§fGazer 2 · Hideyho 1 · Doomspiral 1")
+				"§7Quotas: §fGemzie 3 · Troodon 3 · Gazer 2 · Billygoat 1 · Hideyho 1 ·\n" +
+				"§fWumpa 1 · Doomspiral 1")
 		@ConfigEditorBoolean
 		public boolean uniqueOnly = false;
 
