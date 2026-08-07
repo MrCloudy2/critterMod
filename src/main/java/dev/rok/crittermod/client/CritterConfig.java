@@ -103,6 +103,15 @@ public class CritterConfig extends Config {
 		public boolean showWalls = true;
 
 		@ConfigOption(
+			name = "Bee nests",
+			desc = "List the bee nests still to punch, under the Forest missing list.\n" +
+				"§7Honeybugs come from these. They have no fixed positions, so they are found\n" +
+				"§7by sweeping nearby blocks — the count is nests you have come across, not\n" +
+				"§7every nest on the map.")
+		@ConfigEditorBoolean
+		public boolean showNests = true;
+
+		@ConfigOption(
 			name = "Hunter trade tracker",
 			desc = "Box listing the Hunter NPC offers found this run, nearest first.\n" +
 				"§7The chat report scrolls away; this keeps them to hand.")
