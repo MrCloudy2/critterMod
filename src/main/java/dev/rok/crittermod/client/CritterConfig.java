@@ -78,11 +78,11 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(name = "Progress HUD scale", desc = "Size of the top-left panel.")
 		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
-		public float progressScale = 1.0f;
+		public float progressScale = HudBox.DEFAULT_SCALE;
 
 		@ConfigOption(name = "Missing panel scale", desc = "Size of the missing-species list.")
 		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
-		public float missingScale = 1.0f;
+		public float missingScale = HudBox.DEFAULT_SCALE;
 
 		// Positions are fractions of the screen, so a box stays put across resolution
 		// and GUI-scale changes. Set by dragging in the editor, not by hand.

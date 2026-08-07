@@ -152,7 +152,7 @@ public final class HudEditorScreen extends Screen {
 
 	private void resetAll() {
 		for (HudBox box : HudBox.values()) {
-			box.setScale(1.0f);
+			box.setScale(HudBox.DEFAULT_SCALE);
 		}
 		HudBox.PROGRESS.setPosition(0.004f, 0.006f);
 		HudBox.MISSING.setPosition(0.78f, 0.006f);

@@ -7,6 +7,43 @@ The Critterdex records what you've caught *ever*. This mod answers a different
 question: **what has this party caught since we walked in?** — which is what you
 actually need when four people split the island one biome each.
 
+## Commands
+
+| Command | Effect |
+|---|---|
+| `/critters`, `/ct` | Open the run screen |
+| `/crittermod`, `/cm` | Open the settings |
+| `/cm gui` | Drag-to-place HUD editor |
+| `/critters missing` | What nobody has caught yet, per biome |
+| `/critters copy` | Copy that list to the clipboard |
+| `/critters share` | Post it to party chat |
+| `/critters players` | Unique catches per player per biome |
+| `/critters text` | The run summary as chat text |
+| `/critters reset` | Clear the current run |
+| `/critters history` | Replay this instance's logs, list past runs |
+| `/critters testalert` | Fire every alert now, to check them |
+| `/critters debug` | Dump area detection sources |
+
+Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` ·
+`notify` · `biomedone`.
+
+## What you get
+
+- **Per-run counters** — your unique/total and the party's, globally (/37) and per
+  biome. Party numbers come from `LOOT SHARE!`, which names the catcher, so
+  per-player progress works with no party API.
+- **Run screen** (`/ct`) — every species by biome, colour-coded green/aqua/grey for
+  caught-by-you / by-a-partymate / by-nobody.
+- **Two HUD boxes** — overall progress, and what is still missing in the biome you are
+  standing in. Both movable and resizable.
+- **Encounter alerts** — Gemzie, Wumpa and Doomspiral tracked ready → started → done,
+  with optional party-chat announcements.
+- **Biome complete** — optional `<Biome> Done!` when a biome's last species falls.
+- **Log replay** — reconstruct past runs from rotated chat logs, in game or offline.
+
+Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
+MoulConfig is bundled. Mod Menu is optional.
+
 ## What it counts
 
 Everything derives from one table of "who caught what, this run":
@@ -66,27 +103,7 @@ few minutes and ready/done can be seconds apart.
 **Biome complete** — off by default. When every species in a biome has been caught by
 someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 
-## Usage
-
-| Command | Effect |
-|---|---|
-| `/critters`, `/ct` | Open the run screen |
-| `/crittermod`, `/cm` | Open the settings screen |
-| `/cm gui` | Open the drag-to-place HUD editor |
-| `/critters text` | The same summary printed to chat instead |
-| `/critters missing` | Species nobody has caught yet, grouped by biome |
-| `/critters players` | Unique catches per player per biome |
-| `/critters copy` | Copy the missing list to the clipboard, and preview it |
-| `/critters share` | Post the same list to party chat |
-| `/critters reset` | Clear the current run's tallies |
-| `/critters hud` | Toggle the main overlay |
-| `/critters panel` | Toggle the top-right missing list |
-| `/critters alerts` | Toggle the on-screen encounter banners |
-| `/critters notify` | Toggle party-chat announcements |
-| `/critters biomedone` | Toggle "<Biome> Done!" alerts (off by default) |
-| `/critters testalert` | Walk every alert stage now, to check them anywhere |
-| `/critters history` | Replay this instance's logs and list past runs |
-| `/critters debug` | Dump every area source and what each resolves to |
+## Settings
 
 The HUD appears automatically while you're in the Safari. `/cm` opens the settings,
 built with **MoulConfig** — the same config GUI SkyHanni uses, by Moulberry and nea89 —
@@ -115,8 +132,8 @@ Haunted missing: Bloodbat
 
 `copy` puts it on the clipboard and prints a preview; `share` posts it. Lines are
 queued and sent 1.2s apart, because Hypixel silently drops a burst of messages sent
-in the same tick. The channel is `shareCommand` in the config — `pc` (party, the
-default), `ac` (all chat), or blank for normal chat.
+in the same tick. **Post to** in the Party settings picks the channel — party chat (the
+default), all chat, or normal chat.
 
 Across 43 real runs the longest line came to 109 characters, well inside the 250-char
 server limit, so the report never has to be split.
