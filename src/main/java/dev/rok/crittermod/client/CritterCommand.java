@@ -18,6 +18,7 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
@@ -481,9 +482,9 @@ public final class CritterCommand {
 	/**
 	 * Reports the block under the crosshair, and what surrounds it.
 	 *
-	 * <p>Mounds do not show up as named entities, and they are hit repeatedly rather
-	 * than interacted with, so they are almost certainly blocks. Naming the block is
-	 * the one thing needed to count them the way the Cavern walls are counted.
+	 * <p>Reports an entity or a block, whichever it is. A mound draws an entity outline
+	 * and no block outline, so it is an entity of some kind — naming its type is the one
+	 * thing needed before mounds can be counted.
 	 */
 	private static void block(FabricClientCommandSource source) {
 		Minecraft client = source.getClient();
@@ -491,8 +492,30 @@ public final class CritterCommand {
 			source.sendError(prefixed("No world loaded.", ChatFormatting.RED));
 			return;
 		}
-		if (client.hitResult == null || client.hitResult.getType() != HitResult.Type.BLOCK) {
-			source.sendError(prefixed("Look directly at a block first.", ChatFormatting.RED));
+		if (client.hitResult == null || client.hitResult.getType() == HitResult.Type.MISS) {
+			source.sendError(prefixed("Look directly at something first.", ChatFormatting.RED));
+			return;
+		}
+
+		// A mound draws an entity outline rather than a block outline, so whatever the
+		// crosshair is on has to be reported either way.
+		if (client.hitResult.getType() == HitResult.Type.ENTITY) {
+			Entity hit = ((EntityHitResult) client.hitResult).getEntity();
+			source.sendFeedback(header("Entity under crosshair"));
+			source.sendFeedback(Component.literal("  type    "
+				+ BuiltInRegistries.ENTITY_TYPE.getKey(hit.getType())).withStyle(ChatFormatting.WHITE));
+			source.sendFeedback(Component.literal("  name    "
+				+ (hit.hasCustomName() ? stripCodes(hit.getCustomName().getString()) : "(none)"))
+				.withStyle(ChatFormatting.AQUA));
+			source.sendFeedback(Component.literal("  display " + stripCodes(hit.getDisplayName().getString()))
+				.withStyle(ChatFormatting.GRAY));
+			source.sendFeedback(Component.literal("  at      %d %d %d   uuid %s".formatted(
+				hit.blockPosition().getX(), hit.blockPosition().getY(), hit.blockPosition().getZ(),
+				hit.getUUID().toString().substring(0, 8))).withStyle(ChatFormatting.GRAY));
+			source.sendFeedback(Component.literal("  glowing %s   invisible %s   box %.2f x %.2f".formatted(
+				hit.isCurrentlyGlowing(), hit.isInvisible(),
+				hit.getBoundingBox().getXsize(), hit.getBoundingBox().getYsize()))
+				.withStyle(ChatFormatting.DARK_GRAY));
 			return;
 		}
 
