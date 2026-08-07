@@ -4,6 +4,7 @@ import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.MissingHud;
+import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.WumpaAlert;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.session.SessionManager;
@@ -38,6 +39,7 @@ public class CritterMod implements ClientModInitializer {
 			if (overlay) return;
 			String line = ChatParser.clean(message.getString());
 			if (line.isEmpty()) return;
+			SafariPresence.onChatMessage(line);
 			SessionManager.onChatMessage(line);
 			WumpaAlert.onChatMessage(line);
 		});
