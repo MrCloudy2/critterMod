@@ -101,17 +101,34 @@ public final class SafariSession {
 
 	// --- party progress (yours + loot share) ---------------------------------
 
+	/** True once anyone in the party has caught {@code critter} at least once. */
 	public boolean caughtByParty(Critter critter) {
 		return caughtByYou(critter) || sharedCatches.containsKey(critter);
 	}
 
-	/** Distinct species caught by anyone in the party, out of {@link Critters#total()}. */
+	/**
+	 * True once {@code critter} is finished with under the current
+	 * {@link TrackingMode} — every spawn taken, or just one when counting uniques.
+	 */
+	public boolean isComplete(Critter critter) {
+		return partyCatches(critter) >= TrackingMode.required(critter);
+	}
+
+	/** How many more of {@code critter} the run still has to give, never negative. */
+	public int remaining(Critter critter) {
+		return Math.max(0, TrackingMode.required(critter) - partyCatches(critter));
+	}
+
+	/**
+	 * Species finished with, out of {@link Critters#total()} — the number the progress
+	 * bars and completion alerts work from, so it follows the tracking mode.
+	 */
 	public int partyUnique() {
-		return (int) Critters.all().stream().filter(this::caughtByParty).count();
+		return (int) Critters.all().stream().filter(this::isComplete).count();
 	}
 
 	public int partyUnique(SafariBiome biome) {
-		return (int) Critters.inBiome(biome).stream().filter(this::caughtByParty).count();
+		return (int) Critters.inBiome(biome).stream().filter(this::isComplete).count();
 	}
 
 	/** Every catch by anyone in the party, duplicates included. */
@@ -157,7 +174,7 @@ public final class SafariSession {
 	 * whether or not the exception itself has been.
 	 */
 	public boolean allCaughtExcept(Critter exception) {
-		return Critters.all().stream().allMatch(c -> c.equals(exception) || caughtByParty(c));
+		return Critters.all().stream().allMatch(c -> c.equals(exception) || isComplete(c));
 	}
 
 	/** True once all 37 species have been caught by someone this run. */
@@ -165,9 +182,9 @@ public final class SafariSession {
 		return partyUnique() == Critters.total();
 	}
 
-	/** Species in {@code biome} that nobody has caught yet this run. */
+	/** Species in {@code biome} the run is not finished with yet. */
 	public List<Critter> missing(SafariBiome biome) {
-		return Critters.inBiome(biome).stream().filter(c -> !caughtByParty(c)).toList();
+		return Critters.inBiome(biome).stream().filter(c -> !isComplete(c)).toList();
 	}
 
 	// --- per-player breakdown ------------------------------------------------

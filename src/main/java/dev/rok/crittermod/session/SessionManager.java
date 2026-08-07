@@ -1,6 +1,7 @@
 package dev.rok.crittermod.session;
 
 import dev.rok.crittermod.client.AreaDetector;
+import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.TraderWatch;
@@ -50,6 +51,8 @@ public final class SessionManager {
 
 	/** Called every client tick to open/close runs as the player moves around. */
 	public static void tick() {
+		TrackingMode.setUniqueOnly(ConfigManager.get().display.uniqueOnly);
+
 		// Being at the Safari — including its entrance — keeps a run open. Runs are
 		// opened by the entry message or the first catch, never from here: the
 		// entrance counts as "at the Safari", so starting here would open an empty
