@@ -1,24 +1,27 @@
 package dev.rok.crittermod.client;
 
+import dev.rok.crittermod.data.Critter;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.parse.TraderParser;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.phys.Vec3;
-import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
- * Reports the roaming Hunter NPCs' shard-for-item trades.
+ * Watches the roaming Hunter NPCs' shard-for-item trades.
  *
- * <p>Those dialogs are only shown to whoever clicked the NPC, so a trade nobody in the
- * party can use goes unmentioned while someone else is carrying the very item it
- * wants. This prints each offer with the biome it was found in, and can post the same
- * line to party chat.
+ * <p>Their dialog is only shown to whoever clicked them, so an offer routinely goes
+ * unused while a partymate is carrying exactly the item it wants. Each complete offer
+ * is reported to chat, optionally posted to the party, and kept for the on-screen
+ * tracker so it can still be found later in the run.
  */
 public final class TraderWatch {
 
@@ -26,24 +29,38 @@ public final class TraderWatch {
 	private static final long REPEAT_COOLDOWN_MILLIS = 5 * 60 * 1000L;
 	/** You are stood at the NPC when its dialog opens, so it is well within this. */
 	private static final double SEARCH_RADIUS = 12.0;
+	/** Bounds the tracker box; the oldest trade drops off beyond this. */
+	private static final int MAX_TRACKED = 6;
 
 	private static final TraderParser PARSER = new TraderParser();
 	private static final Map<String, Long> announced = new HashMap<>();
-	/** Speaker -> where the player stood when that NPC opened its offer. */
+	/** Speaker -> where their offer was found, until the price line completes it. */
 	private static final Map<String, Spot> offerSpots = new HashMap<>();
+	private static final List<Trade> found = new ArrayList<>();
 
-	/** Where an offer was found: coordinates, and the biome if one could be resolved. */
-	private record Spot(int x, int y, int z, SafariBiome biome) {
-		String describe() {
-			String where = "%d %d %d".formatted(x, y, z);
-			return biome == null ? where : biome.displayName() + " " + where;
+	/** Where an offer was found. */
+	public record Spot(int x, int y, int z, SafariBiome biome) {
+		public String describe() {
+			String coords = "%d %d %d".formatted(x, y, z);
+			return biome == null ? coords : biome.displayName() + " " + coords;
 		}
+
+		/** Straight-line distance from the player, or -1 when there is no player. */
+		public double distanceFromPlayer() {
+			Minecraft client = Minecraft.getInstance();
+			if (client.player == null) return -1;
+			return Math.sqrt(client.player.position().distanceToSqr(x + 0.5, y + 0.5, z + 0.5));
+		}
+	}
+
+	/** One resolved trade: {@code npc} hands over {@code critter}'s shard for {@code item}. */
+	public record Trade(String npc, Critter critter, String item, Spot spot) {
 	}
 
 	private TraderWatch() {
 	}
 
-	/** Feeds one cleaned chat line; announces when a trade becomes complete. */
+	/** Feeds one cleaned chat line; records and announces when a trade becomes complete. */
 	public static void onChatMessage(String line) {
 		TraderParser.TradeOffer offer = PARSER.parse(line);
 
@@ -59,7 +76,6 @@ public final class TraderWatch {
 		}
 
 		if (offer == null) return;
-		if (!ConfigManager.get().alerts.traderAlerts) return;
 
 		String key = offer.npc() + "|" + offer.critter().name() + "|" + offer.item();
 		long now = System.currentTimeMillis();
@@ -68,15 +84,23 @@ public final class TraderWatch {
 		announced.put(key, now);
 
 		Spot spot = offerSpots.remove(offer.npc());
-		String where = spot == null ? "" : " (" + spot.describe() + ")";
 
+		// Recorded even when the chat report is off, so the on-screen tracker still
+		// works for anyone who would rather not have the chat lines.
+		found.removeIf(t -> t.npc().equals(offer.npc()));
+		found.add(new Trade(offer.npc(), offer.critter(), offer.item(), spot));
+		while (found.size() > MAX_TRACKED) found.removeFirst();
+
+		if (!ConfigManager.get().alerts.traderAlerts) return;
+
+		String where = spot == null ? "" : " (" + spot.describe() + ")";
 		Minecraft client = Minecraft.getInstance();
 		if (client.gui != null) {
 			client.gui.getChat().addClientSystemMessage(
 				Component.literal("[Critters] ").withStyle(ChatFormatting.GOLD)
 					.append(Component.literal(offer.npc() + where + ": ").withStyle(ChatFormatting.AQUA))
 					.append(Component.literal(offer.critter().name() + " Shard")
-						.withStyle(style(offer)))
+						.withStyle(rarityStyle(offer.critter())))
 					.append(Component.literal(" for ").withStyle(ChatFormatting.GRAY))
 					.append(Component.literal(offer.item()).withStyle(ChatFormatting.YELLOW)));
 		}
@@ -123,9 +147,9 @@ public final class TraderWatch {
 		return name != null && name.getString().replaceAll("§.", "").contains(npcName);
 	}
 
-	/** Legendaries stand out, since those are the trades worth going out of your way for. */
-	private static ChatFormatting style(TraderParser.TradeOffer offer) {
-		return switch (offer.critter().rarity()) {
+	/** Legendaries stand out, since those are the trades worth crossing the map for. */
+	static ChatFormatting rarityStyle(Critter critter) {
+		return switch (critter.rarity()) {
 			case LEGENDARY -> ChatFormatting.GOLD;
 			case EPIC -> ChatFormatting.LIGHT_PURPLE;
 			case RARE -> ChatFormatting.BLUE;
@@ -144,10 +168,16 @@ public final class TraderWatch {
 		return channel != null && !channel.isBlank();
 	}
 
-	/** Clears half-seen dialog and the repeat guard; called when a run starts. */
+	/** Trades found this run, newest last. */
+	public static List<Trade> found() {
+		return List.copyOf(found);
+	}
+
+	/** Clears half-seen dialog, the repeat guard and the tracker; called when a run starts. */
 	public static void reset() {
 		PARSER.reset();
 		announced.clear();
 		offerSpots.clear();
+		found.clear();
 	}
 }

@@ -72,6 +72,13 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean showMissing = true;
 
+		@ConfigOption(
+			name = "Hunter trade tracker",
+			desc = "Box listing the Hunter NPC offers found this run, nearest first.\n" +
+				"§7The chat report scrolls away; this keeps them to hand.")
+		@ConfigEditorBoolean
+		public boolean showTrades = true;
+
 		@ConfigOption(name = "Edit positions", desc = "Drag the boxes that are on screen to move them, and scroll over one to resize it.")
 		@ConfigEditorButton(runnableId = 1, buttonText = "Edit")
 		public boolean editPositions = false;
@@ -84,12 +91,18 @@ public class CritterConfig extends Config {
 		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
 		public float missingScale = HudBox.DEFAULT_SCALE;
 
+		@ConfigOption(name = "Trade tracker scale", desc = "Size of the Hunter trade box.")
+		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
+		public float tradesScale = HudBox.DEFAULT_SCALE;
+
 		// Positions are fractions of the screen, so a box stays put across resolution
 		// and GUI-scale changes. Set by dragging in the editor, not by hand.
 		public float progressX = 0.004f;
 		public float progressY = 0.006f;
 		public float missingX = 0.78f;
 		public float missingY = 0.006f;
+		public float tradesX = 0.006f;
+		public float tradesY = 0.62f;
 	}
 
 	public static class AlertConfig {
