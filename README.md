@@ -24,7 +24,16 @@ Species counts per biome: Forest 9, Cavern 9, Icy 9, Haunted 10 — **37** total
 A run starts when you enter the Critter Safari and ends when you leave. The finished
 run stays viewable until the next one begins.
 
-## On screen
+## The run screen
+
+`/critters` or `/ct` opens a full view of the current run: one column per biome
+listing every species, colour-coded by who has it — **green** you caught it, **aqua**
+only a partymate did, **grey** nobody has. A species caught more than once shows `xN`;
+one that has only been thrown at shows `Nt`, so "escaping" reads differently from
+"not found". Below that, a unique-per-player-per-biome table, and buttons to copy or
+share the missing list.
+
+## On the HUD
 
 **Top left** — run timer, party and personal dex bars, a progress bar per biome, and
 a per-player coverage line. Columns are laid out from measured pixel widths, so they
@@ -61,7 +70,8 @@ someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 
 | Command | Effect |
 |---|---|
-| `/critters` | This run: party and personal dex, overall and per biome |
+| `/critters`, `/ct` | Open the run screen |
+| `/critters text` | The same summary printed to chat instead |
 | `/critters missing` | Species nobody has caught yet, grouped by biome |
 | `/critters players` | Unique catches per player per biome |
 | `/critters copy` | Copy the missing list to the clipboard, and preview it |

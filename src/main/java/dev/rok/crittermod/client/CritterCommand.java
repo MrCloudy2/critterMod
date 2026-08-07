@@ -11,6 +11,7 @@ import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
+import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.phys.Vec3;
 
@@ -28,9 +29,13 @@ public final class CritterCommand {
 	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
 		dispatcher.register(ClientCommands.literal("critters")
 			.executes(ctx -> {
-				summary(ctx.getSource());
+				openScreen();
 				return 1;
 			})
+			.then(ClientCommands.literal("text").executes(ctx -> {
+				summary(ctx.getSource());
+				return 1;
+			}))
 			.then(ClientCommands.literal("missing").executes(ctx -> {
 				missing(ctx.getSource());
 				return 1;
@@ -113,6 +118,21 @@ public final class CritterCommand {
 				debug(ctx.getSource());
 				return 1;
 			})));
+
+		// Short alias, since this gets opened constantly mid-run.
+		dispatcher.register(ClientCommands.literal("ct").executes(ctx -> {
+			openScreen();
+			return 1;
+		}));
+	}
+
+	/**
+	 * Opens the run screen on the next tick. Setting it inline would be undone when
+	 * the chat screen closes immediately after the command runs.
+	 */
+	private static void openScreen() {
+		Minecraft client = Minecraft.getInstance();
+		client.execute(() -> client.setScreen(new CritterScreen()));
 	}
 
 	private static void summary(FabricClientCommandSource source) {
@@ -155,7 +175,7 @@ public final class CritterCommand {
 				.map(Critter::name).reduce((a, b) -> a + ", " + b).orElse(""))
 				.withStyle(ChatFormatting.LIGHT_PURPLE));
 		}
-		source.sendFeedback(Component.literal("  /critters missing · copy · share · players · reset · hud · panel · alerts · notify · biomedone · history")
+		source.sendFeedback(Component.literal("  /ct opens the screen · text · missing · copy · share · players · reset · hud · panel · alerts · notify · biomedone")
 			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
