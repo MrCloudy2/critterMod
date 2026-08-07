@@ -85,6 +85,8 @@ public enum HudBox {
 
 	public static final float MIN_SCALE = 0.5f;
 	public static final float MAX_SCALE = 3.0f;
+	/** Slightly under 1 so the boxes stay out of the way at default GUI scale. */
+	public static final float DEFAULT_SCALE = 0.8f;
 
 	private final String label;
 	private final Supplier<HudPanel> builder;
