@@ -11,7 +11,6 @@ import net.minecraft.world.scores.PlayerTeam;
 import net.minecraft.world.scores.Scoreboard;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -32,20 +31,11 @@ import java.util.Map;
  */
 public final class AreaDetector {
 
-	/**
-	 * Biome centres on the Safari map, as shipped by SkyHanni's SafariNamesInCenter.
-	 * They form a 2x2 grid split near x=-50 and z=0, roughly 46 blocks apart, so the
-	 * nearest centre in the XZ plane identifies the biome without ambiguity.
-	 */
-	private static final Map<SafariBiome, Vec3> BIOME_CENTRES = Map.of(
-		SafariBiome.FOREST, new Vec3(-27.1, 66.0, 22.8),
-		SafariBiome.HAUNTED, new Vec3(-25.5, 66.0, -23.2),
-		SafariBiome.ICY, new Vec3(-73.3, 65.0, -23.4),
-		SafariBiome.CAVERN, new Vec3(-72.6, 65.5, 23.9)
-	);
-
-	/** Beyond this distance from every centre, position tells us nothing useful. */
-	private static final double MAX_CENTRE_DISTANCE = 90.0;
+	/** Recomputed only when the player has moved, since the HUD asks every frame. */
+	private static double cachedX = Double.NaN;
+	private static double cachedY = Double.NaN;
+	private static double cachedZ = Double.NaN;
+	private static SafariBiome cachedBiome;
 
 	private AreaDetector() {
 	}
@@ -90,35 +80,32 @@ public final class AreaDetector {
 		return entries;
 	}
 
-	/** Nearest biome centre in the XZ plane, or {@code null} if the player is far away. */
+	/**
+	 * Biome from the player's position, via the precomputed Safari area map.
+	 * Returns {@code null} outside the map or in an unnamed area such as the hub.
+	 */
 	public static SafariBiome biomeFromPosition() {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null) return null;
 
 		Vec3 pos = client.player.position();
-		SafariBiome nearest = null;
-		double best = Double.MAX_VALUE;
-		for (Map.Entry<SafariBiome, Vec3> entry : BIOME_CENTRES.entrySet()) {
-			double distance = horizontalDistance(pos, entry.getValue());
-			if (distance < best) {
-				best = distance;
-				nearest = entry.getKey();
-			}
+		// A metre of movement cannot change the answer, and this is polled per frame.
+		if (Math.abs(pos.x - cachedX) < 1 && Math.abs(pos.y - cachedY) < 1 && Math.abs(pos.z - cachedZ) < 1) {
+			return cachedBiome;
 		}
-		return best <= MAX_CENTRE_DISTANCE ? nearest : null;
+		cachedX = pos.x;
+		cachedY = pos.y;
+		cachedZ = pos.z;
+		cachedBiome = SafariAreaMap.biomeAt(pos.x, pos.y, pos.z);
+		return cachedBiome;
 	}
 
-	/** Distance from the player to each biome centre — used by {@code /critters debug}. */
-	public static Map<SafariBiome, Double> centreDistances() {
+	/** Distance to the nearest mapped node — used by {@code /critters debug}. */
+	public static double distanceToNearestNode() {
 		Minecraft client = Minecraft.getInstance();
-		Map<SafariBiome, Double> distances = new LinkedHashMap<>();
-		if (client.player == null) return distances;
-
+		if (client.player == null) return Double.NaN;
 		Vec3 pos = client.player.position();
-		for (SafariBiome biome : SafariBiome.values()) {
-			distances.put(biome, horizontalDistance(pos, BIOME_CENTRES.get(biome)));
-		}
-		return distances;
+		return SafariAreaMap.distanceToNearestNode(pos.x, pos.y, pos.z);
 	}
 
 	// --- combined ------------------------------------------------------------
@@ -164,12 +151,6 @@ public final class AreaDetector {
 
 	private static boolean mentionsSafari(String text) {
 		return text.contains("Critter Safari") || SafariBiome.fromAreaName(text) != null;
-	}
-
-	private static double horizontalDistance(Vec3 a, Vec3 b) {
-		double dx = a.x - b.x;
-		double dz = a.z - b.z;
-		return Math.sqrt(dx * dx + dz * dz);
 	}
 
 	/** Strips §-codes and the invisible padding Hypixel pads sidebar lines with. */

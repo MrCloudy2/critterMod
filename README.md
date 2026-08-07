@@ -61,6 +61,7 @@ rising in pitch:
 | `/critters wumpa` | Toggle the Wumpa alert |
 | `/critters testalert` | Fire the Wumpa alert now, to check it anywhere |
 | `/critters history` | Replay this instance's logs and list past runs |
+| `/critters debug` | Dump every area source and what each resolves to |
 
 The HUD appears automatically while you're in the Safari. Settings live in
 `config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
@@ -106,8 +107,30 @@ Rather than pinning one regex per wording, the parser keys off the `CAPTURE!` /
 notably the self-catch form of a SPARKLING, which has never appeared in the sample
 logs — still parse correctly.
 
-The current biome comes from the SkyBlock sidebar (`⏣ Forest Biome`), which is also
-how a run's start and end are detected.
+### Knowing which biome you're in
+
+The sidebar does **not** name the Safari biome, so the mod resolves position instead.
+
+Naively you might take the nearest of the four biome centres, but the biomes are not
+convex — Forest and Haunted interleave around z≈0 and the cave sections fold over each
+other — so that misclassifies about 3% of the map.
+
+SkyHanni gets it right by walking its island path graph: find the graph node nearest
+the player, then search along the edges for the nearest node tagged with an area name.
+That search doesn't depend on the player, so `tools/generate_safari_areas.py` does it
+once offline — a multi-source Dijkstra over `SAFARI.json` (1,327 nodes, 68 area tags)
+that gives every node its graph-nearest area in one pass — and writes
+`safari_areas.txt`, one `x y z biome` row per node.
+
+At runtime the mod only does a nearest-node lookup, reproducing SkyHanni's answer
+exactly **without** needing the graph, the edges, or SkyHanni installed. Verified
+against the four points SkyHanni draws its own biome labels at: all four resolve
+correctly, each within 3.3 blocks of a mapped node.
+
+Run start and end come from chat instead: entering is announced, leaving is not, so
+the exit signal is the `Sending you to server` transfer that always accompanies it.
+
+`/critters debug` dumps every source and what each resolves to.
 
 ### Log replay
 
