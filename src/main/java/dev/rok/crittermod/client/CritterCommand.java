@@ -13,7 +13,12 @@ import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 
 import java.nio.file.Files;
@@ -136,6 +141,10 @@ public final class CritterCommand {
 			}))
 			.then(ClientCommands.literal("nearby").executes(ctx -> {
 				nearby(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("block").executes(ctx -> {
+				block(ctx.getSource());
 				return 1;
 			})));
 
@@ -467,6 +476,44 @@ public final class CritterCommand {
 		if (found.isEmpty()) {
 			source.sendFeedback(Component.literal("  nothing in range").withStyle(ChatFormatting.DARK_GRAY));
 		}
+	}
+
+	/**
+	 * Reports the block under the crosshair, and what surrounds it.
+	 *
+	 * <p>Mounds do not show up as named entities, and they are hit repeatedly rather
+	 * than interacted with, so they are almost certainly blocks. Naming the block is
+	 * the one thing needed to count them the way the Cavern walls are counted.
+	 */
+	private static void block(FabricClientCommandSource source) {
+		Minecraft client = source.getClient();
+		if (client.level == null) {
+			source.sendError(prefixed("No world loaded.", ChatFormatting.RED));
+			return;
+		}
+		if (client.hitResult == null || client.hitResult.getType() != HitResult.Type.BLOCK) {
+			source.sendError(prefixed("Look directly at a block first.", ChatFormatting.RED));
+			return;
+		}
+
+		BlockPos pos = ((BlockHitResult) client.hitResult).getBlockPos();
+		BlockState state = client.level.getBlockState(pos);
+
+		source.sendFeedback(header("Block at %d %d %d".formatted(pos.getX(), pos.getY(), pos.getZ())));
+		source.sendFeedback(Component.literal("  id    " + BuiltInRegistries.BLOCK.getKey(state.getBlock()))
+			.withStyle(ChatFormatting.WHITE));
+		source.sendFeedback(Component.literal("  state " + state).withStyle(ChatFormatting.GRAY));
+
+		// A mound is a cluster, so the neighbouring make-up says whether one block type
+		// is the whole thing or just its surface.
+		Map<String, Integer> around = new TreeMap<>();
+		for (BlockPos near : BlockPos.betweenClosed(pos.offset(-2, -2, -2), pos.offset(2, 2, 2))) {
+			BlockState neighbour = client.level.getBlockState(near);
+			if (neighbour.isAir()) continue;
+			around.merge(BuiltInRegistries.BLOCK.getKey(neighbour.getBlock()).getPath(), 1, Integer::sum);
+		}
+		source.sendFeedback(Component.literal("  within 2 blocks: " + around)
+			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	private static String stripCodes(String text) {
