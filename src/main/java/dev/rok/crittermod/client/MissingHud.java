@@ -64,13 +64,15 @@ public final class MissingHud implements HudElement {
 				// "caught one" is not the same as "done with it".
 				int caught = session == null ? 0 : session.partyCatches(critter);
 				int total = session == null ? 0 : session.required(critter);
+				int near = session == null ? 0 : session.nearby(critter);
 				int attempts = session == null ? 0 : session.attempts(critter);
+
+				// Nearby beats everything: it means one is in front of you right now.
+				// Then quota progress, then an attempt count meaning it keeps escaping.
 				String note;
-				if (session != null && total > 1 && !TrackingMode.uniqueOnly()) {
-					note = caught + "/" + total;
-				} else {
-					note = attempts > 0 ? attempts + " tried" : "";
-				}
+				if (near > 0) note = near + " near";
+				else if (total > 1 && !TrackingMode.uniqueOnly()) note = caught + "/" + total;
+				else note = attempts > 0 ? attempts + " tried" : "";
 				panel.pair(critter.name(), note, CritterHud.rarityColour(critter), DIM);
 			}
 		}

@@ -76,11 +76,11 @@ public class CritterConfig extends Config {
 		public boolean uniqueOnly = false;
 
 		@ConfigOption(
-			name = "Count spawns in the world",
-			desc = "Count how many of each species actually spawned, by watching their name tags.\n" +
-				"§7Most species spawn a randomised number per run, so this is the only way to\n" +
-				"§7know the target. It only sees loaded chunks, so the count grows as you explore.\n" +
-				"§7Off: a species counts as done at the first catch, apart from the fixed quotas.")
+			name = "Show nearby spawns",
+			desc = "Mark a missing species with how many are loaded around you right now.\n" +
+				"§7Read off their name tags, refreshed twice a second.\n" +
+				"§7This is not a total and cannot be: the client never sees the far side of\n" +
+				"§7the map, and a partymate catching something out of range is never observed.")
 		@ConfigEditorBoolean
 		public boolean countSpawns = true;
 

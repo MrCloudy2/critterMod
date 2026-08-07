@@ -8,6 +8,9 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Counts how many of each species actually spawned, by watching the world.
  *
@@ -21,9 +24,13 @@ import net.minecraft.world.entity.EntityType;
  * Mantis Shrimp armor_stand 41m  Mantis Shrimp  uuid e20b2da5
  * </pre>
  *
- * <p>This only ever sees what is loaded nearby, so the count is a floor that grows as
- * the biome is explored — never an over-count, which is what makes it safe to use as a
- * denominator.
+ * <p>This reports only what is loaded <em>right now</em>. It is not a total and cannot
+ * be: the client never sees the far side of the map, and a partymate catching something
+ * out of render distance is never observed. Counting distinct entity ids over time does
+ * not fix that and adds its own error — a critter that escapes a capsule returns as a
+ * new entity, so such a total only ever climbs.
+ *
+ * <p>What it is good for is "there is one of these next to you that nobody has caught".
  */
 public final class CritterSpotter {
 
@@ -47,6 +54,7 @@ public final class CritterSpotter {
 		Minecraft client = Minecraft.getInstance();
 		if (client.level == null) return;
 
+		Map<Critter, Integer> present = new HashMap<>();
 		for (Entity entity : client.level.entitiesForRendering()) {
 			// Only the label stands carry the species name; the mob underneath is an
 			// ordinary vanilla entity that says nothing useful.
@@ -59,8 +67,11 @@ public final class CritterSpotter {
 			Critter critter = Critters.byName(label);
 			if (critter == null) continue;
 
-			session.markSeen(critter, entity.getUUID());
+			present.merge(critter, 1, Integer::sum);
 		}
+		// Replaced wholesale rather than merged, so anything caught or despawned since
+		// the last scan simply drops out.
+		session.setNearby(present);
 	}
 
 	private static String strip(String text) {
