@@ -27,8 +27,12 @@ public final class CritterConfig {
 	public boolean onlyInSafari = true;
 	/** Top-right panel listing what is still uncaught in the biome you are standing in. */
 	public boolean showMissing = true;
-	/** Banner and sound when the Wumpa chamber opens. */
-	public boolean wumpaAlert = true;
+	/** On-screen banner and sound for Gemzie, Wumpa and Doomspiral encounter stages. */
+	public boolean bossAlerts = true;
+	/** Also announce those stages to party chat. */
+	public boolean bossPartyNotify = true;
+	/** Announce "<Biome> Done!" when every species there has been caught by someone. */
+	public boolean biomeDoneNotify = false;
 	/**
 	 * Chat command {@code /critters share} posts through, without the slash.
 	 * {@code "pc"} is party chat; {@code "ac"} is all chat. Blank posts to normal chat.

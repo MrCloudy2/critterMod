@@ -5,7 +5,7 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.SafariPresence;
-import dev.rok.crittermod.client.WumpaAlert;
+import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.api.ClientModInitializer;
@@ -45,7 +45,7 @@ public class CritterMod implements ClientModInitializer {
 				if (line.isEmpty()) continue;
 				SafariPresence.onChatMessage(line);
 				SessionManager.onChatMessage(line);
-				WumpaAlert.onChatMessage(line);
+				EncounterAlerts.onChatMessage(line);
 			}
 		});
 
@@ -67,8 +67,8 @@ public class CritterMod implements ClientModInitializer {
 			new MissingHud());
 		HudElementRegistry.attachElementBefore(
 			VanillaHudElements.CHAT,
-			Identifier.fromNamespaceAndPath(MOD_ID, "wumpa_alert"),
-			new WumpaAlert());
+			Identifier.fromNamespaceAndPath(MOD_ID, "encounter_alerts"),
+			new EncounterAlerts());
 
 		LOGGER.info("Critter Safari tracker ready");
 	}
