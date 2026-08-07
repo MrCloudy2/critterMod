@@ -81,6 +81,39 @@ public enum HudBox {
 		public boolean enabled() {
 			return ConfigManager.get().display.hudEnabled && ConfigManager.get().display.showMissing;
 		}
+	},
+
+	TRADES("Hunter trades", TradeHud::buildPanel) {
+		@Override
+		public float x() {
+			return ConfigManager.get().display.tradesX;
+		}
+
+		@Override
+		public float y() {
+			return ConfigManager.get().display.tradesY;
+		}
+
+		@Override
+		public float scale() {
+			return ConfigManager.get().display.tradesScale;
+		}
+
+		@Override
+		public void setPosition(float x, float y) {
+			ConfigManager.get().display.tradesX = x;
+			ConfigManager.get().display.tradesY = y;
+		}
+
+		@Override
+		public void setScale(float scale) {
+			ConfigManager.get().display.tradesScale = scale;
+		}
+
+		@Override
+		public boolean enabled() {
+			return ConfigManager.get().display.hudEnabled && ConfigManager.get().display.showTrades;
+		}
 	};
 
 	public static final float MIN_SCALE = 0.5f;
