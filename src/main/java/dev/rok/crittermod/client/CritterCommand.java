@@ -371,6 +371,9 @@ public final class CritterCommand {
 
 		Vec3 origin = source.getPlayer().position();
 		List<String> matched = new ArrayList<>();
+		// Named things that are not a species are the interesting ones: shells and the
+		// like have to announce themselves somehow, and this is where they would show.
+		Map<String, Integer> otherNames = new TreeMap<>();
 		Map<String, Integer> byType = new TreeMap<>();
 		int total = 0;
 
@@ -386,19 +389,31 @@ public final class CritterCommand {
 			String custom = entity.hasCustomName() ? stripCodes(entity.getCustomName().getString()) : "";
 			String display = stripCodes(entity.getDisplayName().getString());
 			String label = !custom.isEmpty() ? custom : display;
-			Critter critter = label.isEmpty() ? null : Critters.findIn(label);
-			if (critter == null) continue;
+			if (label.isEmpty()) continue;
 
-			matched.add("  %-13s %-9s %.0fm  %s  uuid %s".formatted(
-				critter.name(), type, distance, label,
-				entity.getUUID().toString().substring(0, 8)));
+			Critter critter = Critters.byName(label);
+			if (critter != null) {
+				matched.add("  %-13s %-9s %.0fm  uuid %s".formatted(
+					critter.name(), type, distance, entity.getUUID().toString().substring(0, 8)));
+				continue;
+			}
+			// Unnamed entities fall back to their type as a display name; that is noise.
+			if (label.equalsIgnoreCase(type.replace('_', ' '))) continue;
+			otherNames.merge(label + "  [" + type + "]", 1, Integer::sum);
 		}
 
 		source.sendFeedback(header("Entities within %.0f blocks: %d".formatted(ENTITY_SCAN_RADIUS, total)));
-		source.sendFeedback(Component.literal("  matching a critter name: " + matched.size())
+		source.sendFeedback(Component.literal("  species name tags: " + matched.size())
 			.withStyle(ChatFormatting.YELLOW));
-		matched.stream().limit(20).forEach(line ->
+		matched.stream().limit(14).forEach(line ->
 			source.sendFeedback(Component.literal(line).withStyle(ChatFormatting.WHITE)));
+
+		source.sendFeedback(Component.literal("  other named entities: " + otherNames.size())
+			.withStyle(ChatFormatting.YELLOW));
+		otherNames.entrySet().stream().limit(20).forEach(e ->
+			source.sendFeedback(Component.literal("  %dx %s".formatted(e.getValue(), e.getKey()))
+				.withStyle(ChatFormatting.AQUA)));
+
 		source.sendFeedback(Component.literal("  types: " + byType).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
