@@ -24,6 +24,11 @@ public final class SessionManager {
 	private static final int MAX_HISTORY = 20;
 	/** Sidebar can lag a tick or two on island transfer; require a few misses in a row. */
 	private static final int LEAVE_GRACE_TICKS = 40;
+	/**
+	 * A run is never closed while catches are still arriving, whatever the sidebar
+	 * says. Guards against the area lines inside the Safari not matching expectations.
+	 */
+	private static final long RECENT_ACTIVITY_MILLIS = 60_000;
 
 	private static SafariSession current;
 	private static SafariSession lastSession;
@@ -37,29 +42,32 @@ public final class SessionManager {
 
 	private static boolean wasInSafari;
 	private static int ticksOutsideSafari;
+	/** When the last critter event landed, used to keep an active run from closing. */
+	private static long lastEventMillis;
 
 	private SessionManager() {
 	}
 
-	/** Called every client tick to open/close runs as the player moves islands. */
+	/** Called every client tick to open/close runs as the player moves around. */
 	public static void tick() {
+		// Entering the Safari proper starts a run; the entrance does not, or walking
+		// to the door would throw away the run just finished.
 		boolean inSafari = AreaDetector.inSafari();
+		if (inSafari && !wasInSafari) startSession();
+		wasInSafari = inSafari;
 
-		if (inSafari) {
+		// The entrance still counts as being at the Safari, so a run stays open there.
+		if (AreaDetector.atSafari()) {
 			ticksOutsideSafari = 0;
-			if (!wasInSafari) {
-				startSession();
-				wasInSafari = true;
-			}
 			return;
 		}
 
 		// A session can also be opened by a catch arriving, so closing must not depend
 		// on this path having opened it.
-		if (!wasInSafari && current == null) return;
+		if (current == null) return;
+		if (System.currentTimeMillis() - lastEventMillis < RECENT_ACTIVITY_MILLIS) return;
 		if (++ticksOutsideSafari < LEAVE_GRACE_TICKS) return;
 		endSession();
-		wasInSafari = false;
 	}
 
 	/** Feeds one raw chat line into the active run. */
@@ -82,10 +90,11 @@ public final class SessionManager {
 		// A catch or capsule throw only happens inside the Safari, so it is proof of
 		// presence in its own right. Relying on the entry banner alone would leave
 		// the mod blind after joining mid-run or missing that one message.
-		SafariPresence.enter(AreaDetector.islandLine());
+		SafariPresence.set(true);
 
 		if (current == null) startSession();
-		current.record(event, System.currentTimeMillis());
+		lastEventMillis = System.currentTimeMillis();
+		current.record(event, lastEventMillis);
 
 		if (event.isCatch()) {
 			EncounterAlerts.onCatch(event.critter().name());

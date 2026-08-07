@@ -329,14 +329,12 @@ public final class CritterCommand {
 			.withStyle(ChatFormatting.GRAY));
 		source.sendFeedback(Component.literal("    currentBiome  " + nameOf(AreaDetector.currentBiome()))
 			.withStyle(ChatFormatting.WHITE));
-		source.sendFeedback(Component.literal("    island line   "
-			+ (AreaDetector.islandLine() == null ? "(none)" : AreaDetector.islandLine()))
-			.withStyle(ChatFormatting.WHITE));
-		source.sendFeedback(Component.literal("    entered on    "
-			+ (SafariPresence.islandWhenEntered() == null ? "(not set)" : SafariPresence.islandWhenEntered()))
-			.withStyle(ChatFormatting.GRAY));
-		source.sendFeedback(Component.literal("    inSafari      " + AreaDetector.inSafari()
-			+ "  (presence flag: " + SafariPresence.inSafari() + ")").withStyle(ChatFormatting.WHITE));
+		List<String> areas = AreaDetector.areaLines();
+		source.sendFeedback(Component.literal("    area lines    "
+			+ (areas.isEmpty() ? "(none)" : String.join("  |  ", areas))).withStyle(ChatFormatting.WHITE));
+		source.sendFeedback(Component.literal("    inSafari " + AreaDetector.inSafari()
+			+ "   atSafari " + AreaDetector.atSafari()
+			+ "   (chat flag " + SafariPresence.inSafari() + ")").withStyle(ChatFormatting.WHITE));
 	}
 
 	private static String nameOf(SafariBiome biome) {

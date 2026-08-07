@@ -60,7 +60,7 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean hudEnabled = true;
 
-		@ConfigOption(name = "Only in the Safari", desc = "Hide the HUD once you leave the Critter Safari.")
+		@ConfigOption(name = "Only in the Safari", desc = "Hide the HUD outside the Critter Safari and its entrance.")
 		@ConfigEditorBoolean
 		public boolean onlyInSafari = true;
 
