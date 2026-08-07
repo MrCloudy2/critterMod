@@ -114,7 +114,33 @@ public final class MissingHud implements HudElement {
 		}
 
 		appendWalls(panel, biome);
+		appendNests(panel, biome);
 		return panel;
+	}
+
+	/**
+	 * Lists the bee nests still to punch. Honeybugs come from these, and unlike the
+	 * walls they have to be found by sweeping rather than read off fixed positions —
+	 * so the count is of nests come across, not of nests on the map.
+	 */
+	private static void appendNests(HudPanel panel, SafariBiome biome) {
+		if (biome != SafariBiome.FOREST) return;
+		if (!ConfigManager.get().display.showNests) return;
+
+		List<NestTracker.Nest> nests = NestTracker.nests();
+		if (nests.isEmpty()) return;
+
+		long unpunched = nests.stream().filter(NestTracker.Nest::unpunched).count();
+		panel.blank();
+		if (unpunched == 0) {
+			panel.line("all %d nests punched".formatted(nests.size()), DONE);
+			return;
+		}
+
+		panel.title("Bee nests to punch: " + unpunched, WALL);
+		nests.stream().filter(NestTracker.Nest::unpunched).limit(5).forEach(nest ->
+			panel.pair("  %d %d %d".formatted(nest.pos().getX(), nest.pos().getY(), nest.pos().getZ()),
+				"%dm".formatted(Math.round(nest.distance())), WALL, DIM));
 	}
 
 	/**
