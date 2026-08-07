@@ -35,10 +35,12 @@ public final class MissingHud implements HudElement {
 		SafariBiome biome = AreaDetector.currentBiome();
 		if (biome == null) return;
 
+		// Before the first catch there is no session yet, but standing in a biome with
+		// nothing caught is exactly when the full list is most useful — so fall back
+		// to the whole roster rather than hiding the panel.
 		SafariSession session = SessionManager.currentOrLast();
-		if (session == null) return;
+		List<Critter> missing = session == null ? Critters.inBiome(biome) : session.missing(biome);
 
-		List<Critter> missing = session.missing(biome);
 		HudPanel panel = new HudPanel();
 
 		if (missing.isEmpty()) {
@@ -50,7 +52,7 @@ public final class MissingHud implements HudElement {
 			for (Critter critter : missing) {
 				// Attempts without a catch mean it has been seen and is escaping —
 				// worth distinguishing from species nobody has found yet.
-				int attempts = session.attempts(critter);
+				int attempts = session == null ? 0 : session.attempts(critter);
 				panel.pair(critter.name(),
 					attempts > 0 ? attempts + " tried" : "",
 					CritterHud.rarityColour(critter), DIM);
