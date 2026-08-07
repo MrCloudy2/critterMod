@@ -3,6 +3,7 @@ package dev.rok.crittermod.client;
 import io.github.notenoughupdates.moulconfig.Config;
 import io.github.notenoughupdates.moulconfig.annotations.Category;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorButton;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorDropdown;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorSlider;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigOption;
@@ -25,6 +26,23 @@ public class CritterConfig extends Config {
 	@Override
 	public boolean shouldAutoFocusSearchbar() {
 		return false;
+	}
+
+	/** Runnable id for the "Edit positions" button in the Display category. */
+	private static final int EDIT_POSITIONS = 1;
+
+	@Override
+	public void executeRunnable(int runnableId) {
+		if (runnableId == EDIT_POSITIONS) {
+			HudEditorScreen.open();
+			return;
+		}
+		super.executeRunnable(runnableId);
+	}
+
+	@Override
+	public boolean isValidRunnable(int runnableId) {
+		return runnableId == EDIT_POSITIONS || super.isValidRunnable(runnableId);
 	}
 
 	@Category(name = "Display", desc = "The on-screen panels")
@@ -54,13 +72,24 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean showMissing = true;
 
-		@ConfigOption(name = "HUD X", desc = "Distance from the left edge, in pixels.")
-		@ConfigEditorSlider(minValue = 0, maxValue = 400, minStep = 1)
-		public int hudX = 4;
+		@ConfigOption(name = "Edit positions", desc = "Drag the boxes that are on screen to move them, and scroll over one to resize it.")
+		@ConfigEditorButton(runnableId = 1, buttonText = "Edit")
+		public boolean editPositions = false;
 
-		@ConfigOption(name = "HUD Y", desc = "Distance from the top edge, in pixels.")
-		@ConfigEditorSlider(minValue = 0, maxValue = 400, minStep = 1)
-		public int hudY = 4;
+		@ConfigOption(name = "Progress HUD scale", desc = "Size of the top-left panel.")
+		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
+		public float progressScale = 1.0f;
+
+		@ConfigOption(name = "Missing panel scale", desc = "Size of the missing-species list.")
+		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
+		public float missingScale = 1.0f;
+
+		// Positions are fractions of the screen, so a box stays put across resolution
+		// and GUI-scale changes. Set by dragging in the editor, not by hand.
+		public float progressX = 0.004f;
+		public float progressY = 0.006f;
+		public float missingX = 0.78f;
+		public float missingY = 0.006f;
 	}
 
 	public static class AlertConfig {

@@ -59,14 +59,54 @@ public final class HudPanel {
 		return rows.isEmpty();
 	}
 
-	/**
-	 * Draws the panel.
-	 *
-	 * @param anchorRight when true, {@code x} is the panel's right edge rather than its left
-	 */
-	public void render(GuiGraphicsExtractor graphics, Font font, int x, int y, boolean anchorRight) {
-		if (rows.isEmpty()) return;
+	/** Panel width in pixels at scale 1, measured from the widest row. */
+	public int width(Font font) {
+		return contentWidth(font) + PADDING * 2;
+	}
 
+	/** Panel height in pixels at scale 1. */
+	public int height() {
+		return rows.size() * LINE_HEIGHT + PADDING * 2;
+	}
+
+	private int contentWidth(Font font) {
+		int labelWidth = 0;
+		int valueWidth = 0;
+		boolean anyBar = false;
+		for (Row row : rows) {
+			labelWidth = Math.max(labelWidth, font.width(row.label()));
+			if (row.value() != null) valueWidth = Math.max(valueWidth, font.width(row.value()));
+			if (row.kind() == Kind.BAR) anyBar = true;
+		}
+		int contentWidth = labelWidth + (valueWidth > 0 ? GUTTER + valueWidth : 0)
+			+ (anyBar ? GUTTER + BAR_WIDTH : 0);
+		// A title spans the whole panel, so it can widen it on its own.
+		for (Row row : rows) {
+			if (row.kind() == Kind.TITLE || row.kind() == Kind.TEXT) {
+				contentWidth = Math.max(contentWidth, font.width(row.label()));
+			}
+		}
+		return contentWidth;
+	}
+
+	/**
+	 * Draws the panel with its top-left corner at {@code x, y}, scaled about that
+	 * corner. Scaling is applied to the matrix rather than to every coordinate, so
+	 * the layout maths stays in unscaled pixels.
+	 */
+	public void render(GuiGraphicsExtractor graphics, Font font, int x, int y, float scale) {
+		if (rows.isEmpty()) return;
+		if (scale == 1.0f) {
+			draw(graphics, font, x, y);
+			return;
+		}
+		graphics.pose().pushMatrix();
+		graphics.pose().scale(scale, scale);
+		draw(graphics, font, Math.round(x / scale), Math.round(y / scale));
+		graphics.pose().popMatrix();
+	}
+
+	private void draw(GuiGraphicsExtractor graphics, Font font, int left, int y) {
 		int labelWidth = 0;
 		int valueWidth = 0;
 		boolean anyBar = false;
@@ -76,18 +116,8 @@ public final class HudPanel {
 			if (row.kind() == Kind.BAR) anyBar = true;
 		}
 
-		int contentWidth = labelWidth + (valueWidth > 0 ? GUTTER + valueWidth : 0)
-			+ (anyBar ? GUTTER + BAR_WIDTH : 0);
-		// A title spans the whole panel, so it can widen it on its own.
-		for (Row row : rows) {
-			if (row.kind() == Kind.TITLE || row.kind() == Kind.TEXT) {
-				contentWidth = Math.max(contentWidth, font.width(row.label()));
-			}
-		}
-
-		int panelWidth = contentWidth + PADDING * 2;
+		int panelWidth = contentWidth(font) + PADDING * 2;
 		int panelHeight = rows.size() * LINE_HEIGHT + PADDING * 2;
-		int left = anchorRight ? x - panelWidth : x;
 
 		graphics.fill(left, y, left + panelWidth, y + panelHeight, BACKGROUND);
 		graphics.fill(left, y, left + panelWidth, y + 1, BORDER);
