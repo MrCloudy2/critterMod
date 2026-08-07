@@ -40,7 +40,6 @@ public final class SessionManager {
 	private static boolean announcedAllButMacaw;
 	private static boolean announcedAllDone;
 
-	private static boolean wasInSafari;
 	private static int ticksOutsideSafari;
 	/** When the last critter event landed, used to keep an active run from closing. */
 	private static long lastEventMillis;
@@ -50,14 +49,11 @@ public final class SessionManager {
 
 	/** Called every client tick to open/close runs as the player moves around. */
 	public static void tick() {
-		// Entering the Safari proper starts a run; the entrance does not, or walking
-		// to the door would throw away the run just finished.
-		boolean inSafari = AreaDetector.inSafari();
-		if (inSafari && !wasInSafari) startSession();
-		wasInSafari = inSafari;
-
-		// The entrance still counts as being at the Safari, so a run stays open there.
-		if (AreaDetector.atSafari()) {
+		// Being at the Safari — including its entrance — keeps a run open. Runs are
+		// opened by the entry message or the first catch, never from here: the
+		// entrance counts as "at the Safari", so starting here would open an empty
+		// run and archive the one just finished.
+		if (AreaDetector.inSafari()) {
 			ticksOutsideSafari = 0;
 			return;
 		}
@@ -82,7 +78,7 @@ public final class SessionManager {
 		// treat it as an explicit run start rather than waiting for the area change.
 		if (event.type() == CritterEvent.Type.ENTERED_SAFARI) {
 			startSession();
-			wasInSafari = true;
+			SafariPresence.set(true);
 			ticksOutsideSafari = 0;
 			return;
 		}
