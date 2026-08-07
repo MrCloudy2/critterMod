@@ -156,6 +156,7 @@ public final class HudEditorScreen extends Screen {
 		}
 		HudBox.PROGRESS.setPosition(0.004f, 0.006f);
 		HudBox.MISSING.setPosition(0.78f, 0.006f);
+		HudBox.TRADES.setPosition(0.006f, 0.62f);
 		ConfigManager.save();
 	}
 

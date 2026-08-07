@@ -5,6 +5,7 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.SafariPresence;
+import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
@@ -67,6 +68,10 @@ public class CritterMod implements ClientModInitializer {
 			VanillaHudElements.CHAT,
 			Identifier.fromNamespaceAndPath(MOD_ID, "safari_missing"),
 			new MissingHud());
+		HudElementRegistry.attachElementBefore(
+			VanillaHudElements.CHAT,
+			Identifier.fromNamespaceAndPath(MOD_ID, "hunter_trades"),
+			new TradeHud());
 		HudElementRegistry.attachElementBefore(
 			VanillaHudElements.CHAT,
 			Identifier.fromNamespaceAndPath(MOD_ID, "encounter_alerts"),

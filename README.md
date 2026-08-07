@@ -34,8 +34,8 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   per-player progress works with no party API.
 - **Run screen** (`/ct`) — every species by biome, colour-coded green/aqua/grey for
   caught-by-you / by-a-partymate / by-nobody.
-- **Two HUD boxes** — overall progress, and what is still missing in the biome you are
-  standing in. Both movable and resizable.
+- **Three HUD boxes** — overall progress, what is still missing in the biome you are
+  standing in, and the Hunter trades found this run. All movable and resizable.
 - **Encounter alerts** — Gemzie, Wumpa and Doomspiral tracked ready → started → done,
   with optional party-chat announcements.
 - **Completion alerts** — optional `<Biome> Done!`, `Everything except Macaw done!`
@@ -143,6 +143,11 @@ offer with the biome it was found in, and can post it to party chat:
 ```
 [Critters] Hunter Harry (Icy -73 66 -23): Nozzlenose Shard for a Yogi Berry
 ```
+
+There is also a movable **trade tracker box** (`Hunter trade tracker` in Display)
+listing the offers found this run, nearest first with live distance — the chat report
+scrolls away, so a quest item picked up later can still be spent on an offer found
+half an hour earlier.
 
 Coordinates point at the NPC itself where it can be found nearby, falling back to
 where you are standing. They are taken when the dialog *opens*, not when it finishes —
