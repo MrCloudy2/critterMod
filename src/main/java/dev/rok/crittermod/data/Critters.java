@@ -12,6 +12,13 @@ import java.util.Map;
 /**
  * The complete Critterdex roster (37 species), grouped by biome.
  *
+ * <p>Some species spawn a fixed number of times per run, so catching one is not the
+ * same as clearing them. Those carry a quota; everything else respawns and has none.
+ * The quotas were read off 25 substantial replayed runs, where the per-run counts pile
+ * up on a single value — Gemzie sat on exactly 3 in 21 of 24 runs, Billygoat on 1 in
+ * 21 of 23, Hideyho on 1 in 20 of 22. Species without a quota show no such ceiling:
+ * Honeybug ranged from 1 to 13.
+ *
  * <p>Species names are matched against chat text, so the longest names must be
  * tried first — "Mantis Shrimp" would otherwise never match if a shorter name
  * were a prefix of it. {@link #findIn(String)} handles that ordering.
@@ -28,7 +35,7 @@ public final class Critters {
 		new Critter("Fluffling", SafariBiome.FOREST, Rarity.RARE),
 		new Critter("Hideonfloor", SafariBiome.FOREST, Rarity.RARE),
 		new Critter("Parakeet", SafariBiome.FOREST, Rarity.RARE),
-		new Critter("Macaw", SafariBiome.FOREST, Rarity.LEGENDARY),
+		new Critter("Macaw", SafariBiome.FOREST, Rarity.LEGENDARY, 2),
 
 		// --- Cavern (9) ---
 		new Critter("Cavernfish", SafariBiome.CAVERN, Rarity.COMMON),
@@ -39,30 +46,30 @@ public final class Critters {
 		new Critter("Rockmite", SafariBiome.CAVERN, Rarity.RARE),
 		new Critter("Scrappy", SafariBiome.CAVERN, Rarity.RARE),
 		new Critter("Snoozle", SafariBiome.CAVERN, Rarity.RARE),
-		new Critter("Gemzie", SafariBiome.CAVERN, Rarity.EPIC),
+		new Critter("Gemzie", SafariBiome.CAVERN, Rarity.EPIC, 3),
 
 		// --- Icy (9) ---
 		new Critter("Strongarm", SafariBiome.ICY, Rarity.COMMON),
 		new Critter("Tepid", SafariBiome.ICY, Rarity.COMMON),
 		new Critter("Polaris", SafariBiome.ICY, Rarity.UNCOMMON),
 		new Critter("Shuddersquid", SafariBiome.ICY, Rarity.UNCOMMON),
-		new Critter("Billygoat", SafariBiome.ICY, Rarity.RARE),
+		new Critter("Billygoat", SafariBiome.ICY, Rarity.RARE, 1),
 		new Critter("Mantis Shrimp", SafariBiome.ICY, Rarity.RARE),
 		new Critter("Nozzlenose", SafariBiome.ICY, Rarity.RARE),
-		new Critter("Troodon", SafariBiome.ICY, Rarity.RARE),
-		new Critter("Wumpa", SafariBiome.ICY, Rarity.LEGENDARY),
+		new Critter("Troodon", SafariBiome.ICY, Rarity.RARE, 3),
+		new Critter("Wumpa", SafariBiome.ICY, Rarity.LEGENDARY, 1),
 
 		// --- Haunted (10) ---
 		new Critter("Areita", SafariBiome.HAUNTED, Rarity.UNCOMMON),
 		new Critter("Bloodbat", SafariBiome.HAUNTED, Rarity.UNCOMMON),
 		new Critter("Duplico", SafariBiome.HAUNTED, Rarity.UNCOMMON),
-		new Critter("Gazer", SafariBiome.HAUNTED, Rarity.UNCOMMON),
+		new Critter("Gazer", SafariBiome.HAUNTED, Rarity.UNCOMMON, 2),
 		new Critter("Litterbug", SafariBiome.HAUNTED, Rarity.UNCOMMON),
 		new Critter("Solsnatcher", SafariBiome.HAUNTED, Rarity.UNCOMMON),
 		new Critter("Gimmiegold", SafariBiome.HAUNTED, Rarity.RARE),
 		new Critter("Hideonwall", SafariBiome.HAUNTED, Rarity.RARE),
-		new Critter("Hideyho", SafariBiome.HAUNTED, Rarity.RARE),
-		new Critter("Doomspiral", SafariBiome.HAUNTED, Rarity.LEGENDARY)
+		new Critter("Hideyho", SafariBiome.HAUNTED, Rarity.RARE, 1),
+		new Critter("Doomspiral", SafariBiome.HAUNTED, Rarity.LEGENDARY, 1)
 	);
 
 	private static final Map<String, Critter> BY_NAME = new LinkedHashMap<>();

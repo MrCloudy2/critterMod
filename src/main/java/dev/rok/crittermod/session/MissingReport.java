@@ -31,6 +31,12 @@ public final class MissingReport {
 			StringBuilder line = new StringBuilder(biome.displayName()).append(" missing:");
 			for (Critter critter : missing) {
 				line.append(' ').append(critter.name());
+				// e.g. "Gemzie(1/3)" — tells the reader how many are left, not just that
+				// something is outstanding.
+				if (critter.hasQuota() && !TrackingMode.uniqueOnly()) {
+					line.append('(').append(session.partyCatches(critter))
+						.append('/').append(critter.spawnQuota()).append(')');
+				}
 			}
 			lines.add(line.toString());
 		}

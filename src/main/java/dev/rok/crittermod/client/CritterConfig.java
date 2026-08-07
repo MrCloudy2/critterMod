@@ -64,6 +64,17 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean onlyInSafari = true;
 
+		@ConfigOption(
+			name = "Count unique only",
+			desc = "Treat a species as done at the first catch.\n" +
+				"§7Off by default: species that spawn a fixed number of times per run stay\n" +
+				"§7listed until every one is caught, so a run is only finished when it has\n" +
+				"§7given up every shard it can.\n" +
+				"§7Quotas: §fMacaw 2 · Gemzie 3 · Billygoat 1 · Troodon 3 · Wumpa 1 ·\n" +
+				"§fGazer 2 · Hideyho 1 · Doomspiral 1")
+		@ConfigEditorBoolean
+		public boolean uniqueOnly = false;
+
 		@ConfigOption(name = "Per-player lines", desc = "Show who is covering which biome, under the biome bars.")
 		@ConfigEditorBoolean
 		public boolean showPerPlayer = true;

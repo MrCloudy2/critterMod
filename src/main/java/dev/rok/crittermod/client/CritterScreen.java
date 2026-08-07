@@ -6,6 +6,7 @@ import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.session.MissingReport;
 import dev.rok.crittermod.session.SafariSession;
 import dev.rok.crittermod.session.SessionManager;
+import dev.rok.crittermod.session.TrackingMode;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
@@ -160,14 +161,18 @@ public final class CritterScreen extends Screen {
 			rowY += LINE_HEIGHT + 2;
 
 			for (Critter critter : Critters.inBiome(biome)) {
-				int colour = session.caughtByYou(critter) ? CAUGHT_BY_YOU
-					: session.caughtByParty(critter) ? CAUGHT_BY_PARTY : UNCAUGHT;
+				// Grey until the run is actually finished with it, so a quota species
+				// caught once still reads as outstanding.
+				int colour = !session.isComplete(critter) ? UNCAUGHT
+					: session.caughtByYou(critter) ? CAUGHT_BY_YOU : CAUGHT_BY_PARTY;
 				graphics.text(font, Component.literal(critter.name()), x, rowY, colour);
 
-				// Repeat catches are worth showing; a lone attempt count tells you the
-				// species is around and escaping rather than simply not found.
+				// Quota species show progress towards their total; the rest show repeat
+				// catches, or an attempt count meaning it is around and escaping.
 				int caught = session.partyCatches(critter);
-				String note = caught > 1 ? "x" + caught
+				boolean quota = critter.hasQuota() && !TrackingMode.uniqueOnly();
+				String note = quota ? caught + "/" + critter.spawnQuota()
+					: caught > 1 ? "x" + caught
 					: caught == 0 && session.attempts(critter) > 0 ? session.attempts(critter) + "t" : "";
 				if (!note.isEmpty()) {
 					graphics.text(font, Component.literal(note),
