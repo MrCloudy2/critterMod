@@ -41,7 +41,7 @@ public final class CritterCommand {
 	}
 
 	public static void register(CommandDispatcher<FabricClientCommandSource> dispatcher) {
-		dispatcher.register(ClientCommands.literal("critters")
+		var root = ClientCommands.literal("critters")
 			.executes(ctx -> {
 				openScreen();
 				return 1;
@@ -131,23 +131,29 @@ public final class CritterCommand {
 			.then(ClientCommands.literal("history").executes(ctx -> {
 				history(ctx.getSource());
 				return 1;
-			}))
-			.then(ClientCommands.literal("debug").executes(ctx -> {
-				debug(ctx.getSource());
-				return 1;
-			}))
-			.then(ClientCommands.literal("entities").executes(ctx -> {
-				entities(ctx.getSource());
-				return 1;
-			}))
-			.then(ClientCommands.literal("nearby").executes(ctx -> {
-				nearby(ctx.getSource());
-				return 1;
-			}))
-			.then(ClientCommands.literal("block").executes(ctx -> {
-				block(ctx.getSource());
-				return 1;
-			})));
+			}));
+
+		// Diagnostics exist to work out how the Safari represents things and are noise
+		// in a normal run, so they are only registered when asked for.
+		if (ConfigManager.get().advanced.debugCommands) {
+			root.then(ClientCommands.literal("debug").executes(ctx -> {
+					debug(ctx.getSource());
+					return 1;
+				}))
+				.then(ClientCommands.literal("entities").executes(ctx -> {
+					entities(ctx.getSource());
+					return 1;
+				}))
+				.then(ClientCommands.literal("nearby").executes(ctx -> {
+					nearby(ctx.getSource());
+					return 1;
+				}))
+				.then(ClientCommands.literal("block").executes(ctx -> {
+					block(ctx.getSource());
+					return 1;
+				}));
+		}
+		dispatcher.register(root);
 
 		// Short alias, since this gets opened constantly mid-run.
 		dispatcher.register(ClientCommands.literal("ct").executes(ctx -> {

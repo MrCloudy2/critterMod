@@ -126,7 +126,7 @@ public final class MissingHud implements HudElement {
 	 */
 	private static void appendMounds(HudPanel panel, SafariBiome biome) {
 		if (biome != SafariBiome.CAVERN) return;
-		if (!ConfigManager.get().display.showWalls) return;
+		if (!ConfigManager.get().advanced.showMounds) return;
 		if (MoundTracker.broken() == 0) return;
 
 		panel.blank();
