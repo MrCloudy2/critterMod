@@ -230,6 +230,18 @@ The jar is written to `build/libs/` and, if the directory exists, copied into th
 AtLauncher instance at `deployToInstance`'s target. Override with
 `-PdeployDir=/path/to/mods`.
 
+## Publishing to Modrinth
+
+`./gradlew modrinth` uploads the built jar as a new version. The token is read from
+the environment and never written into the repo:
+
+```bash
+MODRINTH_TOKEN=<your token> ./gradlew modrinth
+```
+
+Create one at https://modrinth.com/settings/pats with the **Create versions** scope.
+`./gradlew modrinthSyncBody` separately pushes this README to the project description.
+
 ## License
 
 MIT
