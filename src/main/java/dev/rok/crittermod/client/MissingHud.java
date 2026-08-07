@@ -5,6 +5,7 @@ import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.session.SafariSession;
 import dev.rok.crittermod.session.SessionManager;
+import dev.rok.crittermod.session.TrackingMode;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -59,12 +60,17 @@ public final class MissingHud implements HudElement {
 			panel.title("%s Biome — %d left".formatted(biome.displayName(), missing.size()),
 				0xFF000000 | biome.colour());
 			for (Critter critter : missing) {
-				// Attempts without a catch mean it has been seen and is escaping —
-				// worth distinguishing from species nobody has found yet.
+				// A quota species shows how many of its spawns are already taken, since
+				// "caught one" is not the same as "done with it".
+				int caught = session == null ? 0 : session.partyCatches(critter);
 				int attempts = session == null ? 0 : session.attempts(critter);
-				panel.pair(critter.name(),
-					attempts > 0 ? attempts + " tried" : "",
-					CritterHud.rarityColour(critter), DIM);
+				String note;
+				if (critter.hasQuota() && !TrackingMode.uniqueOnly()) {
+					note = caught + "/" + critter.spawnQuota();
+				} else {
+					note = attempts > 0 ? attempts + " tried" : "";
+				}
+				panel.pair(critter.name(), note, CritterHud.rarityColour(critter), DIM);
 			}
 		}
 
