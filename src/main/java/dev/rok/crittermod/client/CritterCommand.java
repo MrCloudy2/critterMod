@@ -108,6 +108,8 @@ public final class CritterCommand {
 				EncounterAlerts.onChatMessage("The Doomspiral retreats back underground...");
 				for (int i = 0; i < 3; i++) EncounterAlerts.onCatch("Gemzie");
 				EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
+				EncounterAlerts.onAllButMacaw();
+				EncounterAlerts.onAllDone();
 				return 1;
 			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {

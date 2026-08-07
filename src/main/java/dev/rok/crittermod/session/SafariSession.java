@@ -152,6 +152,14 @@ public final class SafariSession {
 		return partyUnique(biome) == Critters.totalIn(biome);
 	}
 
+	/**
+	 * True when every species except {@code exception} has been caught by someone,
+	 * whether or not the exception itself has been.
+	 */
+	public boolean allCaughtExcept(Critter exception) {
+		return Critters.all().stream().allMatch(c -> c.equals(exception) || caughtByParty(c));
+	}
+
 	/** True once all 37 species have been caught by someone this run. */
 	public boolean dexComplete() {
 		return partyUnique() == Critters.total();
