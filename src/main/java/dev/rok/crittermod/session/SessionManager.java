@@ -5,6 +5,8 @@ import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.TraderWatch;
+import dev.rok.crittermod.client.WallTracker;
+import dev.rok.crittermod.data.Critter;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
@@ -13,6 +15,7 @@ import net.minecraft.client.Minecraft;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Owns the live session: starts one on entering the Critter Safari, feeds it
@@ -53,6 +56,7 @@ public final class SessionManager {
 	public static void tick() {
 		TrackingMode.setUniqueOnly(ConfigManager.get().display.uniqueOnly);
 		TrackingMode.setCountSpawns(ConfigManager.get().display.countSpawns);
+		updateUnavailable();
 
 		// Being at the Safari — including its entrance — keeps a run open. Runs are
 		// opened by the entry message or the first catch, never from here: the
@@ -69,6 +73,26 @@ public final class SessionManager {
 		if (System.currentTimeMillis() - lastEventMillis < RECENT_ACTIVITY_MILLIS) return;
 		if (++ticksOutsideSafari < LEAVE_GRACE_TICKS) return;
 		endSession();
+	}
+
+	/**
+	 * Works out what the run can no longer produce.
+	 *
+	 * <p>Snoozle comes from the breakable Cavern walls. Once all of them are confirmed
+	 * broken and none has turned up, there is no way for one to appear, which is
+	 * reportedly common — so it stops being listed as outstanding.
+	 */
+	private static void updateUnavailable() {
+		if (current == null) {
+			TrackingMode.setUnavailable(Set.of());
+			return;
+		}
+		Critter snoozle = Critters.byName("Snoozle");
+		boolean gone = snoozle != null
+			&& WallTracker.allConfirmedBroken()
+			&& current.partyCatches(snoozle) == 0
+			&& current.nearby(snoozle) == 0;
+		TrackingMode.setUnavailable(gone ? Set.of(snoozle) : Set.of());
 	}
 
 	/** Feeds one raw chat line into the active run. */

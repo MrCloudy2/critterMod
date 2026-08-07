@@ -163,7 +163,8 @@ public final class CritterScreen extends Screen {
 			for (Critter critter : Critters.inBiome(biome)) {
 				// Grey until the run is actually finished with it, so a quota species
 				// caught once still reads as outstanding.
-				int colour = !session.isComplete(critter) ? UNCAUGHT
+				int colour = session.isUnavailable(critter) ? UNCAUGHT
+					: !session.isComplete(critter) ? UNCAUGHT
 					: session.caughtByYou(critter) ? CAUGHT_BY_YOU : CAUGHT_BY_PARTY;
 				graphics.text(font, Component.literal(critter.name()), x, rowY, colour);
 
@@ -172,7 +173,8 @@ public final class CritterScreen extends Screen {
 				int caught = session.partyCatches(critter);
 				int total = session.required(critter);
 				boolean known = total > 1 && !TrackingMode.uniqueOnly();
-				String note = known ? caught + "/" + total
+				String note = session.isUnavailable(critter) ? "n/a"
+					: known ? caught + "/" + total
 					: caught > 1 ? "x" + caught
 					: caught == 0 && session.attempts(critter) > 0 ? session.attempts(critter) + "t" : "";
 				if (!note.isEmpty()) {

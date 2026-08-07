@@ -31,6 +31,10 @@ public final class MissingReport {
 			StringBuilder line = new StringBuilder(biome.displayName()).append(" missing:");
 			for (Critter critter : missing) {
 				line.append(' ').append(critter.name());
+				if (session.isUnavailable(critter)) {
+					line.append("(none)");
+					continue;
+				}
 				// e.g. "Gemzie(1/3)" — tells the reader how many are left, not just that
 				// something is outstanding.
 				int total = session.required(critter);

@@ -2,6 +2,9 @@ package dev.rok.crittermod.session;
 
 import dev.rok.crittermod.data.Critter;
 
+import java.util.HashSet;
+import java.util.Set;
+
 /**
  * Whether a species counts as done at one catch, or only once every spawn has been
  * taken.
@@ -18,6 +21,7 @@ public final class TrackingMode {
 
 	private static boolean uniqueOnly;
 	private static boolean countSpawns = true;
+	private static final Set<Critter> unavailable = new HashSet<>();
 
 	private TrackingMode() {
 	}
@@ -37,6 +41,21 @@ public final class TrackingMode {
 	/** Whether spawns seen in the world are used as the target for unquotaed species. */
 	public static boolean countSpawns() {
 		return countSpawns;
+	}
+
+	/**
+	 * Marks the species this run can no longer produce, so they stop being reported as
+	 * outstanding. Snoozle comes from the breakable Cavern walls: once every wall is
+	 * confirmed broken without one appearing, none can.
+	 */
+	public static void setUnavailable(Set<Critter> species) {
+		unavailable.clear();
+		unavailable.addAll(species);
+	}
+
+	/** True when the run cannot produce {@code critter} any more. */
+	public static boolean isUnavailable(Critter critter) {
+		return unavailable.contains(critter);
 	}
 
 	/** How many of {@code critter} are needed before it counts as done. */
