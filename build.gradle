@@ -9,11 +9,23 @@ base {
 	archivesName = project.archives_base_name
 }
 
+repositories {
+	maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me/' }
+	maven { name = 'TerraformersMC'; url = 'https://maven.terraformersmc.com/' }
+}
+
 dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
+
+	// Cloth Config drags in its own copy of Fabric API modules; exclude them so the
+	// version above stays authoritative.
+	implementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
+		exclude(group: "net.fabricmc.fabric-api")
+	}
+	implementation("com.terraformersmc:modmenu:${project.modmenu_version}")
 }
 
 processResources {
