@@ -99,9 +99,8 @@ owns saving, so edits persist as you make them. Values live in
 on-screen boxes: drag one to move it, scroll over it to resize. Boxes with nothing to
 show appear as labelled placeholders, so positions can be set outside a run. Positions
 are stored as fractions of the screen, so a box stays where you put it across
-resolution and GUI-scale changes. Each box also has a scale slider in the settings (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
-`bossAlerts`, `bossPartyNotify`, `biomeDoneNotify`, `shareCommand`, `onlyInSafari`,
-`hudX`, `hudY`).
+resolution and GUI-scale changes. Each box also has a scale slider in the settings, and
+a Reset button restores the defaults.
 
 ### Telling your team
 
