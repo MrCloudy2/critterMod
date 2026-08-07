@@ -89,6 +89,20 @@ public final class MissingHud implements HudElement {
 			}
 		}
 
+		// Anything the run can no longer produce is stated outright rather than just
+		// dropping off the list, so its absence does not look like a tracking bug.
+		if (session != null) {
+			List<Critter> gone = Critters.inBiome(biome).stream()
+				.filter(session::isUnavailable)
+				.toList();
+			if (!gone.isEmpty()) {
+				panel.blank();
+				for (Critter critter : gone) {
+					panel.pair(critter.name(), "none this run", DIM, DIM);
+				}
+			}
+		}
+
 		// Listed after the outstanding ones, dimmer, so they read as a bonus rather
 		// than as something still owed.
 		if (!alsoHere.isEmpty()) {
