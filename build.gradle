@@ -1,5 +1,6 @@
 plugins {
 	id 'net.fabricmc.fabric-loom' version "${loom_version}"
+	id 'com.modrinth.minotaur' version '2.8.7'
 }
 
 version = project.mod_version
@@ -79,3 +80,29 @@ tasks.register('deployToInstance', Copy) {
 }
 
 tasks.named('jar') { finalizedBy 'deployToInstance' }
+
+
+// --- Modrinth publishing -----------------------------------------------------
+// Run with:  MODRINTH_TOKEN=<your token> ./gradlew modrinth
+// The token is read from the environment and never stored in the repo. Create one
+// at https://modrinth.com/settings/pats with the "Create versions" scope.
+modrinth {
+	token = providers.environmentVariable('MODRINTH_TOKEN')
+	projectId = 'critter-mod'
+	versionNumber = project.mod_version
+	versionName = "v${project.mod_version}"
+	versionType = 'release'
+	uploadFile = tasks.named('jar')
+	gameVersions = [project.minecraft_version]
+	loaders = ['fabric']
+	// MoulConfig is nested in the jar, so it is deliberately not listed here.
+	dependencies {
+		required.project 'fabric-api'
+		required.project 'fabric-language-kotlin'
+	}
+	syncBodyFrom = rootProject.file('README.md').text
+	changelog = providers.provider {
+		def notes = rootProject.file('CHANGELOG.md')
+		notes.exists() ? notes.text : "See https://github.com/MrCloudy2/critterMod/releases/tag/v${project.mod_version}"
+	}
+}
