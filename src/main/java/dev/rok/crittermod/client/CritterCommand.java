@@ -404,11 +404,14 @@ public final class CritterCommand {
 
 	/**
 	 * Dumps the closest entities of any type, so the objects critters hide inside can
-	 * be identified — shells, ice, walls, the Birdfeeder.
+	 * be identified, such as the shells Rockmites sit in.
 	 *
-	 * <p>Only 15 of the 37 species label themselves with an armour stand. The rest are
-	 * behind something breakable or interactive, which shows up as an unnamed
-	 * interaction or display entity. Stand on one and run this to see what it is.
+	 * <p>{@code /critters entities} only sees named spawns within its radius, so a
+	 * species missing from it may simply have been out of range rather than spawning
+	 * some other way — one 48-block snapshot per biome covers very little of the map.
+	 * Where a species really does arrive from an object instead, such as a Rockmite in
+	 * a shell, that object shows up here as an unnamed interaction or display entity.
+	 * Stand on one and run this to see what it is.
 	 */
 	private static void nearby(FabricClientCommandSource source) {
 		Minecraft client = source.getClient();
