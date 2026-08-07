@@ -1,68 +1,104 @@
 package dev.rok.crittermod.client;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import dev.rok.crittermod.CritterMod;
-import net.fabricmc.loader.api.FabricLoader;
+import io.github.notenoughupdates.moulconfig.Config;
+import io.github.notenoughupdates.moulconfig.annotations.Category;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorDropdown;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorSlider;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigOption;
+import io.github.notenoughupdates.moulconfig.common.text.StructuredText;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.file.Files;
-import java.nio.file.Path;
+/**
+ * Settings, laid out for MoulConfig — the same config GUI SkyHanni uses.
+ *
+ * <p>Fields are public and annotated; MoulConfig builds the screen from them and
+ * owns loading and saving, so there is no manual persistence here. See
+ * {@link ConfigManager} for the instance and the file it lives in.
+ */
+public class CritterConfig extends Config {
 
-/** Small JSON-backed settings file at {@code config/crittermod.json}. */
-public final class CritterConfig {
-
-	private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-	private static final Path FILE =
-		FabricLoader.getInstance().getConfigDir().resolve("crittermod.json");
-
-	private static CritterConfig instance;
-
-	public boolean hudEnabled = true;
-	/** Show a per-player unique-count line for each partymate under the biome rows. */
-	public boolean showPerPlayer = true;
-	/** Hide the HUD when not in the Critter Safari. */
-	public boolean onlyInSafari = true;
-	/** Top-right panel listing what is still uncaught in the biome you are standing in. */
-	public boolean showMissing = true;
-	/** On-screen banner and sound for Gemzie, Wumpa and Doomspiral encounter stages. */
-	public boolean bossAlerts = true;
-	/** Also announce those stages to party chat. */
-	public boolean bossPartyNotify = true;
-	/** Announce "<Biome> Done!" when every species there has been caught by someone. */
-	public boolean biomeDoneNotify = false;
-	/**
-	 * Chat command {@code /critters share} posts through, without the slash.
-	 * {@code "pc"} is party chat; {@code "ac"} is all chat. Blank posts to normal chat.
-	 */
-	public String shareCommand = "pc";
-	public int hudX = 4;
-	public int hudY = 4;
-
-	public static CritterConfig get() {
-		if (instance == null) instance = load();
-		return instance;
+	@Override
+	public StructuredText getTitle() {
+		return StructuredText.of("Critter Safari Tracker");
 	}
 
-	private static CritterConfig load() {
-		if (Files.exists(FILE)) {
-			try (Reader reader = Files.newBufferedReader(FILE)) {
-				CritterConfig loaded = GSON.fromJson(reader, CritterConfig.class);
-				if (loaded != null) return loaded;
-			} catch (IOException | RuntimeException e) {
-				CritterMod.LOGGER.warn("Could not read {}, using defaults", FILE, e);
-			}
-		}
-		return new CritterConfig();
+	@Override
+	public boolean shouldAutoFocusSearchbar() {
+		return false;
 	}
 
-	public void save() {
-		try (Writer writer = Files.newBufferedWriter(FILE)) {
-			GSON.toJson(this, writer);
-		} catch (IOException e) {
-			CritterMod.LOGGER.warn("Could not write {}", FILE, e);
+	@Category(name = "Display", desc = "The on-screen panels")
+	public DisplayConfig display = new DisplayConfig();
+
+	@Category(name = "Alerts", desc = "Encounter and completion alerts")
+	public AlertConfig alerts = new AlertConfig();
+
+	@Category(name = "Party", desc = "What gets announced to your team")
+	public PartyConfig party = new PartyConfig();
+
+	public static class DisplayConfig {
+
+		@ConfigOption(name = "Progress HUD", desc = "Top-left panel: run timer, party and personal dex, a bar per biome.")
+		@ConfigEditorBoolean
+		public boolean hudEnabled = true;
+
+		@ConfigOption(name = "Only in the Safari", desc = "Hide the HUD once you leave the Critter Safari.")
+		@ConfigEditorBoolean
+		public boolean onlyInSafari = true;
+
+		@ConfigOption(name = "Per-player lines", desc = "Show who is covering which biome, under the biome bars.")
+		@ConfigEditorBoolean
+		public boolean showPerPlayer = true;
+
+		@ConfigOption(name = "Missing panel", desc = "Top-right list of what is still uncaught in the biome you are standing in.")
+		@ConfigEditorBoolean
+		public boolean showMissing = true;
+
+		@ConfigOption(name = "HUD X", desc = "Distance from the left edge, in pixels.")
+		@ConfigEditorSlider(minValue = 0, maxValue = 400, minStep = 1)
+		public int hudX = 4;
+
+		@ConfigOption(name = "HUD Y", desc = "Distance from the top edge, in pixels.")
+		@ConfigEditorSlider(minValue = 0, maxValue = 400, minStep = 1)
+		public int hudY = 4;
+	}
+
+	public static class AlertConfig {
+
+		@ConfigOption(
+			name = "Encounter alerts",
+			desc = "Banner and sound as each legendary encounter progresses.\n" +
+				"§7Gemzie: §fchamber opens, then 3 catches.\n" +
+				"§7Wumpa: §ffootsteps, awoken, cave reopens.\n" +
+				"§7Doomspiral: §fcandle ritual, summoned, retreats.")
+		@ConfigEditorBoolean
+		public boolean bossAlerts = true;
+
+		@ConfigOption(name = "Biome complete", desc = "Announce \"<Biome> Done!\" once every species there has been caught by someone.")
+		@ConfigEditorBoolean
+		public boolean biomeDoneNotify = false;
+	}
+
+	public static class PartyConfig {
+
+		@ConfigOption(
+			name = "Announce to party",
+			desc = "Post encounter stages to chat so your team sees them too.\n" +
+				"§7Lines are spaced 1.2s apart; Hypixel drops faster bursts.")
+		@ConfigEditorBoolean
+		public boolean bossPartyNotify = true;
+
+		@ConfigOption(name = "Post to", desc = "Where /critters share and the announcements are sent.")
+		@ConfigEditorDropdown(values = {"Party chat", "All chat", "Normal chat"})
+		public int shareChannel = 0;
+
+		/** The Hypixel command for the selected channel, without the slash. */
+		public String shareCommand() {
+			return switch (shareChannel) {
+				case 1 -> "ac";
+				case 2 -> "";
+				default -> "pc";
+			};
 		}
 	}
 }

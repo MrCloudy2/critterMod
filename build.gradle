@@ -10,7 +10,7 @@ base {
 }
 
 repositories {
-	maven { name = 'Shedaniel'; url = 'https://maven.shedaniel.me/' }
+	maven { name = 'NotEnoughUpdates'; url = 'https://maven.notenoughupdates.org/releases' }
 	maven { name = 'TerraformersMC'; url = 'https://maven.terraformersmc.com/' }
 }
 
@@ -20,11 +20,16 @@ dependencies {
 	implementation "net.fabricmc:fabric-loader:${project.loader_version}"
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
-	// Cloth Config drags in its own copy of Fabric API modules; exclude them so the
-	// version above stays authoritative.
-	implementation("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
+	// MoulConfig is nested in the output jar, so the mod needs nothing installed
+	// alongside it. Fabric Loader deduplicates nested jars across mods.
+	def moulconfig = "org.notenoughupdates.moulconfig:${project.moulconfig_target}:${project.moulconfig_version}"
+	implementation(moulconfig)
+	include(moulconfig)
+
+	// MoulConfig is written in Kotlin; the stdlib comes from fabric-language-kotlin
+	// at runtime, so it is only needed on the compile classpath here.
+	compileOnly("org.jetbrains.kotlin:kotlin-stdlib:2.1.0")
+
 	implementation("com.terraformersmc:modmenu:${project.modmenu_version}")
 }
 

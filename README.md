@@ -87,10 +87,11 @@ someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 | `/critters history` | Replay this instance's logs and list past runs |
 | `/critters debug` | Dump every area source and what each resolves to |
 
-The HUD appears automatically while you're in the Safari. `/cm` opens a Cloth Config
-settings screen — the standard Fabric one, with categories, search, tooltips, per-entry
-reset arrows and a Save/Cancel footer — also reachable from the Config button in Mod
-Menu. Settings are grouped into Display, Alerts and Party. The same values live in
+The HUD appears automatically while you're in the Safari. `/cm` opens the settings,
+built with **MoulConfig** — the same config GUI SkyHanni uses, by Moulberry and nea89 —
+so it is the framed, searchable panel you already know. Also reachable from the Config
+button in Mod Menu. Options are grouped into Display, Alerts and Party, and MoulConfig
+owns saving, so edits persist as you make them. Values live in
 `config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
 `bossAlerts`, `bossPartyNotify`, `biomeDoneNotify`, `shareCommand`, `onlyInSafari`,
 `hudX`, `hudY`).
@@ -179,8 +180,11 @@ Chat-compacting mods (chatpatches, enhanced_chat) append duplicate counters like
 
 ## Building
 
-Requires JDK 25. **Cloth Config** is a required runtime dependency (it provides the
-settings screen); **Mod Menu** is optional and just adds the Config button. `gradle.properties` pins `org.gradle.java.home` for a machine whose
+Requires JDK 25. MoulConfig is **nested into the output jar**, so nothing extra needs
+installing — its artifact already ships a `fabric.mod.json`, which means Fabric's
+`include` works and SkyHanni's shade-and-relocate dance is unnecessary. It is written
+in Kotlin, so **fabric-language-kotlin** is a runtime dependency. **Mod Menu** is
+optional and just adds the Config button. `gradle.properties` pins `org.gradle.java.home` for a machine whose
 default JDK is older — adjust or remove that line as needed.
 
 ```bash

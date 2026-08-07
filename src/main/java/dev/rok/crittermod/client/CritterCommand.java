@@ -58,43 +58,43 @@ public final class CritterCommand {
 				return 1;
 			}))
 			.then(ClientCommands.literal("hud").executes(ctx -> {
-				CritterConfig config = CritterConfig.get();
-				config.hudEnabled = !config.hudEnabled;
-				config.save();
+				CritterConfig config = ConfigManager.get();
+				config.display.hudEnabled = !config.display.hudEnabled;
+				ConfigManager.save();
 				ctx.getSource().sendFeedback(prefixed(
-					"HUD " + (config.hudEnabled ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+					"HUD " + (config.display.hudEnabled ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("panel").executes(ctx -> {
-				CritterConfig config = CritterConfig.get();
-				config.showMissing = !config.showMissing;
-				config.save();
+				CritterConfig config = ConfigManager.get();
+				config.display.showMissing = !config.display.showMissing;
+				ConfigManager.save();
 				ctx.getSource().sendFeedback(prefixed("Top-right missing panel "
-					+ (config.showMissing ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+					+ (config.display.showMissing ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("alerts").executes(ctx -> {
-				CritterConfig config = CritterConfig.get();
-				config.bossAlerts = !config.bossAlerts;
-				config.save();
+				CritterConfig config = ConfigManager.get();
+				config.alerts.bossAlerts = !config.alerts.bossAlerts;
+				ConfigManager.save();
 				ctx.getSource().sendFeedback(prefixed("Encounter alerts "
-					+ (config.bossAlerts ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+					+ (config.alerts.bossAlerts ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("notify").executes(ctx -> {
-				CritterConfig config = CritterConfig.get();
-				config.bossPartyNotify = !config.bossPartyNotify;
-				config.save();
+				CritterConfig config = ConfigManager.get();
+				config.party.bossPartyNotify = !config.party.bossPartyNotify;
+				ConfigManager.save();
 				ctx.getSource().sendFeedback(prefixed("Party-chat notifications "
-					+ (config.bossPartyNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+					+ (config.party.bossPartyNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("biomedone").executes(ctx -> {
-				CritterConfig config = CritterConfig.get();
-				config.biomeDoneNotify = !config.biomeDoneNotify;
-				config.save();
+				CritterConfig config = ConfigManager.get();
+				config.alerts.biomeDoneNotify = !config.alerts.biomeDoneNotify;
+				ConfigManager.save();
 				ctx.getSource().sendFeedback(prefixed("Biome-complete alerts "
-					+ (config.biomeDoneNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+					+ (config.alerts.biomeDoneNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("testalert").executes(ctx -> {
@@ -138,7 +138,7 @@ public final class CritterCommand {
 
 	private static void openSettings() {
 		Minecraft client = Minecraft.getInstance();
-		client.execute(() -> client.setScreen(CritterConfigScreen.create(null)));
+		client.execute(() -> client.setScreen(ConfigManager.createScreen(null)));
 	}
 
 	/**
@@ -268,7 +268,7 @@ public final class CritterCommand {
 		List<String> lines = MissingReport.lines(session);
 		if (lines.isEmpty()) lines = List.of(MissingReport.text(session));
 
-		String channel = CritterConfig.get().shareCommand;
+		String channel = ConfigManager.get().party.shareCommand();
 		boolean asCommand = channel != null && !channel.isBlank();
 		for (String line : lines) {
 			ChatQueue.enqueue(asCommand ? channel.trim() + " " + line : line, asCommand);

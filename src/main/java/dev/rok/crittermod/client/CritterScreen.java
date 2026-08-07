@@ -228,7 +228,7 @@ public final class CritterScreen extends Screen {
 		List<String> lines = MissingReport.lines(session);
 		if (lines.isEmpty()) lines = List.of(MissingReport.text(session));
 
-		String channel = CritterConfig.get().shareCommand;
+		String channel = ConfigManager.get().party.shareCommand();
 		boolean asCommand = channel != null && !channel.isBlank();
 		for (String line : lines) {
 			ChatQueue.enqueue(asCommand ? channel.trim() + " " + line : line, asCommand);
