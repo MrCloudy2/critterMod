@@ -37,11 +37,16 @@ public class CritterMod implements ClientModInitializer {
 		// they append never reach the parser.
 		ClientReceiveMessageEvents.GAME.register((message, overlay) -> {
 			if (overlay) return;
-			String line = ChatParser.clean(message.getString());
-			if (line.isEmpty()) return;
-			SafariPresence.onChatMessage(line);
-			SessionManager.onChatMessage(line);
-			WumpaAlert.onChatMessage(line);
+			// Hypixel sends banners such as the "entered Critter Safari!" notice as a
+			// single multi-line component, so each line has to be handled separately
+			// or the interesting one never matches on its own.
+			for (String part : message.getString().split("\\r?\\n|\\\\n")) {
+				String line = ChatParser.clean(part);
+				if (line.isEmpty()) continue;
+				SafariPresence.onChatMessage(line);
+				SessionManager.onChatMessage(line);
+				WumpaAlert.onChatMessage(line);
+			}
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
