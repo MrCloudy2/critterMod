@@ -1,6 +1,7 @@
 package dev.rok.crittermod.session;
 
 import dev.rok.crittermod.client.AreaDetector;
+import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.parse.CritterEvent;
 import net.minecraft.client.Minecraft;
@@ -66,6 +67,11 @@ public final class SessionManager {
 			ticksOutsideSafari = 0;
 			return;
 		}
+
+		// A catch or capsule throw only happens inside the Safari, so it is proof of
+		// presence in its own right. Relying on the entry banner alone would leave
+		// the mod blind after joining mid-run or missing that one message.
+		SafariPresence.set(true);
 
 		if (current == null) startSession();
 		current.record(event, System.currentTimeMillis());
