@@ -52,11 +52,22 @@ public final class MissingHud implements HudElement {
 		// to the whole roster rather than hiding the panel.
 		List<Critter> missing = session == null ? Critters.inBiome(biome) : session.missing(biome);
 
+		// A species already accounted for still deserves listing while one of them is
+		// stood in front of you: every catch is another shard, so "done" only ever
+		// meant done for the dex, never nothing left to take.
+		List<Critter> alsoHere = session == null ? List.of()
+			: Critters.inBiome(biome).stream()
+				.filter(c -> !missing.contains(c))
+				.filter(c -> session.nearby(c) > 0)
+				.toList();
+
 		HudPanel panel = new HudPanel();
 
-		if (missing.isEmpty()) {
+		if (missing.isEmpty() && alsoHere.isEmpty()) {
 			panel.title(biome.displayName() + " Biome", 0xFF000000 | biome.colour());
 			panel.line("all " + Critters.totalIn(biome) + " caught", DONE);
+		} else if (missing.isEmpty()) {
+			panel.title(biome.displayName() + " Biome — all caught", DONE);
 		} else {
 			panel.title("%s Biome — %d left".formatted(biome.displayName(), missing.size()),
 				0xFF000000 | biome.colour());
@@ -75,6 +86,16 @@ public final class MissingHud implements HudElement {
 				else if (total > 1 && !TrackingMode.uniqueOnly()) note = caught + "/" + total;
 				else note = attempts > 0 ? attempts + " tried" : "";
 				panel.pair(critter.name(), note, CritterHud.rarityColour(critter), DIM);
+			}
+		}
+
+		// Listed after the outstanding ones, dimmer, so they read as a bonus rather
+		// than as something still owed.
+		if (!alsoHere.isEmpty()) {
+			panel.blank();
+			panel.line("also here", DIM);
+			for (Critter critter : alsoHere) {
+				panel.pair(critter.name(), session.nearby(critter) + " near", DONE, DIM);
 			}
 		}
 
