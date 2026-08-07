@@ -143,7 +143,7 @@ public class CritterConfig extends Config {
 		@ConfigOption(
 			name = "All but Macaw",
 			desc = "Announce \"Everything except Macaw done!\" when the only species left is the Macaw.\n" +
-				"§7The Macaw only comes to the Birdfeeder and is not guaranteed in a run, so this is\n" +
+				"§7The Macaw is RNG and not guaranteed to appear in a run at all, so this is\n" +
 				"§7usually the real finish line.")
 		@ConfigEditorBoolean
 		public boolean allButMacawNotify = false;
