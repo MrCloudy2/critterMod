@@ -170,8 +170,9 @@ public final class CritterScreen extends Screen {
 				// Quota species show progress towards their total; the rest show repeat
 				// catches, or an attempt count meaning it is around and escaping.
 				int caught = session.partyCatches(critter);
-				boolean quota = critter.hasQuota() && !TrackingMode.uniqueOnly();
-				String note = quota ? caught + "/" + critter.spawnQuota()
+				int total = session.required(critter);
+				boolean known = total > 1 && !TrackingMode.uniqueOnly();
+				String note = known ? caught + "/" + total
 					: caught > 1 ? "x" + caught
 					: caught == 0 && session.attempts(critter) > 0 ? session.attempts(critter) + "t" : "";
 				if (!note.isEmpty()) {

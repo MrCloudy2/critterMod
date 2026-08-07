@@ -33,9 +33,10 @@ public final class MissingReport {
 				line.append(' ').append(critter.name());
 				// e.g. "Gemzie(1/3)" — tells the reader how many are left, not just that
 				// something is outstanding.
-				if (critter.hasQuota() && !TrackingMode.uniqueOnly()) {
+				int total = session.required(critter);
+				if (total > 1 && !TrackingMode.uniqueOnly()) {
 					line.append('(').append(session.partyCatches(critter))
-						.append('/').append(critter.spawnQuota()).append(')');
+						.append('/').append(total).append(')');
 				}
 			}
 			lines.add(line.toString());
