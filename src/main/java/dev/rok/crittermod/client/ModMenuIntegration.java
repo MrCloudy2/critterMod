@@ -8,6 +8,6 @@ public final class ModMenuIntegration implements ModMenuApi {
 
 	@Override
 	public ConfigScreenFactory<?> getModConfigScreenFactory() {
-		return CritterConfigScreen::create;
+		return ConfigManager::createScreen;
 	}
 }

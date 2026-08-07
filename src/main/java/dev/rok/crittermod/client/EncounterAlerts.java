@@ -132,19 +132,19 @@ public final class EncounterAlerts implements HudElement {
 
 	/** Every species in {@code biome} has now been caught by someone this run. */
 	public static void onBiomeComplete(SafariBiome biome) {
-		CritterConfig config = CritterConfig.get();
-		if (!config.biomeDoneNotify) return;
+		CritterConfig config = ConfigManager.get();
+		if (!config.alerts.biomeDoneNotify) return;
 		if (onCooldown("biome:" + biome.name())) return;
 
 		String text = biome.displayName() + " Done!";
 		banner(text, DONE_COLOUR, 1.6f);
 		chat(text, ChatFormatting.GREEN);
-		if (config.bossPartyNotify) ChatQueue.enqueue(shareChannel() + text, isCommand());
+		if (config.party.bossPartyNotify) ChatQueue.enqueue(shareChannel() + text, isCommand());
 	}
 
 	private static void fire(String boss, Stage stage, String detail, float pitch) {
-		CritterConfig config = CritterConfig.get();
-		if (!config.bossAlerts) return;
+		CritterConfig config = ConfigManager.get();
+		if (!config.alerts.bossAlerts) return;
 		// Gemzie chambers repeat every few minutes and its ready/done pair can be
 		// seconds apart, so the anti-repeat cooldown must not apply to it.
 		if (!boss.equals("Gemzie") && onCooldown(boss + ":" + stage)) return;
@@ -157,7 +157,7 @@ public final class EncounterAlerts implements HudElement {
 		}, pitch);
 		chat(text + " — " + detail, ChatFormatting.YELLOW);
 
-		if (config.bossPartyNotify) {
+		if (config.party.bossPartyNotify) {
 			ChatQueue.enqueue(shareChannel() + "%s %s".formatted(boss, stage.name().toLowerCase()), isCommand());
 		}
 	}
@@ -172,12 +172,12 @@ public final class EncounterAlerts implements HudElement {
 	}
 
 	private static String shareChannel() {
-		String channel = CritterConfig.get().shareCommand;
+		String channel = ConfigManager.get().party.shareCommand();
 		return channel == null || channel.isBlank() ? "" : channel.trim() + " ";
 	}
 
 	private static boolean isCommand() {
-		String channel = CritterConfig.get().shareCommand;
+		String channel = ConfigManager.get().party.shareCommand();
 		return channel != null && !channel.isBlank();
 	}
 

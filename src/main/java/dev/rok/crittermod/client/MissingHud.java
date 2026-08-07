@@ -26,8 +26,8 @@ public final class MissingHud implements HudElement {
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-		CritterConfig config = CritterConfig.get();
-		if (!config.hudEnabled || !config.showMissing) return;
+		CritterConfig config = ConfigManager.get();
+		if (!config.display.hudEnabled || !config.display.showMissing) return;
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.options.hideGui) return;
@@ -59,7 +59,7 @@ public final class MissingHud implements HudElement {
 			}
 		}
 
-		int right = graphics.guiWidth() - config.hudX;
-		panel.render(graphics, client.font, right, config.hudY, true);
+		int right = graphics.guiWidth() - config.display.hudX;
+		panel.render(graphics, client.font, right, config.display.hudY, true);
 	}
 }
