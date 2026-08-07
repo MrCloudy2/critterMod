@@ -132,14 +132,30 @@ public final class EncounterAlerts implements HudElement {
 
 	/** Every species in {@code biome} has now been caught by someone this run. */
 	public static void onBiomeComplete(SafariBiome biome) {
-		CritterConfig config = ConfigManager.get();
-		if (!config.alerts.biomeDoneNotify) return;
+		if (!ConfigManager.get().alerts.biomeDoneNotify) return;
 		if (onCooldown("biome:" + biome.name())) return;
 
-		String text = biome.displayName() + " Done!";
-		banner(text, DONE_COLOUR, 1.6f);
+		announce(biome.displayName() + " Done!", 1.4f);
+	}
+
+	/** Everything but the Macaw is caught — usually the real finish line for a run. */
+	public static void onAllButMacaw() {
+		if (!ConfigManager.get().alerts.allButMacawNotify) return;
+		announce("Everything except Macaw done!", 1.6f);
+	}
+
+	/** All 37 caught by someone. */
+	public static void onAllDone() {
+		if (!ConfigManager.get().alerts.allDoneNotify) return;
+		announce("Everything Done!", 2.0f);
+	}
+
+	private static void announce(String text, float pitch) {
+		banner(text, DONE_COLOUR, pitch);
 		chat(text, ChatFormatting.GREEN);
-		if (config.party.bossPartyNotify) ChatQueue.enqueue(shareChannel() + text, isCommand());
+		if (ConfigManager.get().party.bossPartyNotify) {
+			ChatQueue.enqueue(shareChannel() + text, isCommand());
+		}
 	}
 
 	private static void fire(String boss, Stage stage, String detail, float pitch) {

@@ -4,6 +4,7 @@ import dev.rok.crittermod.client.AreaDetector;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.parse.ChatParser;
+import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.parse.CritterEvent;
 import net.minecraft.client.Minecraft;
@@ -30,6 +31,9 @@ public final class SessionManager {
 
 	private static final java.util.EnumSet<SafariBiome> announcedBiomes =
 		java.util.EnumSet.noneOf(SafariBiome.class);
+
+	private static boolean announcedAllButMacaw;
+	private static boolean announcedAllDone;
 
 	private static boolean wasInSafari;
 	private static int ticksOutsideSafari;
@@ -84,6 +88,7 @@ public final class SessionManager {
 		if (event.isCatch()) {
 			EncounterAlerts.onCatch(event.critter().name());
 			announceNewlyCompleteBiomes();
+			announceRunMilestones();
 		}
 	}
 
@@ -100,10 +105,32 @@ public final class SessionManager {
 		}
 	}
 
+	/**
+	 * Fires the two whole-run milestones, at most once each per run.
+	 *
+	 * <p>They are mutually exclusive: if a single catch completes the dex outright,
+	 * only "Everything Done!" fires, and the weaker "except Macaw" message is marked
+	 * as already announced so it cannot follow it.
+	 */
+	private static void announceRunMilestones() {
+		if (!announcedAllDone && current.dexComplete()) {
+			announcedAllDone = true;
+			announcedAllButMacaw = true;
+			EncounterAlerts.onAllDone();
+			return;
+		}
+		if (!announcedAllButMacaw && current.allCaughtExcept(Critters.MACAW)) {
+			announcedAllButMacaw = true;
+			EncounterAlerts.onAllButMacaw();
+		}
+	}
+
 	public static void startSession() {
 		if (current != null && !current.isEmpty()) archive(current);
 		current = new SafariSession(selfName(), System.currentTimeMillis());
 		announcedBiomes.clear();
+		announcedAllButMacaw = false;
+		announcedAllDone = false;
 		EncounterAlerts.reset();
 	}
 

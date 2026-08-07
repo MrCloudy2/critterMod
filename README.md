@@ -38,7 +38,8 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   standing in. Both movable and resizable.
 - **Encounter alerts** — Gemzie, Wumpa and Doomspiral tracked ready → started → done,
   with optional party-chat announcements.
-- **Biome complete** — optional `<Biome> Done!` when a biome's last species falls.
+- **Completion alerts** — optional `<Biome> Done!`, `Everything except Macaw done!`
+  and `Everything Done!`.
 - **Log replay** — reconstruct past runs from rotated chat logs, in game or offline.
 
 Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
@@ -100,8 +101,19 @@ per-stage cooldown keeps that from firing four banners; measured across 78 real 
 intervals it suppresses 77 of them. Gemzie is exempt, since its chamber repeats every
 few minutes and ready/done can be seconds apart.
 
-**Biome complete** — off by default. When every species in a biome has been caught by
-someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
+**Completion alerts** — all off by default, in the Alerts settings:
+
+| Alert | Fires when |
+|---|---|
+| `<Biome> Done!` | every species in a biome has been caught by someone |
+| `Everything except Macaw done!` | the only species left is the Macaw |
+| `Everything Done!` | all 37 caught by someone |
+
+The Macaw only comes to the Birdfeeder and is not guaranteed to appear, so
+"everything but the Macaw" is usually the real finish line. Across 48 replayed runs
+that milestone was reached 7 times while a full 37/37 happened once — six runs ended a
+single Macaw short. The two are mutually exclusive: if one catch completes the dex
+outright, only `Everything Done!` fires.
 
 ## Settings
 
