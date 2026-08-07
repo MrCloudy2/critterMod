@@ -20,8 +20,8 @@ import java.util.Map;
  * Honeybug ranged from 1 to 13.
  *
  * <p>The Macaw looks quota-like in the logs (2 in 4 of the 5 runs that caught one) but
- * has none: it is Birdfeeder RNG, can come more than once, and is not guaranteed at
- * all. Five runs was simply too small a sample to tell those apart.
+ * has none: it is RNG, can come more than once, and is not guaranteed at all. Five runs
+ * was simply too small a sample to tell those apart.
  *
  * <p>Species names are matched against chat text, so the longest names must be
  * tried first — "Mantis Shrimp" would otherwise never match if a shorter name
@@ -97,8 +97,8 @@ public final class Critters {
 	}
 
 	/**
-	 * The Forest legendary. It only appears via the Birdfeeder and is not guaranteed
-	 * to show up in a run, so "everything but this" is a milestone worth its own alert.
+	 * The Forest legendary. It is RNG and not guaranteed to show up in a run at all, so
+	 * "everything but this" is a milestone worth its own alert.
 	 */
 	public static final Critter MACAW = BY_NAME.get("Macaw");
 
