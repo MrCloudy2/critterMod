@@ -130,6 +130,7 @@ public final class SafariSession {
 	public int required(Critter critter) {
 		if (TrackingMode.uniqueOnly()) return 1;
 		if (critter.hasQuota()) return critter.spawnQuota();
+		if (!TrackingMode.countSpawns()) return 1;
 		return Math.max(1, Math.max(seen(critter), partyCatches(critter)));
 	}
 

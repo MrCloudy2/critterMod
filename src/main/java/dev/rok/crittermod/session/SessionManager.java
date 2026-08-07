@@ -52,6 +52,7 @@ public final class SessionManager {
 	/** Called every client tick to open/close runs as the player moves around. */
 	public static void tick() {
 		TrackingMode.setUniqueOnly(ConfigManager.get().display.uniqueOnly);
+		TrackingMode.setCountSpawns(ConfigManager.get().display.countSpawns);
 
 		// Being at the Safari — including its entrance — keeps a run open. Runs are
 		// opened by the entry message or the first catch, never from here: the

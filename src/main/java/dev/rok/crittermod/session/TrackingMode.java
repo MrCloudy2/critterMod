@@ -17,6 +17,7 @@ import dev.rok.crittermod.data.Critter;
 public final class TrackingMode {
 
 	private static boolean uniqueOnly;
+	private static boolean countSpawns = true;
 
 	private TrackingMode() {
 	}
@@ -27,6 +28,15 @@ public final class TrackingMode {
 
 	public static boolean uniqueOnly() {
 		return uniqueOnly;
+	}
+
+	public static void setCountSpawns(boolean value) {
+		countSpawns = value;
+	}
+
+	/** Whether spawns seen in the world are used as the target for unquotaed species. */
+	public static boolean countSpawns() {
+		return countSpawns;
 	}
 
 	/** How many of {@code critter} are needed before it counts as done. */
