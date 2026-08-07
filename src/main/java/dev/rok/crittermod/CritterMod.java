@@ -5,6 +5,7 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.MissingHud;
+import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
@@ -56,6 +57,7 @@ public class CritterMod implements ClientModInitializer {
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			SessionManager.tick();
 			CritterSpotter.tick();
+			NestTracker.tick();
 			ChatQueue.tick();
 		});
 
