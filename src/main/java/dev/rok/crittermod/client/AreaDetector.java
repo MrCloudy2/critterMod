@@ -113,17 +113,27 @@ public final class AreaDetector {
 	/**
 	 * The {@code ⏣ <island>} line from the SkyBlock sidebar, or {@code null} if the
 	 * sidebar has none (loading, or not on SkyBlock).
-	 *
-	 * <p>Only this line identifies the island. The {@code ⚑ <zone>} line below it names
-	 * a sub-area, and one of those sub-areas is literally "Critter Safari Entrance" —
-	 * so testing every sidebar line for "Critter Safari" would report being inside the
-	 * Safari while standing outside its door.
 	 */
 	public static String islandLine() {
 		for (String line : sidebarLines()) {
 			if (line.startsWith("⏣") || line.startsWith("ф")) return line;
 		}
 		return null;
+	}
+
+	/**
+	 * The sidebar lines naming where the player is: the {@code ⏣ <island>} line and the
+	 * {@code ⚑ <zone>} line under it.
+	 *
+	 * <p>Only these two are area names. Testing the whole sidebar would also match
+	 * unrelated rows that happen to mention a Safari, such as a ticket counter.
+	 */
+	public static List<String> areaLines() {
+		List<String> areas = new ArrayList<>();
+		for (String line : sidebarLines()) {
+			if (line.startsWith("⏣") || line.startsWith("⚑") || line.startsWith("ф")) areas.add(line);
+		}
+		return areas;
 	}
 
 	/** Biome named by the sidebar or tab list, if either does. */
@@ -149,26 +159,41 @@ public final class AreaDetector {
 	}
 
 	/**
-	 * Whether the player is inside the Critter Safari.
+	 * Whether the player is inside the Critter Safari itself, judged by the island line.
 	 *
-	 * <p>The sidebar's island line settles it when it names the Safari. Otherwise the
-	 * player is treated as inside only until that line changes to a different island —
-	 * leaving the Safari produces no chat message at all, so the island line changing
-	 * is the only evidence available.
+	 * <p>This drives session <em>start</em>, so it deliberately excludes the entrance:
+	 * the entrance is a zone of Torrhus Canyon, and opening a run there would discard
+	 * the one just finished and leave an empty 0/37 on screen.
 	 */
 	public static boolean inSafari() {
 		String island = islandLine();
-
-		if (island != null && island.contains("Critter Safari") && !island.contains("Entrance")) {
-			SafariPresence.enter(island);
-			return true;
+		if (island != null) {
+			boolean inside = island.contains("Safari");
+			if (inside) SafariPresence.set(true);
+			return inside;
 		}
+		// Sidebar not loaded yet — fall back to what chat last said.
+		return SafariPresence.inSafari();
+	}
 
-		if (SafariPresence.movedAwayFrom(island)) {
-			SafariPresence.clear();
-			return false;
+	/**
+	 * Whether the player is at the Safari at all — inside it, or at the
+	 * {@code Critter Safari Entrance} zone in Torrhus Canyon.
+	 *
+	 * <p>This drives HUD visibility, because the last run's results are worth reading
+	 * while standing at the door. Matching "Safari" in either area line covers both
+	 * without naming them, and excludes the rest of Torrhus Canyon.
+	 *
+	 * <p>The sidebar is authoritative here. It has to be: leaving produces no chat
+	 * message and no transfer notice, so a flag set on entry has nothing to clear it.
+	 */
+	public static boolean atSafari() {
+		List<String> areas = areaLines();
+		if (!areas.isEmpty()) {
+			boolean at = areas.stream().anyMatch(area -> area.contains("Safari"));
+			if (!at) SafariPresence.set(false);
+			return at;
 		}
-
 		return SafariPresence.inSafari();
 	}
 
