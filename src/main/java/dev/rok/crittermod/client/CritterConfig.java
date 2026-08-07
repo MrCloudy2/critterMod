@@ -118,6 +118,14 @@ public class CritterConfig extends Config {
 		@ConfigOption(name = "Everything done", desc = "Announce \"Everything Done!\" once all 37 species have been caught by someone.")
 		@ConfigEditorBoolean
 		public boolean allDoneNotify = false;
+
+		@ConfigOption(
+			name = "Hunter trades",
+			desc = "Report the roaming Hunter NPCs' shard-for-item offers, with the biome they are in.\n" +
+				"§7Their dialog is only shown to whoever clicked them, so an offer can go unused\n" +
+				"§7while someone else is carrying exactly the item it wants.")
+		@ConfigEditorBoolean
+		public boolean traderAlerts = true;
 	}
 
 	public static class PartyConfig {
@@ -128,6 +136,10 @@ public class CritterConfig extends Config {
 				"§7Lines are spaced 1.2s apart; Hypixel drops faster bursts.")
 		@ConfigEditorBoolean
 		public boolean bossPartyNotify = true;
+
+		@ConfigOption(name = "Announce Hunter trades", desc = "Post the roaming Hunter NPCs' offers to chat so your team can use them.")
+		@ConfigEditorBoolean
+		public boolean traderPartyNotify = true;
 
 		@ConfigOption(name = "Post to", desc = "Where /critters share and the announcements are sent.")
 		@ConfigEditorDropdown(values = {"Party chat", "All chat", "Normal chat"})
