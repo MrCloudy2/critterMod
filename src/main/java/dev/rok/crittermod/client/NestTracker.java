@@ -14,9 +14,13 @@ import java.util.Set;
  * Tracks the bee nests that Honeybugs come from.
  *
  * <p>Unlike the Cavern walls these have no fixed positions to check, so they have to
- * be found by sweeping blocks near the player. Once a nest is known its position is
- * kept and only re-read, which is cheap: a nest still holding a {@code bee_nest} block
- * has not been punched yet.
+ * be found by sweeping blocks near the player.
+ *
+ * <p>Punching one leaves the block exactly as it was — same block, same state — so
+ * there is nothing to read back afterwards. The punch itself is therefore what gets
+ * recorded, via {@link net.fabricmc.fabric.api.event.player.AttackBlockCallback}. The
+ * consequence is that a nest someone else punched still shows as outstanding, since
+ * this client never saw it happen.
  *
  * <p>The known set therefore grows as the Forest is explored, so the count is "nests
  * you have come across", not "nests on the map". That is the honest reading and it is
@@ -30,6 +34,7 @@ public final class NestTracker {
 	private static final int SCAN_HEIGHT = 12;
 
 	private static final Set<BlockPos> known = new LinkedHashSet<>();
+	private static final Set<BlockPos> punched = new LinkedHashSet<>();
 	private static int ticks;
 
 	/** A nest and whether it still needs punching. */
@@ -37,6 +42,16 @@ public final class NestTracker {
 	}
 
 	private NestTracker() {
+	}
+
+	/** Records a punch on a nest. Hooked to the attack event, hence the block check. */
+	public static void onAttack(BlockPos pos) {
+		Minecraft client = Minecraft.getInstance();
+		if (client.level == null) return;
+		if (client.level.getBlockState(pos).getBlock() != Blocks.BEE_NEST) return;
+		BlockPos immutable = pos.immutable();
+		known.add(immutable);
+		punched.add(immutable);
 	}
 
 	public static void tick() {
@@ -71,7 +86,7 @@ public final class NestTracker {
 			// An unloaded chunk reports air, which would read as punched. Only a loaded
 			// chunk can say either way, so anything else is left out of the count.
 			if (!client.level.isLoaded(pos)) continue;
-			boolean unpunched = client.level.getBlockState(pos).getBlock() == Blocks.BEE_NEST;
+			boolean unpunched = !punched.contains(pos);
 			double distance = Math.sqrt(client.player.position()
 				.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5));
 			result.add(new Nest(pos, unpunched, distance));
@@ -89,5 +104,6 @@ public final class NestTracker {
 	/** Nests are per-instance, so what was found last run means nothing in this one. */
 	public static void reset() {
 		known.clear();
+		punched.clear();
 	}
 }

@@ -5,6 +5,7 @@ import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.TraderWatch;
+import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.WallTracker;
 import dev.rok.crittermod.data.Critter;
@@ -171,6 +172,7 @@ public final class SessionManager {
 		EncounterAlerts.reset();
 		TraderWatch.reset();
 		NestTracker.reset();
+		MoundTracker.reset();
 	}
 
 	private static void endSession() {

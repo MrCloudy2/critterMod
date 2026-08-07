@@ -115,7 +115,23 @@ public final class MissingHud implements HudElement {
 
 		appendWalls(panel, biome);
 		appendNests(panel, biome);
+		appendMounds(panel, biome);
 		return panel;
+	}
+
+	/**
+	 * Reports the mounds broken this run. There is no "left to break" figure to give —
+	 * mounds are only known from chat as they fall apart — and only about a fifth hold
+	 * a Rockmite anyway, so the useful number is how many rolls have been taken.
+	 */
+	private static void appendMounds(HudPanel panel, SafariBiome biome) {
+		if (biome != SafariBiome.CAVERN) return;
+		if (!ConfigManager.get().display.showWalls) return;
+		if (MoundTracker.broken() == 0) return;
+
+		panel.blank();
+		panel.pair("Mounds broken", "%d → %d Rockmite".formatted(
+			MoundTracker.broken(), MoundTracker.rockmites()), WALL, DIM);
 	}
 
 	/**
