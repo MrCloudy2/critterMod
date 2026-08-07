@@ -63,10 +63,11 @@ public final class MissingHud implements HudElement {
 				// A quota species shows how many of its spawns are already taken, since
 				// "caught one" is not the same as "done with it".
 				int caught = session == null ? 0 : session.partyCatches(critter);
+				int total = session == null ? 0 : session.required(critter);
 				int attempts = session == null ? 0 : session.attempts(critter);
 				String note;
-				if (critter.hasQuota() && !TrackingMode.uniqueOnly()) {
-					note = caught + "/" + critter.spawnQuota();
+				if (session != null && total > 1 && !TrackingMode.uniqueOnly()) {
+					note = caught + "/" + total;
 				} else {
 					note = attempts > 0 ? attempts + " tried" : "";
 				}
