@@ -93,6 +93,16 @@ public class CritterConfig extends Config {
 		public boolean showMissing = true;
 
 		@ConfigOption(
+			name = "Cavern walls",
+			desc = "List the breakable Cavern walls still standing, under the missing list.\n" +
+				"§7They want breaking every run to check behind them.\n" +
+				"§7Read from the blocks themselves, so it is exact — but a wall in an unloaded\n" +
+				"§7chunk is marked \"?\" rather than guessed at, since air and out-of-range look\n" +
+				"§7identical from here.")
+		@ConfigEditorBoolean
+		public boolean showWalls = true;
+
+		@ConfigOption(
 			name = "Hunter trade tracker",
 			desc = "Box listing the Hunter NPC offers found this run, nearest first.\n" +
 				"§7The chat report scrolls away; this keeps them to hand.")
