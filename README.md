@@ -141,8 +141,12 @@ else in the party is carrying exactly the item it wants. The mod prints each com
 offer with the biome it was found in, and can post it to party chat:
 
 ```
-[Critters] Hunter Harry (Icy): Nozzlenose Shard for a Yogi Berry
+[Critters] Hunter Harry (Icy -73 66 -23): Nozzlenose Shard for a Yogi Berry
 ```
+
+Coordinates point at the NPC itself where it can be found nearby, falling back to
+where you are standing. They are taken when the dialog *opens*, not when it finishes —
+the two lines are seconds apart and you may have turned away by then.
 
 Four traders word both halves differently, and the shard and the price always arrive
 as two separate lines, so an offer is paired with the next price line from the same

@@ -4,6 +4,9 @@ import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.parse.TraderParser;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
+import net.minecraft.core.BlockPos;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.phys.Vec3;
 import net.minecraft.network.chat.Component;
 
 import java.util.HashMap;
@@ -21,9 +24,21 @@ public final class TraderWatch {
 
 	/** The same offer re-read by clicking the NPC again should not re-announce. */
 	private static final long REPEAT_COOLDOWN_MILLIS = 5 * 60 * 1000L;
+	/** You are stood at the NPC when its dialog opens, so it is well within this. */
+	private static final double SEARCH_RADIUS = 12.0;
 
 	private static final TraderParser PARSER = new TraderParser();
 	private static final Map<String, Long> announced = new HashMap<>();
+	/** Speaker -> where the player stood when that NPC opened its offer. */
+	private static final Map<String, Spot> offerSpots = new HashMap<>();
+
+	/** Where an offer was found: coordinates, and the biome if one could be resolved. */
+	private record Spot(int x, int y, int z, SafariBiome biome) {
+		String describe() {
+			String where = "%d %d %d".formatted(x, y, z);
+			return biome == null ? where : biome.displayName() + " " + where;
+		}
+	}
 
 	private TraderWatch() {
 	}
@@ -31,6 +46,18 @@ public final class TraderWatch {
 	/** Feeds one cleaned chat line; announces when a trade becomes complete. */
 	public static void onChatMessage(String line) {
 		TraderParser.TradeOffer offer = PARSER.parse(line);
+
+		// Note the spot as the dialog opens. The price line follows seconds later, by
+		// which point the player may have turned away from the NPC.
+		String opening = PARSER.offerJustRegistered();
+		if (opening != null) {
+			BlockPos pos = locate(opening);
+			if (pos != null) {
+				offerSpots.put(opening, new Spot(pos.getX(), pos.getY(), pos.getZ(),
+					AreaDetector.currentBiome()));
+			}
+		}
+
 		if (offer == null) return;
 		if (!ConfigManager.get().alerts.traderAlerts) return;
 
@@ -40,8 +67,8 @@ public final class TraderWatch {
 		if (last != null && now - last < REPEAT_COOLDOWN_MILLIS) return;
 		announced.put(key, now);
 
-		SafariBiome biome = AreaDetector.currentBiome();
-		String where = biome == null ? "" : " (" + biome.displayName() + ")";
+		Spot spot = offerSpots.remove(offer.npc());
+		String where = spot == null ? "" : " (" + spot.describe() + ")";
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.gui != null) {
@@ -58,6 +85,42 @@ public final class TraderWatch {
 			ChatQueue.enqueue(shareChannel() + "%s%s: %s Shard for %s".formatted(
 				offer.npc(), where, offer.critter().name(), offer.item()), isCommand());
 		}
+	}
+
+	/**
+	 * Where to send people: the NPC's own position if it can be found nearby, otherwise
+	 * where the player is standing.
+	 *
+	 * <p>Hypixel renders an NPC's label on a separate entity from its body, so this
+	 * matches on either and takes the nearest. The player is talking to the NPC at this
+	 * point, so the fallback is only ever a couple of blocks out.
+	 */
+	private static BlockPos locate(String npcName) {
+		Minecraft client = Minecraft.getInstance();
+		if (client.player == null) return null;
+		if (client.level == null) return client.player.blockPosition();
+
+		Vec3 origin = client.player.position();
+		Entity nearest = null;
+		double nearestSq = SEARCH_RADIUS * SEARCH_RADIUS;
+
+		for (Entity entity : client.level.entitiesForRendering()) {
+			double distanceSq = entity.position().distanceToSqr(origin);
+			if (distanceSq > nearestSq) continue;
+			if (!named(entity, npcName)) continue;
+			nearestSq = distanceSq;
+			nearest = entity;
+		}
+		return nearest != null ? nearest.blockPosition() : client.player.blockPosition();
+	}
+
+	private static boolean named(Entity entity, String npcName) {
+		if (entity.hasCustomName() && matches(entity.getCustomName(), npcName)) return true;
+		return matches(entity.getDisplayName(), npcName);
+	}
+
+	private static boolean matches(Component name, String npcName) {
+		return name != null && name.getString().replaceAll("§.", "").contains(npcName);
 	}
 
 	/** Legendaries stand out, since those are the trades worth going out of your way for. */
@@ -85,5 +148,6 @@ public final class TraderWatch {
 	public static void reset() {
 		PARSER.reset();
 		announced.clear();
+		offerSpots.clear();
 	}
 }

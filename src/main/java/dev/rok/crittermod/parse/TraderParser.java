@@ -43,6 +43,9 @@ public final class TraderParser {
 	/** Speaker -> the shard they have already offered but not yet priced. */
 	private final Map<String, Critter> pendingOffers = new HashMap<>();
 
+	/** Speaker whose offer the most recent {@link #parse} call registered, if any. */
+	private String offerJustRegistered;
+
 	/** A complete trade: {@code npc} will hand over {@code critter}'s shard for {@code item}. */
 	public record TradeOffer(String npc, Critter critter, String item) {
 	}
@@ -53,6 +56,8 @@ public final class TraderParser {
 	 * @return the trade once its price line lands, or {@code null} for anything else
 	 */
 	public TradeOffer parse(String line) {
+		offerJustRegistered = null;
+
 		Matcher npcLine = NPC_LINE.matcher(line);
 		if (!npcLine.matches()) return null;
 
@@ -72,13 +77,28 @@ public final class TraderParser {
 		// one — so it also has to name a species.
 		if (text.contains("Shard")) {
 			Critter critter = Critters.findIn(text);
-			if (critter != null) pendingOffers.put(npc, critter);
+			if (critter != null) {
+				pendingOffers.put(npc, critter);
+				offerJustRegistered = npc;
+			}
 		}
 		return null;
+	}
+
+	/**
+	 * The speaker whose offer the last {@link #parse} call registered, or {@code null}.
+	 *
+	 * <p>Lets the caller note where the player was standing when the dialog opened,
+	 * rather than when it finished — the two lines are seconds apart, and by the price
+	 * line the player may already have moved away from the NPC.
+	 */
+	public String offerJustRegistered() {
+		return offerJustRegistered;
 	}
 
 	/** Drops any half-seen dialog, e.g. when a run ends. */
 	public void reset() {
 		pendingOffers.clear();
+		offerJustRegistered = null;
 	}
 }
