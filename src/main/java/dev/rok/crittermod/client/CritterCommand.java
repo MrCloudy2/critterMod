@@ -110,6 +110,8 @@ public final class CritterCommand {
 				EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
 				EncounterAlerts.onAllButMacaw();
 				EncounterAlerts.onAllDone();
+				TraderWatch.onChatMessage("[NPC] Hunter Harry: Say, do you have a use for a Nozzlenose Shard? I found it lying around...");
+				TraderWatch.onChatMessage("[NPC] Hunter Harry: I'll give you it in exchange for a Yogi Berry!");
 				return 1;
 			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {

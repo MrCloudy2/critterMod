@@ -40,6 +40,8 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   with optional party-chat announcements.
 - **Completion alerts** — optional `<Biome> Done!`, `Everything except Macaw done!`
   and `Everything Done!`.
+- **Hunter trades** — reports the roaming NPCs' shard-for-item offers, with the biome,
+  so a partymate holding the right item can go and take it.
 - **Log replay** — reconstruct past runs from rotated chat logs, in game or offline.
 
 Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
@@ -131,7 +133,33 @@ are stored as fractions of the screen, so a box stays where you put it across
 resolution and GUI-scale changes. Each box also has a scale slider in the settings, and
 a Reset button restores the defaults.
 
-### Telling your team
+### Hunter trades
+
+Hunter NPCs roam the Safari, each offering one shard for one quest item. Their dialog
+is only shown to whoever clicked them, so an offer routinely goes unused while someone
+else in the party is carrying exactly the item it wants. The mod prints each complete
+offer with the biome it was found in, and can post it to party chat:
+
+```
+[Critters] Hunter Harry (Icy): Nozzlenose Shard for a Yogi Berry
+```
+
+Four traders word both halves differently, and the shard and the price always arrive
+as two separate lines, so an offer is paired with the next price line from the same
+speaker rather than matched against eight sentence patterns:
+
+| NPC | Offers | Asks |
+|---|---|---|
+| Hunter Billy | `I found this really cool <C> Shard …` | `I'll trade it to you in exchange for a <item>.` |
+| Hunter Dennis | `I've got a <C> Shard you can h-h-have …` | `You can h-h-have it if you give m-m-me a <item>…` |
+| Hunter Harry | `Say, do you have a use for a <C> Shard? …` | `I'll give you it in exchange for a <item>!` |
+| Huntress Melissa | `Do you want this <C> Shard? …` | `How about I give you it in exchange for, say, a <item>?` |
+
+Checked against 4,163 NPC lines in real logs: 27 trades resolved across all four
+traders, for items including Yogi Berry, Bag of Seeds, Shining Coin, Lime/Orange/Purple
+Gem, Wriggleworm, Icebreaker and Soothing Incense.
+
+## Telling your team
 
 `/critters copy` and `/critters share` produce the same report — one line per biome
 that still has anything outstanding, complete biomes omitted:

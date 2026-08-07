@@ -5,6 +5,7 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.SafariPresence;
+import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.session.SessionManager;
@@ -46,6 +47,7 @@ public class CritterMod implements ClientModInitializer {
 				SafariPresence.onChatMessage(line);
 				SessionManager.onChatMessage(line);
 				EncounterAlerts.onChatMessage(line);
+				TraderWatch.onChatMessage(line);
 			}
 		});
 
