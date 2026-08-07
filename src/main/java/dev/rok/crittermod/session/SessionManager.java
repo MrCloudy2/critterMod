@@ -1,8 +1,10 @@
 package dev.rok.crittermod.session;
 
 import dev.rok.crittermod.client.AreaDetector;
+import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.parse.ChatParser;
+import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.parse.CritterEvent;
 import net.minecraft.client.Minecraft;
 
@@ -25,6 +27,9 @@ public final class SessionManager {
 	private static SafariSession current;
 	private static SafariSession lastSession;
 	private static final List<SafariSession> history = new ArrayList<>();
+
+	private static final java.util.EnumSet<SafariBiome> announcedBiomes =
+		java.util.EnumSet.noneOf(SafariBiome.class);
 
 	private static boolean wasInSafari;
 	private static int ticksOutsideSafari;
@@ -75,11 +80,31 @@ public final class SessionManager {
 
 		if (current == null) startSession();
 		current.record(event, System.currentTimeMillis());
+
+		if (event.isCatch()) {
+			EncounterAlerts.onCatch(event.critter().name());
+			announceNewlyCompleteBiomes();
+		}
+	}
+
+	/**
+	 * Fires a completion alert the moment a biome's last species is caught by anyone.
+	 * Each biome announces at most once per run.
+	 */
+	private static void announceNewlyCompleteBiomes() {
+		for (SafariBiome biome : SafariBiome.values()) {
+			if (announcedBiomes.contains(biome)) continue;
+			if (!current.biomeComplete(biome)) continue;
+			announcedBiomes.add(biome);
+			EncounterAlerts.onBiomeComplete(biome);
+		}
 	}
 
 	public static void startSession() {
 		if (current != null && !current.isEmpty()) archive(current);
 		current = new SafariSession(selfName(), System.currentTimeMillis());
+		announcedBiomes.clear();
+		EncounterAlerts.reset();
 	}
 
 	private static void endSession() {

@@ -36,15 +36,26 @@ species you have already thrown capsules at is marked `n tried`, so "hasn't been
 found yet" is distinguishable from "keeps escaping". Species caught by a partymate
 count as done, since the goal is party-wide coverage.
 
-**Wumpa alert** — a scaled banner, a sound and a chat line when the Icy Biome
-encounter opens up. Hypixel announces it in three stages and the mod fires on each,
-rising in pitch:
+**Encounter alerts** — a scaled banner, a sound and a chat line as each legendary
+encounter moves through ready → started → done, with an option to announce the same
+stages to party chat:
 
-| Message | Alert |
-|---|---|
-| `A rumbling sound can be heard, and the door … opens...` | **WUMPA READY** — chamber open |
-| `You hear the sound of massive footsteps …` | **WUMPA INCOMING** — wakes in ~30s |
-| `The Wumpa has awoken.` | **WUMPA AWAKE** — fight live |
+| Encounter | Ready | Started | Done |
+|---|---|---|---|
+| **Gemzie** (Cavern) | `A rumbling sound … the door … opens...` | — | after 3 catches by anyone |
+| **Wumpa** (Icy) | `You hear the sound of massive footsteps …` | `The Wumpa has awoken.` | `The cave opens up again...` |
+| **Doomspiral** (Haunted) | `You used the Soothing Incense to light the candle!` | `Your ritual summoned a Doomspiral …` | `The Doomspiral retreats back underground...` |
+
+Gemzie has no end message — exactly three spawn per chamber, so three catches by
+anyone closes it. Catching a Wumpa or Doomspiral also counts as done.
+
+The Doomspiral ritual lights four candles, usually about two seconds apart, so a 20s
+per-stage cooldown keeps that from firing four banners; measured across 78 real candle
+intervals it suppresses 77 of them. Gemzie is exempt, since its chamber repeats every
+few minutes and ready/done can be seconds apart.
+
+**Biome complete** — off by default. When every species in a biome has been caught by
+someone, announces `<Biome> Done!`. Enable with `/critters biomedone`.
 
 ## Usage
 
@@ -58,14 +69,17 @@ rising in pitch:
 | `/critters reset` | Clear the current run's tallies |
 | `/critters hud` | Toggle the main overlay |
 | `/critters panel` | Toggle the top-right missing list |
-| `/critters wumpa` | Toggle the Wumpa alert |
-| `/critters testalert` | Fire the Wumpa alert now, to check it anywhere |
+| `/critters alerts` | Toggle the on-screen encounter banners |
+| `/critters notify` | Toggle party-chat announcements |
+| `/critters biomedone` | Toggle "<Biome> Done!" alerts (off by default) |
+| `/critters testalert` | Walk every alert stage now, to check them anywhere |
 | `/critters history` | Replay this instance's logs and list past runs |
 | `/critters debug` | Dump every area source and what each resolves to |
 
 The HUD appears automatically while you're in the Safari. Settings live in
 `config/crittermod.json` (`hudEnabled`, `showPerPlayer`, `showMissing`, `wumpaAlert`,
-`shareCommand`, `onlyInSafari`, `hudX`, `hudY`).
+`bossAlerts`, `bossPartyNotify`, `biomeDoneNotify`, `shareCommand`, `onlyInSafari`,
+`hudX`, `hudY`).
 
 ### Telling your team
 

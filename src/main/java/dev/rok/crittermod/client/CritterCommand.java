@@ -68,18 +68,41 @@ public final class CritterCommand {
 					+ (config.showMissing ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
-			.then(ClientCommands.literal("wumpa").executes(ctx -> {
+			.then(ClientCommands.literal("alerts").executes(ctx -> {
 				CritterConfig config = CritterConfig.get();
-				config.wumpaAlert = !config.wumpaAlert;
+				config.bossAlerts = !config.bossAlerts;
 				config.save();
-				ctx.getSource().sendFeedback(prefixed("Wumpa alert "
-					+ (config.wumpaAlert ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+				ctx.getSource().sendFeedback(prefixed("Encounter alerts "
+					+ (config.bossAlerts ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+				return 1;
+			}))
+			.then(ClientCommands.literal("notify").executes(ctx -> {
+				CritterConfig config = CritterConfig.get();
+				config.bossPartyNotify = !config.bossPartyNotify;
+				config.save();
+				ctx.getSource().sendFeedback(prefixed("Party-chat notifications "
+					+ (config.bossPartyNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+				return 1;
+			}))
+			.then(ClientCommands.literal("biomedone").executes(ctx -> {
+				CritterConfig config = CritterConfig.get();
+				config.biomeDoneNotify = !config.biomeDoneNotify;
+				config.save();
+				ctx.getSource().sendFeedback(prefixed("Biome-complete alerts "
+					+ (config.biomeDoneNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("testalert").executes(ctx -> {
-				// Fires the alert without waiting for a real Wumpa, so its banner,
-				// sound and placement can be checked anywhere.
-				WumpaAlert.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
+				// Walks every stage without waiting for a real encounter, so banners,
+				// sounds and party messages can all be checked anywhere.
+				EncounterAlerts.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
+				EncounterAlerts.onChatMessage("You hear the sound of massive footsteps echoing through the Icy Biome... What could it be?");
+				EncounterAlerts.onChatMessage("The Wumpa has awoken.");
+				EncounterAlerts.onChatMessage("The cave opens up again...");
+				EncounterAlerts.onChatMessage("Your ritual summoned a Doomspiral into this world. Stay still.");
+				EncounterAlerts.onChatMessage("The Doomspiral retreats back underground...");
+				for (int i = 0; i < 3; i++) EncounterAlerts.onCatch("Gemzie");
+				EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
 				return 1;
 			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {
@@ -132,7 +155,7 @@ public final class CritterCommand {
 				.map(Critter::name).reduce((a, b) -> a + ", " + b).orElse(""))
 				.withStyle(ChatFormatting.LIGHT_PURPLE));
 		}
-		source.sendFeedback(Component.literal("  /critters missing · copy · share · players · reset · hud · panel · wumpa · history")
+		source.sendFeedback(Component.literal("  /critters missing · copy · share · players · reset · hud · panel · alerts · notify · biomedone · history")
 			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
