@@ -1,5 +1,6 @@
 package dev.rok.crittermod.client;
 
+import dev.rok.crittermod.data.SafariBiome;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -8,11 +9,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Tracks the breakable walls in the Cavern biome.
+ * Tracks the breakable walls that hide critters behind them.
  *
- * <p>These sit at fixed positions and want breaking every run to check behind them.
- * Unlike critters they are blocks rather than entities, which makes them far easier to
- * read: a wall is still standing exactly when its position is not air.
+ * <p>There are two sets, each at fixed positions in one biome: the Snooper walls in the
+ * Cavern and the Troodon walls in the Icy biome. Both want breaking every run to check
+ * behind them. Unlike critters they are blocks rather than entities, which makes them
+ * far easier to read: a wall is still standing exactly when its position is not air.
  *
  * <p>The one trap is that an unloaded chunk also reports air, which would mark every
  * distant wall as already broken. {@link Level#isLoaded} separates "broken" from
@@ -20,14 +22,21 @@ import java.util.List;
  */
 public final class WallTracker {
 
-	/** Fixed wall positions, all in the Cavern biome. */
-	private static final int[][] WALLS = {
+	/** The Cavern walls. Snoozle comes from behind one of these, if it comes at all. */
+	public static final WallTracker SNOOPER = new WallTracker("Snooper", SafariBiome.CAVERN, new int[][]{
 		{-126, 39, 74},
 		{-114, 39, 87},
 		{-70, 39, 68},
 		{-96, 40, 17},
 		{-95, 40, 42},
-	};
+	});
+
+	/** The Icy walls. */
+	public static final WallTracker TROODON = new WallTracker("Troodon", SafariBiome.ICY, new int[][]{
+		{-104, 80, -95},
+		{-131, 78, -61},
+		{-109, 89, -27},
+	});
 
 	public enum State {
 		/** Still standing — the position holds a block. */
@@ -42,16 +51,33 @@ public final class WallTracker {
 	public record Wall(BlockPos pos, State state, double distance) {
 	}
 
-	private WallTracker() {
+	private final String name;
+	private final SafariBiome biome;
+	private final int[][] positions;
+
+	private WallTracker(String name, SafariBiome biome, int[][] positions) {
+		this.name = name;
+		this.biome = biome;
+		this.positions = positions;
+	}
+
+	/** What these walls are called, for the panel heading. */
+	public String name() {
+		return name;
+	}
+
+	/** The biome they are in; nothing about them is worth showing anywhere else. */
+	public SafariBiome biome() {
+		return biome;
 	}
 
 	/** Every tracked wall with its current state, nearest first. */
-	public static List<Wall> walls() {
+	public List<Wall> walls() {
 		Minecraft client = Minecraft.getInstance();
 		List<Wall> result = new ArrayList<>();
 		if (client.level == null || client.player == null) return result;
 
-		for (int[] coords : WALLS) {
+		for (int[] coords : positions) {
 			BlockPos pos = new BlockPos(coords[0], coords[1], coords[2]);
 			State state;
 			if (!client.level.isLoaded(pos)) {
@@ -68,7 +94,7 @@ public final class WallTracker {
 	}
 
 	/** Walls known to still be standing. Unknown ones are not counted either way. */
-	public static long intactCount() {
+	public long intactCount() {
 		return walls().stream().filter(w -> w.state() == State.INTACT).count();
 	}
 
@@ -79,7 +105,7 @@ public final class WallTracker {
 	 * identical from here, and concluding "all broken" from chunks nobody has visited
 	 * would be exactly backwards.
 	 */
-	public static boolean allConfirmedBroken() {
+	public boolean allConfirmedBroken() {
 		List<Wall> walls = walls();
 		return !walls.isEmpty() && walls.stream().allMatch(w -> w.state() == State.BROKEN);
 	}
