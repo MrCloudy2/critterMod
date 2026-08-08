@@ -10,6 +10,10 @@ base {
 	archivesName = project.archives_base_name
 }
 
+loom {
+	accessWidenerPath = file("src/main/resources/crittermod.accesswidener")
+}
+
 repositories {
 	maven { name = 'NotEnoughUpdates'; url = 'https://maven.notenoughupdates.org/releases' }
 	maven { name = 'TerraformersMC'; url = 'https://maven.terraformersmc.com/' }
