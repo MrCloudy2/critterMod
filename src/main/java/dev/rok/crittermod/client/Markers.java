@@ -10,6 +10,14 @@ import java.util.List;
 /** The positions worth highlighting, each behind its own setting. */
 public final class Markers {
 
+	/** How a marker is drawn. */
+	public enum Style {
+		/** Through the terrain, with its name and distance floating above it. */
+		WAYPOINT,
+		/** Depth-tested and unnamed: a box on the thing, seen only when the thing is. */
+		HIGHLIGHT
+	}
+
 	/**
 	 * One thing worth walking to.
 	 *
@@ -17,7 +25,7 @@ public final class Markers {
 	 * block big, but a pinned critter is whatever size that critter is, and drawing a
 	 * full block around a Rockmite would be pointing at the wrong thing.
 	 */
-	public record Marker(AABB box, String label, int colour) {
+	public record Marker(AABB box, String label, int colour, Style style) {
 	}
 
 	private Markers() {
@@ -76,14 +84,23 @@ public final class Markers {
 		// you were standing when you threw it.
 		if (display.recatchHelper && RecatchSpots.pinned() != null) {
 			markers.add(new Marker(RecatchSpots.pinned(),
-				RecatchSpots.pinnedCritter().name(), 0xFFFF55));
+				RecatchSpots.pinnedCritter().name(), 0xFFFF55, Style.WAYPOINT));
+		}
+
+		// Drops turn up anywhere, so no biome gate. The style is the setting itself.
+		CritterConfig.MarkStyle drops = display.floorDropStyle();
+		if (drops != CritterConfig.MarkStyle.OFF) {
+			Style style = drops == CritterConfig.MarkStyle.WAYPOINT ? Style.WAYPOINT : Style.HIGHLIGHT;
+			for (BlockPos pos : FloorDrops.positions()) {
+				markers.add(new Marker(new AABB(pos), "Floor drop", 0x55FFAA, style));
+			}
 		}
 		return markers;
 	}
 
 	/** A marker filling one block, which is what everything read off the map wants. */
 	private static Marker block(BlockPos pos, String label, int colour) {
-		return new Marker(new AABB(pos), label, colour);
+		return new Marker(new AABB(pos), label, colour, Style.WAYPOINT);
 	}
 
 	/**
