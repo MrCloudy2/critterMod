@@ -66,6 +66,13 @@ public final class CritterHud implements HudElement {
 		panel.bar("Party", session.partyUnique(), total, LABEL,
 			session.dexComplete() ? DONE : WHITE);
 		panel.bar("You", session.ownUnique(), total, LABEL, 0xFF55FFFF);
+
+		// Named a few seconds into the run, and different for everyone in the party, so
+		// it is worth a line of its own rather than a mark on one of the bars.
+		SafariBiome hotspot = HotspotWatch.biome();
+		if (config.display.showHotspot && hotspot != null) {
+			panel.pair("Hotspot", hotspot.displayName(), LABEL, 0xFF000000 | hotspot.colour());
+		}
 		panel.blank();
 
 		for (SafariBiome biome : SafariBiome.values()) {
