@@ -8,7 +8,6 @@ import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.WallTracker;
-import dev.rok.crittermod.client.BlockHighlighter;
 import dev.rok.crittermod.data.Critter;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.data.Critters;
@@ -174,7 +173,6 @@ public final class SessionManager {
 		TraderWatch.reset();
 		NestTracker.reset();
 		MoundTracker.reset();
-		BlockHighlighter.clear();
 	}
 
 	private static void endSession() {
