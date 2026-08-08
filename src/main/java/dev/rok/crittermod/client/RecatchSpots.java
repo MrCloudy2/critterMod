@@ -35,8 +35,9 @@ import java.util.Set;
  * answer to where the interesting spot now is.
  *
  * <p>Not every species is worth it. Commons are caught on the throw, so there is no
- * second attempt to prepare for, and Hideyho, Wumpa and Doomspiral do not come straight
- * back — see {@link #worthPinning}.
+ * second attempt to prepare for; Hideyho, Wumpa and Doomspiral do not come straight
+ * back; and a Snoozle never went anywhere in the first place — see
+ * {@link #worthPinning}.
  */
 public final class RecatchSpots {
 
@@ -51,8 +52,9 @@ public final class RecatchSpots {
 	/** Added to the score of anything behind the player, so it always loses to what is not. */
 	private static final double BEHIND_PENALTY = 1000.0;
 
-	/** Species that do not simply reappear where they were, whatever their rarity. */
-	private static final Set<String> NEVER_PINNED = Set.of("Hideyho", "Wumpa", "Doomspiral");
+	/** Species a pin does nothing for, whatever their rarity. */
+	private static final Set<String> NEVER_PINNED =
+		Set.of("Hideyho", "Wumpa", "Doomspiral", "Snoozle");
 
 	/** Where a species' body was last seen, and how big it was. */
 	private record Seen(AABB box, long millis) {
@@ -160,9 +162,10 @@ public final class RecatchSpots {
 	 *
 	 * <p>Commons are caught on the throw, so there is never a second attempt to prepare
 	 * for. Hideyho, Wumpa and Doomspiral do not come straight back either — they are set
-	 * pieces with their own pacing, and a box left where one used to stand is only in the
-	 * way. Everything else is the case this exists for: it reappears, it runs, and you
-	 * want the next capsule already aimed.
+	 * pieces with their own pacing. A Snoozle does come back, but it does not move, so
+	 * marking where it was tells you nothing you cannot see. Everything else is the case
+	 * this exists for: it reappears, it runs, and you want the next capsule already
+	 * aimed.
 	 */
 	private static boolean worthPinning(Critter critter) {
 		if (critter.rarity() == Critter.Rarity.COMMON) return false;
