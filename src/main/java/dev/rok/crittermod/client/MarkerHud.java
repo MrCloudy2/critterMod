@@ -47,14 +47,20 @@ public final class MarkerHud implements HudElement {
 		List<Marker> markers = collect();
 		if (markers.isEmpty()) return;
 
-		Vec3 eye = client.player.getEyePosition(deltaTracker.getGameTimeDeltaPartialTick(true));
-		double yaw = Math.toRadians(client.player.getYRot());
-		double pitch = Math.toRadians(client.player.getXRot());
+		float partial = deltaTracker.getGameTimeDeltaPartialTick(true);
+		Vec3 eye = client.player.getEyePosition(partial);
+		// Interpolated view angles, not the raw ones: the raw rotation is a tick behind
+		// what is on screen, which is what made the markers swim while turning.
+		double yaw = Math.toRadians(client.player.getViewYRot(partial));
+		double pitch = Math.toRadians(client.player.getViewXRot(partial));
 
 		int width = graphics.guiWidth();
 		int height = graphics.guiHeight();
-		// Vertical field of view, so the focal length is derived from the height.
-		double fov = Math.toRadians(client.options.fov().get());
+		// The rendered field of view is not the option value: sprinting and speed
+		// effects widen it, scaled by the FOV effect slider. Ignoring that made the
+		// markers drift outwards exactly while moving.
+		double fov = Math.toRadians(client.options.fov().get())
+			* client.player.getFieldOfViewModifier(true, partial);
 		double focal = (height / 2.0) / Math.tan(fov / 2.0);
 
 		Font font = client.font;
@@ -100,7 +106,6 @@ public final class MarkerHud implements HudElement {
 	/** Everything currently worth marking. */
 	static List<Marker> collect() {
 		List<Marker> markers = new ArrayList<>();
-		CritterConfig config = ConfigManager.get();
 
 		for (WallTracker.Wall wall : WallTracker.walls()) {
 			if (wall.state() != WallTracker.State.INTACT) continue;
@@ -117,12 +122,6 @@ public final class MarkerHud implements HudElement {
 			if (spot == null) continue;
 			markers.add(new Marker(new BlockPos(spot.x(), spot.y(), spot.z()),
 				trade.critter().name(), 0xFFFFAA00));
-		}
-
-		if (config.advanced.waypointMounds) {
-			for (BlockPos pos : MoundSpotter.mounds()) {
-				markers.add(new Marker(pos, "Mound", 0xFFCC7744));
-			}
 		}
 		return markers;
 	}
