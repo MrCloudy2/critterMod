@@ -5,6 +5,7 @@ import dev.rok.crittermod.data.Critters;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -126,13 +127,13 @@ public final class CritterEntities {
 	/** Excludes the scaffolding entities Hypixel builds its props out of. */
 	private static boolean isMobLike(Entity entity) {
 		EntityType<?> type = entity.getType();
-		return type != EntityType.ARMOR_STAND
-			&& type != EntityType.INTERACTION
-			&& type != EntityType.ITEM_DISPLAY
-			&& type != EntityType.BLOCK_DISPLAY
-			&& type != EntityType.TEXT_DISPLAY
-			&& type != EntityType.PLAYER
-			&& type != EntityType.ITEM;
+		return type != EntityTypes.ARMOR_STAND
+			&& type != EntityTypes.INTERACTION
+			&& type != EntityTypes.ITEM_DISPLAY
+			&& type != EntityTypes.BLOCK_DISPLAY
+			&& type != EntityTypes.TEXT_DISPLAY
+			&& type != EntityTypes.PLAYER
+			&& type != EntityTypes.ITEM;
 	}
 
 	private static Entity nearest(List<Entity> candidates, Entity label) {

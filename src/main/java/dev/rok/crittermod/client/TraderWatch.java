@@ -143,7 +143,7 @@ public final class TraderWatch {
 		String where = spot == null ? "" : " (" + spot.describe() + ")";
 		Minecraft client = Minecraft.getInstance();
 		if (client.gui != null) {
-			client.gui.getChat().addClientSystemMessage(
+			client.gui.hud.getChat().addClientSystemMessage(
 				Component.literal("[Critters] ").withStyle(ChatFormatting.GOLD)
 					.append(Component.literal(offer.npc() + where + ": ").withStyle(ChatFormatting.AQUA))
 					.append(Component.literal(offer.critter().name() + " Shard")

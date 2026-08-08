@@ -281,7 +281,7 @@ public final class CritterCommand {
 
 	private static void openSettings() {
 		Minecraft client = Minecraft.getInstance();
-		client.execute(() -> client.setScreen(ConfigManager.createScreen(null)));
+		client.execute(() -> client.setScreenAndShow(ConfigManager.createScreen(null)));
 	}
 
 	/**
@@ -290,7 +290,7 @@ public final class CritterCommand {
 	 */
 	private static void openScreen() {
 		Minecraft client = Minecraft.getInstance();
-		client.execute(() -> client.setScreen(new CritterScreen()));
+		client.execute(() -> client.setScreenAndShow(new CritterScreen()));
 	}
 
 	private static void summary(FabricClientCommandSource source) {
