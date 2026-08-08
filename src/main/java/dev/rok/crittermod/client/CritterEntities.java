@@ -27,13 +27,21 @@ public final class CritterEntities {
 	private static final int SCAN_INTERVAL_TICKS = 5;
 	/** The label sits directly above its mob, so the pairing radius can be tight. */
 	private static final double LABEL_TO_MOB_RADIUS = 3.0;
+	/** The word a rare variant is assumed to carry in its name. */
+	private static final String SPARKLING = "Sparkling";
 
 	private static List<Sighting> sightings = List.of();
 	private static long scannedAt;
 	private static int ticks;
 
-	/** One labelled critter. {@code mob} is null when nothing was found under the label. */
-	public record Sighting(Critter critter, Entity label, Entity mob) {
+	/**
+	 * One labelled critter. {@code mob} is null when nothing was found under the label.
+	 *
+	 * <p>{@code sparkling} is read off the label naming it, which is the assumption this
+	 * rests on — the particles around one would be firmer evidence, but their type is not
+	 * known yet. See {@code /critters particles} groundwork in the notes.
+	 */
+	public record Sighting(Critter critter, Entity label, Entity mob, boolean sparkling) {
 		/** The entity to point at: the mob if there is one, otherwise the label itself. */
 		public Entity body() {
 			return mob != null ? mob : label;
@@ -74,16 +82,29 @@ public final class CritterEntities {
 	private static List<Sighting> scan(Minecraft client) {
 		List<Entity> labels = new ArrayList<>();
 		List<Critter> species = new ArrayList<>();
+		List<Boolean> sparkling = new ArrayList<>();
 		List<Entity> candidates = new ArrayList<>();
 
 		for (Entity entity : client.level.entitiesForRendering()) {
 			// The name identifies a label, not the entity type: most are armour stands
 			// but a Hideyho arrives as a player.
-			Critter named = entity.hasCustomName()
-				? Critters.byName(SafariLocation.strip(entity.getCustomName().getString())) : null;
+			String name = entity.hasCustomName()
+				? SafariLocation.strip(entity.getCustomName().getString()) : null;
+			Critter named = name == null ? null : Critters.byName(name);
+			boolean rare = false;
+
+			// A sparkling one is assumed to be named for it. Only this one prefix is
+			// tolerated, rather than searching the label for any species name: an armour
+			// stand reading "Tepid Shard" must not count as a Tepid.
+			if (named == null && name != null && startsWithSparkling(name)) {
+				named = Critters.byName(name.substring(SPARKLING.length()).trim());
+				rare = named != null;
+			}
+
 			if (named != null) {
 				labels.add(entity);
 				species.add(named);
+				sparkling.add(rare);
 			} else if (isMobLike(entity)) {
 				candidates.add(entity);
 			}
@@ -91,9 +112,15 @@ public final class CritterEntities {
 
 		List<Sighting> result = new ArrayList<>(labels.size());
 		for (int i = 0; i < labels.size(); i++) {
-			result.add(new Sighting(species.get(i), labels.get(i), nearest(candidates, labels.get(i))));
+			result.add(new Sighting(species.get(i), labels.get(i),
+				nearest(candidates, labels.get(i)), sparkling.get(i)));
 		}
 		return result;
+	}
+
+	private static boolean startsWithSparkling(String name) {
+		return name.length() > SPARKLING.length()
+			&& name.substring(0, SPARKLING.length()).equalsIgnoreCase(SPARKLING);
 	}
 
 	/** Excludes the scaffolding entities Hypixel builds its props out of. */

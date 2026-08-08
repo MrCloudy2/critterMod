@@ -17,6 +17,8 @@ import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.RecatchSpots;
 import dev.rok.crittermod.client.SafariLocation;
+import dev.rok.crittermod.client.SparklingAlert;
+import dev.rok.crittermod.client.SparklingWatch;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.WaypointRenderer;
@@ -88,6 +90,7 @@ public class CritterMod implements ClientModInitializer {
 			CritterHighlighter.tick();
 			HideyhoSolver.tick();
 			MacawWatch.tick();
+			SparklingWatch.tick();
 			FloorDrops.tick();
 			RecatchSpots.tick();
 			DarknessFilter.tick();
@@ -144,6 +147,10 @@ public class CritterMod implements ClientModInitializer {
 			VanillaHudElements.CHAT,
 			Identifier.fromNamespaceAndPath(MOD_ID, "encounter_alerts"),
 			new EncounterAlerts());
+		HudElementRegistry.attachElementBefore(
+			VanillaHudElements.CHAT,
+			Identifier.fromNamespaceAndPath(MOD_ID, "sparkling_alert"),
+			new SparklingAlert());
 
 		WaypointRenderer.register();
 
