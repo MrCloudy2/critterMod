@@ -136,6 +136,10 @@ public final class CritterCommand {
 			.then(ClientCommands.literal("history").executes(ctx -> {
 				history(ctx.getSource());
 				return 1;
+			}))
+			.then(ClientCommands.literal("waypoints").executes(ctx -> {
+				waypoints(ctx.getSource());
+				return 1;
 			}));
 
 		// Diagnostics exist to work out how the Safari represents things and are noise
@@ -185,6 +189,32 @@ public final class CritterCommand {
 				HudEditorScreen.open();
 				return 1;
 			})));
+	}
+
+	/**
+	 * Reports what the waypoint marker is doing.
+	 *
+	 * <p>Separates "nothing was registered" from "registered but nothing is drawn": the
+	 * second means the client has the markers and the locator bar is not showing them,
+	 * which is not something this mod can fix from here.
+	 */
+	private static void waypoints(FabricClientCommandSource source) {
+		CritterConfig config = ConfigManager.get();
+		source.sendFeedback(header("Waypoints"));
+		source.sendFeedback(Component.literal("  setting     "
+			+ (config.display.waypoints ? "on" : "off — enable under Display"))
+			.withStyle(config.display.waypoints ? ChatFormatting.GREEN : ChatFormatting.RED));
+		source.sendFeedback(Component.literal("  in Safari   " + AreaDetector.inSafari())
+			.withStyle(ChatFormatting.GRAY));
+		source.sendFeedback(Component.literal("  registered  " + WaypointManager.activeCount()
+			+ "  (client has any: " + WaypointManager.anyTracked() + ")")
+			.withStyle(ChatFormatting.WHITE));
+
+		long walls = WallTracker.walls().stream()
+			.filter(w -> w.state() == WallTracker.State.INTACT).count();
+		long nests = NestTracker.nests().stream().filter(NestTracker.Nest::unpunched).count();
+		source.sendFeedback(Component.literal("  candidates  walls %d · nests %d · trades %d".formatted(
+			walls, nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	private static void openSettings() {
