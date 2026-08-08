@@ -51,6 +51,11 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   separately toggleable, all off by default, and each only shows in its own biome.
 - **Bloodbat outlines** — the species that is genuinely hard to see, glowing through
   the Haunted geometry.
+- **Hideyho solver** — hiding only moves it, and its name tag stays loaded on the
+  client throughout, so the waypoint is where it actually is rather than a guess from
+  a list of hiding spots. Off by default.
+- **Darkness toggle** — drops the Warden darkness while you are at the Safari, fog
+  included. Off by default.
 - **Log replay** — reconstruct past runs from rotated chat logs, in game or offline.
 
 Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
