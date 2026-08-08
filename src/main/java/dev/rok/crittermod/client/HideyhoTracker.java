@@ -22,7 +22,7 @@ import net.minecraft.core.BlockPos;
  * the nearby-spawn counter uses. SkyHanni goes the other way and walks a list of 18
  * known spots, which is why its finder can miss.
  */
-public final class HideyhoSolver {
+public final class HideyhoTracker {
 
 	private static final String NAME = "Hideyho";
 
@@ -37,7 +37,7 @@ public final class HideyhoSolver {
 	private static BlockPos position;
 	private static boolean live;
 
-	private HideyhoSolver() {
+	private HideyhoTracker() {
 	}
 
 	public static void tick() {

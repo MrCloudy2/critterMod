@@ -229,7 +229,7 @@ public final class CritterCommand {
 			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
-			config.display.hideyhoSolver ? "hideyho " : "",
+			config.display.hideyhoTracker ? "hideyho " : "",
 			config.display.recatchHelper ? "recatch " : "",
 			config.display.floorDropStyle() == CritterConfig.MarkStyle.OFF ? ""
 				: "drops:" + config.display.floorDropStyle().name().toLowerCase() + " ",
@@ -254,7 +254,7 @@ public final class CritterCommand {
 			"  candidates  snooper %d · troodon %d · nests %d · trades %d".formatted(
 				WallTracker.SNOOPER.intactCount(), WallTracker.TROODON.intactCount(),
 				nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
-		// Reported whether or not the solver is on, since "is it even loaded while
+		// Reported whether or not the mark is on, since "is it even loaded while
 		// hidden" is the thing worth checking.
 		// The farthest label loaded says what Hypixel's entity tracking range is, which
 		// is the only thing deciding how close you have to get. Nothing here filters by
@@ -271,7 +271,7 @@ public final class CritterCommand {
 		source.sendFeedback(Component.literal("  pinned      " + (RecatchSpots.pinned() == null
 			? "nothing" : "%s at %.0fm".formatted(RecatchSpots.pinnedCritter().name(),
 				RecatchSpots.distance()))).withStyle(ChatFormatting.DARK_GRAY));
-		BlockPos hideyho = HideyhoSolver.position();
+		BlockPos hideyho = HideyhoTracker.position();
 		source.sendFeedback(Component.literal("  hideyho     " + (hideyho == null ? "not loaded"
 			: "%d %d %d".formatted(hideyho.getX(), hideyho.getY(), hideyho.getZ())))
 			.withStyle(ChatFormatting.DARK_GRAY));
