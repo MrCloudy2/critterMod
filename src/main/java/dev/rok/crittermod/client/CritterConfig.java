@@ -96,6 +96,13 @@ public class CritterConfig extends Config {
 		public boolean showMissing = true;
 
 		@ConfigOption(
+			name = "Highlight hard-to-find critters",
+			desc = "Outline the mobs of species that are awkward to spot, Bloodbats especially.\n" +
+				"§7Uses the client-side glow flag, so they show through walls.")
+		@ConfigEditorBoolean
+		public boolean highlightHardToFind = true;
+
+		@ConfigOption(
 			name = "Cavern walls",
 			desc = "List the breakable Cavern walls still standing, under the missing list.\n" +
 				"§7They want breaking every run to check behind them.\n" +
