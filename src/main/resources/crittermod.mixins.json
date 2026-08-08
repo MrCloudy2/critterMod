@@ -1,0 +1,12 @@
+{
+	"required": true,
+	"minVersion": "0.8",
+	"package": "dev.rok.crittermod.mixin",
+	"compatibilityLevel": "JAVA_21",
+	"client": [
+		"ClientPacketListenerMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	}
+}
