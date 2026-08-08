@@ -61,7 +61,7 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   it comes back to the spot it left from and starts running. The spot is pinned at the
   critter's own size so the next capsule is already aimed. Off by default.
 - **Floor drops** — three string item displays in one block, the same test Skyblocker
-  uses. Nothing, a highlight, or a full waypoint.
+  uses. Nothing, a highlight, or a full waypoint, and only for the biome you are in.
 - **Macaw call** — the one species a run may not give at all, announced the moment the
   Birdfeeder says so or one appears, with its position.
 - **Hotspot** — the biome the run makes your Hunting Hotspot, on the progress panel and

@@ -90,11 +90,14 @@ public final class Markers {
 				Colours.argb(display.recatchColour, 0xFFFFFF55), Style.WAYPOINT));
 		}
 
-		// Drops turn up anywhere, so no biome gate. The style is the setting itself.
+		// Drops turn up in every biome, so each one is gated on its own position rather
+		// than the feature being gated wholesale: standing near a border would otherwise
+		// mark drops on the far side of it. The style is the setting itself.
 		CritterConfig.MarkStyle drops = display.floorDropStyle();
-		if (drops != CritterConfig.MarkStyle.OFF) {
+		if (drops != CritterConfig.MarkStyle.OFF && biome != null) {
 			Style style = drops == CritterConfig.MarkStyle.WAYPOINT ? Style.WAYPOINT : Style.HIGHLIGHT;
 			for (BlockPos pos : FloorDrops.positions()) {
+				if (SafariAreaMap.biomeAt(pos.getX(), pos.getY(), pos.getZ()) != biome) continue;
 				markers.add(new Marker(new AABB(pos), "Floor drop",
 					Colours.argb(display.floorDropColour, 0xFF55FFAA), style));
 			}
