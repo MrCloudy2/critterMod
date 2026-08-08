@@ -96,6 +96,14 @@ public class CritterConfig extends Config {
 		public boolean showMissing = true;
 
 		@ConfigOption(
+			name = "Waypoints",
+			desc = "Mark unbroken Cavern walls, unpunched bee nests and Hunter trade spots on the\n" +
+				"§7locator bar, using Minecraft's own waypoint system.\n" +
+				"§cUntested — off by default.")
+		@ConfigEditorBoolean
+		public boolean waypoints = false;
+
+		@ConfigOption(
 			name = "Highlight hard-to-find critters",
 			desc = "Outline the mobs of species that are awkward to spot, Bloodbats especially.\n" +
 				"§7Uses the client-side glow flag, so they show through walls.")
