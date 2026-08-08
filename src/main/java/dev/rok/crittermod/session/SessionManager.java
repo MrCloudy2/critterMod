@@ -52,6 +52,13 @@ public final class SessionManager {
 	private static boolean announcedAllDone;
 
 	private static int ticksOutsideSafari;
+	/**
+	 * Set by an island change, cleared by arriving at the Safari.
+	 *
+	 * <p>Turns "you have travelled somewhere" into "the next arrival is a new run",
+	 * which is the part the entry banner used to be solely responsible for.
+	 */
+	private static boolean arrivalStartsRun;
 	/** When the last critter event landed, used to keep an active run from closing. */
 	private static long lastEventMillis;
 
@@ -64,12 +71,17 @@ public final class SessionManager {
 		TrackingMode.setCountSpawns(ConfigManager.get().display.countSpawns);
 		updateUnavailable();
 
-		// Being at the Safari — including its entrance — keeps a run open. Runs are
-		// opened by the entry message or the first catch, never from here: the
-		// entrance counts as "at the Safari", so starting here would open an empty
-		// run and archive the one just finished.
+		// Being at the Safari — including its entrance — keeps a run open.
 		if (SafariLocation.inSafari()) {
 			ticksOutsideSafari = 0;
+			// Arriving after an island change is a new run, whether or not the entry
+			// banner survived whatever chat filters are installed. Opening it here
+			// rather than waiting for the first catch is what makes the panel read 0/37
+			// on the way in instead of showing the run before it.
+			if (arrivalStartsRun) {
+				arrivalStartsRun = false;
+				startSession();
+			}
 			return;
 		}
 
@@ -204,10 +216,14 @@ public final class SessionManager {
 	 * mod's chat filter cancels it — nothing downstream of {@code ALLOW_GAME} sees a
 	 * cancelled message. With the old run left open, the guard that starts a new one on
 	 * the first catch never fires, and the catches land in the previous run.
+	 *
+	 * <p>It also arms the next arrival to open a fresh run, so the panel resets on the
+	 * way in rather than at the first catch.
 	 */
 	public static void onWorldChange() {
 		endSession();
 		ticksOutsideSafari = 0;
+		arrivalStartsRun = true;
 	}
 
 	/**
