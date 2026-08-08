@@ -5,6 +5,7 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHighlighter;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.CritterSpotter;
+import dev.rok.crittermod.client.HideyhoSolver;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
@@ -68,6 +69,7 @@ public class CritterMod implements ClientModInitializer {
 			CritterSpotter.tick();
 			NestTracker.tick();
 			CritterHighlighter.tick();
+			HideyhoSolver.tick();
 			ChatQueue.tick();
 		});
 

@@ -46,6 +46,12 @@ public final class Markers {
 			}
 		}
 
+		// It promises to stay in the Haunted biome, and says so in chat every round.
+		if (display.hideyhoSolver && biome == SafariBiome.HAUNTED) {
+			BlockPos hideyho = HideyhoSolver.position();
+			if (hideyho != null) markers.add(new Marker(hideyho, "Hideyho", 0xFF55FF));
+		}
+
 		if (display.highlightMounds && biome == SafariBiome.CAVERN) {
 			for (BlockPos pos : MoundSpotter.mounds()) {
 				markers.add(new Marker(pos, "Mound", 0xCC7744));
