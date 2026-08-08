@@ -29,6 +29,13 @@ public final class MoundSpotter {
 	private static final double MAX_HEIGHT = 0.95;
 	private static final double SCAN_RADIUS = 64.0;
 
+	/**
+	 * Mounds are on the Cavern floor, which is below this. Hitbox size alone is weak
+	 * evidence — plenty of props wear a squat interaction box — so anything higher up is
+	 * something else, whatever it measures.
+	 */
+	private static final double MAX_Y = 65.0;
+
 	private MoundSpotter() {
 	}
 
@@ -41,6 +48,7 @@ public final class MoundSpotter {
 		for (Entity entity : client.level.entitiesForRendering()) {
 			if (entity.getType() != EntityType.INTERACTION) continue;
 			if (entity.position().distanceToSqr(client.player.position()) > SCAN_RADIUS * SCAN_RADIUS) continue;
+			if (entity.getY() > MAX_Y) continue;
 
 			double w = entity.getBoundingBox().getXsize();
 			double h = entity.getBoundingBox().getYsize();
@@ -67,19 +75,28 @@ public final class MoundSpotter {
 		if (client.level == null || client.player == null) return lines;
 
 		Map<String, Integer> bySize = new TreeMap<>();
+		// Counted separately rather than filtered out: a size that only ever appears too
+		// high up is exactly what the height rule is there to exclude, and seeing that
+		// is the point of this listing.
+		Map<String, Integer> lowEnough = new TreeMap<>();
 		for (Entity entity : client.level.entitiesForRendering()) {
 			if (entity.getType() != EntityType.INTERACTION) continue;
 			if (entity.position().distanceToSqr(client.player.position()) > SCAN_RADIUS * SCAN_RADIUS) continue;
-			bySize.merge("%.2f x %.2f".formatted(
-				entity.getBoundingBox().getXsize(), entity.getBoundingBox().getYsize()), 1, Integer::sum);
+			String size = "%.2f x %.2f".formatted(
+				entity.getBoundingBox().getXsize(), entity.getBoundingBox().getYsize());
+			bySize.merge(size, 1, Integer::sum);
+			if (entity.getY() <= MAX_Y) lowEnough.merge(size, 1, Integer::sum);
 		}
 		bySize.entrySet().stream()
 			.sorted((a, b) -> b.getValue() - a.getValue())
 			.forEach(e -> {
 				String[] parts = e.getKey().split(" x ");
 				boolean matched = inBand(Double.parseDouble(parts[0]), Double.parseDouble(parts[1]));
-				lines.add("  %-14s x%-3d %s".formatted(e.getKey(), e.getValue(),
-					matched ? "<- counted as mound" : ""));
+				int low = lowEnough.getOrDefault(e.getKey(), 0);
+				String note = !matched ? ""
+					: low == 0 ? "(all above y%.0f)".formatted(MAX_Y)
+					: "<- counted as mound (%d of %d below y%.0f)".formatted(low, e.getValue(), MAX_Y);
+				lines.add("  %-14s x%-3d %s".formatted(e.getKey(), e.getValue(), note));
 			});
 		return lines;
 	}
