@@ -1,6 +1,7 @@
 package dev.rok.crittermod.client;
 
 import dev.rok.crittermod.data.Critter;
+import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.parse.TraderParser;
 import net.minecraft.ChatFormatting;
@@ -13,6 +14,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Watches the roaming Hunter NPCs' shard-for-item trades.
@@ -30,6 +33,23 @@ public final class TraderWatch {
 	private static final int MAX_TRACKED = 6;
 	/** How often the Hunters' positions are refreshed. They barely move. */
 	private static final int SCAN_INTERVAL_TICKS = 20;
+
+	/**
+	 * A party line, as it reads once the formatting is stripped:
+	 * {@code Party > [VIP] Someone: <what they said>}. The rank is optional.
+	 */
+	private static final Pattern PARTY_LINE =
+		Pattern.compile("^Party > (?:\\[[^]]+] )?(\\w+): (.+)$");
+
+	/**
+	 * This mod's own trade announcement, read back off party chat:
+	 * {@code Hunter Dennis (Icy -106 87 -7): Gimmiegold Shard for Purple Gem}.
+	 *
+	 * <p>The biome is optional because the announcement leaves it out when the position
+	 * fell outside the mapped areas.
+	 */
+	private static final Pattern SHARED_TRADE = Pattern.compile(
+		"^(.+?) \\((?:([A-Za-z]+) )?(-?\\d+) (-?\\d+) (-?\\d+)\\): (.+?) Shard for (.+)$");
 
 	private static final TraderParser PARSER = new TraderParser();
 	private static final Map<String, Long> announced = new HashMap<>();
@@ -92,6 +112,8 @@ public final class TraderWatch {
 
 	/** Feeds one cleaned chat line; records and announces when a trade becomes complete. */
 	public static void onChatMessage(String line) {
+		if (acceptShared(line)) return;
+
 		TraderParser.TradeOffer offer = PARSER.parse(line);
 
 		// Note the spot as the dialog opens. The price line follows seconds later, by
@@ -114,9 +136,7 @@ public final class TraderWatch {
 
 		// Recorded even when the chat report is off, so the on-screen tracker still
 		// works for anyone who would rather not have the chat lines.
-		found.removeIf(t -> t.npc().equals(offer.npc()));
-		found.add(new Trade(offer.npc(), offer.critter(), offer.item(), spot));
-		while (found.size() > MAX_TRACKED) found.removeFirst();
+		record(new Trade(offer.npc(), offer.critter(), offer.item(), spot));
 
 		if (!ConfigManager.get().alerts.traderAlerts) return;
 
@@ -134,6 +154,46 @@ public final class TraderWatch {
 
 		EncounterAlerts.post(ConfigManager.get().party.trades(), "%s%s: %s Shard for %s".formatted(
 			offer.npc(), where, offer.critter().name(), offer.item()));
+	}
+
+	/**
+	 * Takes a trade a partymate's copy of this mod announced.
+	 *
+	 * <p>Their client saw the dialog and worked out where the NPC was; that is exactly
+	 * the information this one is missing, since the dialog is only ever shown to
+	 * whoever clicked. Reading our own announcement back off party chat puts the trade
+	 * in the tracker and on a waypoint for everyone running the mod, which is the point
+	 * of announcing it at all.
+	 *
+	 * @return true if the line was a shared trade and should not be parsed further
+	 */
+	private static boolean acceptShared(String line) {
+		Matcher party = PARTY_LINE.matcher(line);
+		if (!party.matches()) return false;
+		if (!ConfigManager.get().party.acceptSharedTrades) return false;
+
+		// Our own announcement comes back to us; the local copy is already recorded and
+		// was placed from the entity rather than from text.
+		String sender = party.group(1);
+		if (sender.equals(Minecraft.getInstance().getUser().getName())) return true;
+
+		Matcher trade = SHARED_TRADE.matcher(party.group(2));
+		if (!trade.matches()) return false;
+
+		Critter critter = Critters.byName(trade.group(6));
+		if (critter == null) return false;
+
+		Spot spot = new Spot(Integer.parseInt(trade.group(3)), Integer.parseInt(trade.group(4)),
+			Integer.parseInt(trade.group(5)), SafariBiome.fromDisplayName(trade.group(2)));
+		record(new Trade(trade.group(1), critter, trade.group(7), spot));
+		return true;
+	}
+
+	/** Adds a trade to the tracker, replacing whatever that NPC was last offering. */
+	private static void record(Trade trade) {
+		found.removeIf(t -> t.npc().equals(trade.npc()));
+		found.add(trade);
+		while (found.size() > MAX_TRACKED) found.removeFirst();
 	}
 
 	/**
