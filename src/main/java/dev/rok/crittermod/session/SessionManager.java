@@ -37,6 +37,13 @@ public final class SessionManager {
 	/** Sidebar can lag a tick or two on island transfer; require a few misses in a row. */
 	private static final int LEAVE_GRACE_TICKS = 40;
 	/**
+	 * Continuously away for this long, and coming back counts as a new run.
+	 *
+	 * <p>Far longer than any blink in the location: the area line is what answers it,
+	 * and a blink means the server named a different area, not that it went quiet.
+	 */
+	private static final int AWAY_TICKS = 100;
+	/**
 	 * A run is never closed while catches are still arriving, whatever the sidebar
 	 * says. Guards against the area lines inside the Safari not matching expectations.
 	 */
@@ -52,7 +59,7 @@ public final class SessionManager {
 	private static boolean announcedAllButMacaw;
 	private static boolean announcedAllDone;
 
-	private static int ticksOutsideSafari;
+	private static int ticksAway;
 	/**
 	 * Set by an island change, cleared by arriving at the Safari.
 	 *
@@ -77,11 +84,14 @@ public final class SessionManager {
 
 		// Being at the Safari — including its entrance — keeps a run open.
 		if (SafariLocation.inSafari()) {
-			ticksOutsideSafari = 0;
-			// Arriving after an island change is a new run, whether or not the entry
-			// banner survived whatever chat filters are installed. Opening it here
-			// rather than waiting for the first catch is what makes the panel read 0/37
-			// on the way in instead of showing the run before it.
+			// Having been properly away and then being here again is an arrival, whoever
+			// the entry banner named and whether or not it survived the chat filters.
+			// The banner names whoever warped the party in, so a player who is not the
+			// one leading never sees their own name in it and never used to reset.
+			if (ticksAway >= AWAY_TICKS) arrivalStartsRun = true;
+			ticksAway = 0;
+			// Opened here rather than at the first catch, so the panel reads 0/37 on the
+			// way in instead of showing the run before it.
 			if (arrivalStartsRun) {
 				arrivalStartsRun = false;
 				startSession("arrival");
@@ -89,11 +99,13 @@ public final class SessionManager {
 			return;
 		}
 
+		ticksAway++;
+
 		// A session can also be opened by a catch arriving, so closing must not depend
 		// on this path having opened it.
 		if (current == null) return;
 		if (System.currentTimeMillis() - lastEventMillis < RECENT_ACTIVITY_MILLIS) return;
-		if (++ticksOutsideSafari < LEAVE_GRACE_TICKS) return;
+		if (ticksAway < LEAVE_GRACE_TICKS) return;
 		endSession();
 	}
 
@@ -130,7 +142,7 @@ public final class SessionManager {
 		if (event.type() == CritterEvent.Type.ENTERED_SAFARI) {
 			startSession("entry banner");
 			SafariLocation.markEntered();
-			ticksOutsideSafari = 0;
+			ticksAway = 0;
 			return;
 		}
 
@@ -254,7 +266,7 @@ public final class SessionManager {
 	 */
 	public static void onWorldChange() {
 		endSession();
-		ticksOutsideSafari = 0;
+		ticksAway = 0;
 		arrivalStartsRun = true;
 	}
 
