@@ -55,10 +55,12 @@ public final class CritterHighlighter {
 		List<Entity> labels = new ArrayList<>();
 		List<Entity> candidates = new ArrayList<>();
 		for (Entity entity : client.level.entitiesForRendering()) {
-			if (entity.getType() == EntityType.ARMOR_STAND) {
-				if (!entity.hasCustomName()) continue;
-				Critter critter = Critters.byName(strip(entity.getCustomName().getString()));
-				if (critter != null && HIGHLIGHTED.contains(critter.name())) labels.add(entity);
+			// The name identifies a label, not the entity type: most are armour stands
+			// but a Hideyho arrives as a player.
+			Critter named = entity.hasCustomName()
+				? Critters.byName(strip(entity.getCustomName().getString())) : null;
+			if (named != null) {
+				if (HIGHLIGHTED.contains(named.name())) labels.add(entity);
 			} else if (isMobLike(entity)) {
 				candidates.add(entity);
 			}
