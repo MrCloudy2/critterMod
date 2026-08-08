@@ -6,14 +6,12 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHighlighter;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.CritterSpotter;
-import dev.rok.crittermod.client.MarkerHud;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
-import dev.rok.crittermod.client.WaypointManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.session.SessionManager;
@@ -67,7 +65,6 @@ public class CritterMod implements ClientModInitializer {
 			CritterSpotter.tick();
 			NestTracker.tick();
 			CritterHighlighter.tick();
-			WaypointManager.tick();
 			BlockHighlighter.tick();
 			ChatQueue.tick();
 		});
@@ -94,10 +91,6 @@ public class CritterMod implements ClientModInitializer {
 			VanillaHudElements.CHAT,
 			Identifier.fromNamespaceAndPath(MOD_ID, "hunter_trades"),
 			new TradeHud());
-		HudElementRegistry.attachElementBefore(
-			VanillaHudElements.CHAT,
-			Identifier.fromNamespaceAndPath(MOD_ID, "waypoint_markers"),
-			new MarkerHud());
 		HudElementRegistry.attachElementBefore(
 			VanillaHudElements.CHAT,
 			Identifier.fromNamespaceAndPath(MOD_ID, "encounter_alerts"),
