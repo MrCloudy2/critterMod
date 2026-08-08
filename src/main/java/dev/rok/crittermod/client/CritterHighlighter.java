@@ -1,14 +1,9 @@
 package dev.rok.crittermod.client;
 
-import dev.rok.crittermod.data.Critter;
-import dev.rok.crittermod.data.Critters;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -25,15 +20,10 @@ import java.util.UUID;
  * <p>It is re-applied on every scan because the server owns that flag and will clear it
  * again whenever it resends the entity's metadata.
  *
- * <p>The name tag is an armour stand sitting on top of the mob rather than the mob
- * itself, so the stand locates the species and the actual creature just beneath it
- * gets the outline.
+ * <p>Which mob belongs to which species comes from {@link CritterEntities}, since the
+ * name tag is an entity sitting on top of the mob rather than the mob itself.
  */
 public final class CritterHighlighter {
-
-	private static final int SCAN_INTERVAL_TICKS = 10;
-	/** The label sits directly above its mob, so the pairing radius can be tight. */
-	private static final double LABEL_TO_MOB_RADIUS = 3.0;
 
 	/** Species worth outlining. Bloodbats are the awkward ones to find by eye. */
 	private static final Set<String> HIGHLIGHTED = Set.of("Bloodbat");
@@ -41,15 +31,10 @@ public final class CritterHighlighter {
 	/** Entities currently made to glow, so the flag can be taken back off again. */
 	private static final Set<UUID> glowing = new HashSet<>();
 
-	private static int ticks;
-
 	private CritterHighlighter() {
 	}
 
 	public static void tick() {
-		if (++ticks < SCAN_INTERVAL_TICKS) return;
-		ticks = 0;
-
 		Minecraft client = Minecraft.getInstance();
 		if (client.level == null) return;
 
@@ -58,26 +43,12 @@ public final class CritterHighlighter {
 			return;
 		}
 
-		List<Entity> labels = new ArrayList<>();
-		List<Entity> candidates = new ArrayList<>();
-		for (Entity entity : client.level.entitiesForRendering()) {
-			// The name identifies a label, not the entity type: most are armour stands
-			// but a Hideyho arrives as a player.
-			Critter named = entity.hasCustomName()
-				? Critters.byName(strip(entity.getCustomName().getString())) : null;
-			if (named != null) {
-				if (HIGHLIGHTED.contains(named.name())) labels.add(entity);
-			} else if (isMobLike(entity)) {
-				candidates.add(entity);
-			}
-		}
-
 		Set<UUID> wanted = new HashSet<>();
-		for (Entity label : labels) {
-			Entity mob = nearest(candidates, label);
-			// With no mob found, glow the stand itself: invisible, but better than
+		for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+			if (!HIGHLIGHTED.contains(sighting.critter().name())) continue;
+			// With no mob found, the label itself glows: invisible, but better than
 			// silently highlighting nothing.
-			Entity target = mob != null ? mob : label;
+			Entity target = sighting.body();
 			setGlow(target, true);
 			wanted.add(target.getUUID());
 		}
@@ -91,30 +62,6 @@ public final class CritterHighlighter {
 		}
 		glowing.clear();
 		glowing.addAll(wanted);
-	}
-
-	/** Excludes the scaffolding entities Hypixel builds its props out of. */
-	private static boolean isMobLike(Entity entity) {
-		EntityType<?> type = entity.getType();
-		return type != EntityType.ARMOR_STAND
-			&& type != EntityType.INTERACTION
-			&& type != EntityType.ITEM_DISPLAY
-			&& type != EntityType.BLOCK_DISPLAY
-			&& type != EntityType.TEXT_DISPLAY
-			&& type != EntityType.PLAYER
-			&& type != EntityType.ITEM;
-	}
-
-	private static Entity nearest(List<Entity> candidates, Entity label) {
-		Entity best = null;
-		double bestSq = LABEL_TO_MOB_RADIUS * LABEL_TO_MOB_RADIUS;
-		for (Entity candidate : candidates) {
-			double distanceSq = candidate.position().distanceToSqr(label.position());
-			if (distanceSq >= bestSq) continue;
-			bestSq = distanceSq;
-			best = candidate;
-		}
-		return best;
 	}
 
 	/** Drops every outline; called when the feature is off or a run ends. */
@@ -131,9 +78,5 @@ public final class CritterHighlighter {
 	/** Flag 6 is the glow bit; the tag equivalent is ignored on the client. */
 	private static void setGlow(Entity entity, boolean glow) {
 		entity.setSharedFlag(6, glow);
-	}
-
-	private static String strip(String text) {
-		return text.replaceAll("§.", "").replaceAll("[\\p{Cf}\\p{Co}]", "").trim();
 	}
 }
