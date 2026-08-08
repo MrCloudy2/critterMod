@@ -120,6 +120,15 @@ public class CritterConfig extends Config {
 		public boolean highlightMounds = false;
 
 		@ConfigOption(
+			name = "Hideyho solver",
+			desc = "Mark where Hideyho is hiding, while you are in the Haunted biome.\n" +
+				"§7Hiding only moves it: its name tag stays loaded on the client the whole\n" +
+				"§7time, which is why the missing panel still counts one while nobody can see\n" +
+				"§7it. So this is where it actually is, not a list of known hiding spots.")
+		@ConfigEditorBoolean
+		public boolean hideyhoSolver = false;
+
+		@ConfigOption(
 			name = "Highlight hard-to-find critters",
 			desc = "Outline the mobs of species that are awkward to spot, Bloodbats especially.\n" +
 				"§7Uses the client-side glow flag, so they show through walls.")
