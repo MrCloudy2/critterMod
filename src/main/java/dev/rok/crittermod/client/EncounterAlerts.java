@@ -159,9 +159,7 @@ public final class EncounterAlerts implements HudElement {
 		banner("MACAW SPAWNED", READY_COLOUR, 1.6f);
 		chat("Macaw spawned!" + detail, ChatFormatting.GOLD);
 
-		if (config.party.macawPartyNotify) {
-			ChatQueue.enqueue(shareChannel() + "Macaw spawned!" + detail, isCommand());
-		}
+		post(config.party.macaw(), "Macaw spawned!" + detail);
 	}
 
 	/** All 37 caught by someone. */
@@ -173,14 +171,11 @@ public final class EncounterAlerts implements HudElement {
 	private static void announce(String text, float pitch) {
 		banner(text, DONE_COLOUR, pitch);
 		chat(text, ChatFormatting.GREEN);
-		if (ConfigManager.get().party.bossPartyNotify) {
-			ChatQueue.enqueue(shareChannel() + text, isCommand());
-		}
+		post(ConfigManager.get().party.milestones(), text);
 	}
 
 	private static void fire(String boss, Stage stage, String detail, float pitch) {
-		CritterConfig config = ConfigManager.get();
-		if (!config.alerts.bossAlerts) return;
+		if (!alertsOn(boss)) return;
 		// Gemzie chambers repeat every few minutes and its ready/done pair can be
 		// seconds apart, so the anti-repeat cooldown must not apply to it.
 		if (!boss.equals("Gemzie") && onCooldown(boss + ":" + stage)) return;
@@ -193,9 +188,36 @@ public final class EncounterAlerts implements HudElement {
 		}, pitch);
 		chat(text + " — " + detail, ChatFormatting.YELLOW);
 
-		if (config.party.bossPartyNotify) {
-			ChatQueue.enqueue(shareChannel() + "%s %s".formatted(boss, stage.name().toLowerCase()), isCommand());
-		}
+		post(broadcastFor(boss), "%s %s".formatted(boss, stage.name().toLowerCase()));
+	}
+
+	/** Whether this encounter's banners are wanted. Each is settable on its own. */
+	private static boolean alertsOn(String boss) {
+		CritterConfig.AlertConfig alerts = ConfigManager.get().alerts;
+		return switch (boss) {
+			case "Gemzie" -> alerts.gemzieAlert;
+			case "Wumpa" -> alerts.wumpaAlert;
+			case "Doomspiral" -> alerts.doomspiralAlert;
+			default -> false;
+		};
+	}
+
+	/** Who hears about this encounter, which is a separate choice per encounter. */
+	private static CritterConfig.Broadcast broadcastFor(String boss) {
+		CritterConfig.PartyConfig party = ConfigManager.get().party;
+		return switch (boss) {
+			case "Gemzie" -> party.gemzie();
+			case "Wumpa" -> party.wumpa();
+			case "Doomspiral" -> party.doomspiral();
+			default -> CritterConfig.Broadcast.NONE;
+		};
+	}
+
+	/** Sends one line to whoever the setting names, or nowhere. */
+	static void post(CritterConfig.Broadcast to, String message) {
+		String command = to.command();
+		if (command == null) return;
+		ChatQueue.enqueue(command + " " + message, true);
 	}
 
 	/** True if this stage already fired recently, so it should be suppressed. */
@@ -205,16 +227,6 @@ public final class EncounterAlerts implements HudElement {
 		if (previous != null && now - previous < STAGE_COOLDOWN_MILLIS) return true;
 		lastFired.put(key, now);
 		return false;
-	}
-
-	private static String shareChannel() {
-		String channel = ConfigManager.get().party.shareCommand();
-		return channel == null || channel.isBlank() ? "" : channel.trim() + " ";
-	}
-
-	private static boolean isCommand() {
-		String channel = ConfigManager.get().party.shareCommand();
-		return channel != null && !channel.isBlank();
 	}
 
 	private static void banner(String text, int bannerColour, float pitch) {

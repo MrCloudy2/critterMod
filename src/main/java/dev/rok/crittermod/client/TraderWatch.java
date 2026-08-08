@@ -132,10 +132,8 @@ public final class TraderWatch {
 					.append(Component.literal(offer.item()).withStyle(ChatFormatting.YELLOW)));
 		}
 
-		if (ConfigManager.get().party.traderPartyNotify) {
-			ChatQueue.enqueue(shareChannel() + "%s%s: %s Shard for %s".formatted(
-				offer.npc(), where, offer.critter().name(), offer.item()), isCommand());
-		}
+		EncounterAlerts.post(ConfigManager.get().party.trades(), "%s%s: %s Shard for %s".formatted(
+			offer.npc(), where, offer.critter().name(), offer.item()));
 	}
 
 	/**
@@ -196,16 +194,6 @@ public final class TraderWatch {
 			case UNCOMMON -> ChatFormatting.GREEN;
 			case COMMON -> ChatFormatting.WHITE;
 		};
-	}
-
-	private static String shareChannel() {
-		String channel = ConfigManager.get().party.shareCommand();
-		return channel == null || channel.isBlank() ? "" : channel.trim() + " ";
-	}
-
-	private static boolean isCommand() {
-		String channel = ConfigManager.get().party.shareCommand();
-		return channel != null && !channel.isBlank();
 	}
 
 	/** Trades found this run, newest last. */

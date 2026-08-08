@@ -92,20 +92,33 @@ public final class CritterCommand {
 					+ (config.display.showMissing ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
+			// The three encounters are settable one at a time in the GUI; these quick
+			// toggles move all three together, which is what wanting silence means.
 			.then(ClientCommands.literal("alerts").executes(ctx -> {
 				CritterConfig config = ConfigManager.get();
-				config.alerts.bossAlerts = !config.alerts.bossAlerts;
+				boolean on = !(config.alerts.gemzieAlert
+					&& config.alerts.wumpaAlert && config.alerts.doomspiralAlert);
+				config.alerts.gemzieAlert = on;
+				config.alerts.wumpaAlert = on;
+				config.alerts.doomspiralAlert = on;
 				ConfigManager.save();
 				ctx.getSource().sendFeedback(prefixed("Encounter alerts "
-					+ (config.alerts.bossAlerts ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+					+ (on ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("notify").executes(ctx -> {
 				CritterConfig config = ConfigManager.get();
-				config.party.bossPartyNotify = !config.party.bossPartyNotify;
+				boolean silent = config.party.gemzie() == CritterConfig.Broadcast.NONE
+					&& config.party.wumpa() == CritterConfig.Broadcast.NONE
+					&& config.party.doomspiral() == CritterConfig.Broadcast.NONE;
+				int to = silent ? CritterConfig.Broadcast.PARTY.ordinal()
+					: CritterConfig.Broadcast.NONE.ordinal();
+				config.party.gemzieBroadcast = to;
+				config.party.wumpaBroadcast = to;
+				config.party.doomspiralBroadcast = to;
 				ConfigManager.save();
-				ctx.getSource().sendFeedback(prefixed("Party-chat notifications "
-					+ (config.party.bossPartyNotify ? "enabled" : "disabled") + ".", ChatFormatting.YELLOW));
+				ctx.getSource().sendFeedback(prefixed("Encounter announcements "
+					+ (silent ? "posting to party chat" : "off") + ".", ChatFormatting.YELLOW));
 				return 1;
 			}))
 			.then(ClientCommands.literal("biomedone").executes(ctx -> {
