@@ -1,5 +1,6 @@
 package dev.rok.crittermod.session;
 
+import dev.rok.crittermod.CritterMod;
 import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.FloorDrops;
@@ -59,6 +60,9 @@ public final class SessionManager {
 	 * which is the part the entry banner used to be solely responsible for.
 	 */
 	private static boolean arrivalStartsRun;
+	/** What opened the live run, and when — reported by {@code /critters debug}. */
+	private static String startedBy = "nothing yet";
+	private static long startedAt;
 	/** When the last critter event landed, used to keep an active run from closing. */
 	private static long lastEventMillis;
 
@@ -80,7 +84,7 @@ public final class SessionManager {
 			// on the way in instead of showing the run before it.
 			if (arrivalStartsRun) {
 				arrivalStartsRun = false;
-				startSession();
+				startSession("arrival");
 			}
 			return;
 		}
@@ -124,7 +128,7 @@ public final class SessionManager {
 		// The "entered Critter Safari!" banner usually beats the sidebar update, so
 		// treat it as an explicit run start rather than waiting for the area change.
 		if (event.type() == CritterEvent.Type.ENTERED_SAFARI) {
-			startSession();
+			startSession("entry banner");
 			SafariLocation.markEntered();
 			ticksOutsideSafari = 0;
 			return;
@@ -135,7 +139,7 @@ public final class SessionManager {
 		// the mod blind after joining mid-run or missing that one message.
 		SafariLocation.markEntered();
 
-		if (current == null) startSession();
+		if (current == null) startSession("first catch");
 		lastEventMillis = System.currentTimeMillis();
 		current.record(event, lastEventMillis);
 
@@ -180,8 +184,31 @@ public final class SessionManager {
 	}
 
 	public static void startSession() {
-		if (current != null && !current.isEmpty()) archive(current);
+		startSession("command");
+	}
+
+	/**
+	 * Opens a run, filing whatever was open before it.
+	 *
+	 * <p>The new run is put in place <em>before</em> the old one is filed, and filing is
+	 * guarded. Written the other way round — file, then replace — anything thrown while
+	 * writing history would leave the finished run still live, and every catch after it
+	 * would land in the wrong run with no way for the player to tell.
+	 *
+	 * @param trigger what opened it, for {@code /critters debug}
+	 */
+	public static void startSession(String trigger) {
+		SafariSession finished = current;
 		current = new SafariSession(selfName(), System.currentTimeMillis());
+		startedBy = trigger;
+		startedAt = System.currentTimeMillis();
+		if (finished != null && !finished.isEmpty()) {
+			try {
+				archive(finished);
+			} catch (RuntimeException failed) {
+				CritterMod.LOGGER.warn("Could not file the finished run", failed);
+			}
+		}
 		announcedBiomes.clear();
 		announcedAllButMacaw = false;
 		announcedAllDone = false;
@@ -197,9 +224,14 @@ public final class SessionManager {
 	}
 
 	private static void endSession() {
-		if (current == null) return;
-		if (!current.isEmpty()) archive(current);
+		SafariSession finished = current;
 		current = null;
+		if (finished == null || finished.isEmpty()) return;
+		try {
+			archive(finished);
+		} catch (RuntimeException failed) {
+			CritterMod.LOGGER.warn("Could not file the finished run", failed);
+		}
 	}
 
 	/**
@@ -237,6 +269,12 @@ public final class SessionManager {
 		history.add(session);
 		while (history.size() > MAX_HISTORY) history.removeFirst();
 		RunHistory.record(session);
+	}
+
+	/** What opened the live run — "entry banner", "arrival", "first catch" or a command. */
+	public static String startedBy() {
+		return current == null ? "no run open"
+			: "%s, %ds ago".formatted(startedBy, (System.currentTimeMillis() - startedAt) / 1000);
 	}
 
 	/** The run in progress, or {@code null} outside the Safari. */
