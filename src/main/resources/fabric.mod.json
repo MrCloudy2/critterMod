@@ -6,6 +6,7 @@
 	"description": "Tracks Critter Safari progress per run: unique species caught by you and by your party, overall and per biome.",
 	"authors": ["Rok"],
 	"license": "MIT",
+	"icon": "assets/crittermod/icon.png",
 	"environment": "client",
 	"accessWidener": "crittermod.accesswidener",
 	"entrypoints": {
