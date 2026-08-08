@@ -18,7 +18,7 @@ import java.util.List;
  * is and how big it is.
  *
  * <p>Four features want this — the nearby-spawn counter, the Bloodbat outlines, the
- * Hideyho tracker and the recatch helper — and each used to sweep the entity list for
+ * Hideyho solver and the recatch helper — and each used to sweep the entity list for
  * itself. One sweep, read by all of them.
  */
 public final class CritterEntities {
