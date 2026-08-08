@@ -9,7 +9,7 @@ import java.util.List;
 public final class Markers {
 
 	/** One thing worth walking to. */
-	public record Marker(BlockPos pos, String label) {
+	public record Marker(BlockPos pos, String label, int colour) {
 	}
 
 	private Markers() {
@@ -22,14 +22,14 @@ public final class Markers {
 		if (display.highlightWalls) {
 			for (WallTracker.Wall wall : WallTracker.walls()) {
 				if (wall.state() != WallTracker.State.INTACT) continue;
-				markers.add(new Marker(wall.pos(), "Wall"));
+				markers.add(new Marker(wall.pos(), "Wall", 0xFFAA00));
 			}
 		}
 
 		if (display.highlightNests) {
 			for (NestTracker.Nest nest : NestTracker.nests()) {
 				if (!nest.unpunched()) continue;
-				markers.add(new Marker(nest.pos(), "Nest"));
+				markers.add(new Marker(nest.pos(), "Nest", 0x55FF55));
 			}
 		}
 
@@ -37,13 +37,13 @@ public final class Markers {
 			for (TraderWatch.Trade trade : TraderWatch.found()) {
 				TraderWatch.Spot spot = trade.spot();
 				if (spot == null) continue;
-				markers.add(new Marker(new BlockPos(spot.x(), spot.y(), spot.z()), trade.critter().name()));
+				markers.add(new Marker(new BlockPos(spot.x(), spot.y(), spot.z()), trade.critter().name(), 0x55FFFF));
 			}
 		}
 
 		if (display.highlightMounds) {
 			for (BlockPos pos : MoundSpotter.mounds()) {
-				markers.add(new Marker(pos, "Mound"));
+				markers.add(new Marker(pos, "Mound", 0xCC7744));
 			}
 		}
 		return markers;
