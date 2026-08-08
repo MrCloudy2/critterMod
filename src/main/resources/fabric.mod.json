@@ -7,6 +7,7 @@
 	"authors": ["Rok"],
 	"license": "MIT",
 	"environment": "client",
+	"accessWidener": "crittermod.accesswidener",
 	"entrypoints": {
 		"client": ["dev.rok.crittermod.CritterMod"],
 		"modmenu": ["dev.rok.crittermod.client.ModMenuIntegration"]

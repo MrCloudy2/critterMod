@@ -15,9 +15,15 @@ import java.util.UUID;
 /**
  * Outlines the mobs of species that are hard to spot.
  *
- * <p>Uses the client-side glowing flag, so this needs no rendering code and no mixin:
- * a glowing entity is drawn through walls by vanilla, which is exactly the wanted
- * behaviour for something like a Bloodbat tucked into the Haunted geometry.
+ * <p>Vanilla draws a glowing entity through walls, which is exactly the wanted
+ * behaviour for a Bloodbat tucked into the Haunted geometry. Getting one to glow from
+ * the client is the fiddly part: {@code setGlowingTag} does nothing here, because
+ * {@code isCurrentlyGlowing} reads the server-synced shared flag on the client side and
+ * only consults the tag on the server. So shared flag 6 is set directly, reached
+ * through an access widener since it is protected.
+ *
+ * <p>It is re-applied on every scan because the server owns that flag and will clear it
+ * again whenever it resends the entity's metadata.
  *
  * <p>The name tag is an armour stand sitting on top of the mob rather than the mob
  * itself, so the stand locates the species and the actual creature just beneath it
@@ -72,7 +78,7 @@ public final class CritterHighlighter {
 			// With no mob found, glow the stand itself: invisible, but better than
 			// silently highlighting nothing.
 			Entity target = mob != null ? mob : label;
-			target.setGlowingTag(true);
+			setGlow(target, true);
 			wanted.add(target.getUUID());
 		}
 
@@ -80,7 +86,7 @@ public final class CritterHighlighter {
 		// turned off — must have the flag removed or it stays lit for the session.
 		for (Entity entity : client.level.entitiesForRendering()) {
 			if (glowing.contains(entity.getUUID()) && !wanted.contains(entity.getUUID())) {
-				entity.setGlowingTag(false);
+				setGlow(entity, false);
 			}
 		}
 		glowing.clear();
@@ -116,10 +122,15 @@ public final class CritterHighlighter {
 		Minecraft client = Minecraft.getInstance();
 		if (client.level != null && !glowing.isEmpty()) {
 			for (Entity entity : client.level.entitiesForRendering()) {
-				if (glowing.contains(entity.getUUID())) entity.setGlowingTag(false);
+				if (glowing.contains(entity.getUUID())) setGlow(entity, false);
 			}
 		}
 		glowing.clear();
+	}
+
+	/** Flag 6 is the glow bit; the tag equivalent is ignored on the client. */
+	private static void setGlow(Entity entity, boolean glow) {
+		entity.setSharedFlag(6, glow);
 	}
 
 	private static String strip(String text) {
