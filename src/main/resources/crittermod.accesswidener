@@ -4,3 +4,8 @@ accessWidener	v2	official
 # isCurrentlyGlowing() reads that shared flag rather than hasGlowingTag(). Setting it
 # is therefore the only way to make vanilla outline an entity from the client side.
 accessible	method	net/minecraft/world/entity/Entity	setSharedFlag	(IZ)V
+
+# Display.BlockDisplay.setBlockState is private, so a client-made display entity has
+# nothing to show. Widened so a marker block can be placed and then made to glow,
+# which vanilla draws through walls.
+accessible	method	net/minecraft/world/entity/Display$BlockDisplay	setBlockState	(Lnet/minecraft/world/level/block/state/BlockState;)V
