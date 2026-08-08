@@ -29,6 +29,25 @@ import io.github.notenoughupdates.moulconfig.common.text.StructuredText;
  */
 public class CritterConfig extends Config {
 
+	/** Where an announcement goes. */
+	public enum Broadcast {
+		/** Kept to yourself. */
+		NONE,
+		/** {@code /pc} — the party. */
+		PARTY,
+		/** {@code /ac} — everyone on the island. */
+		ALL;
+
+		/** The Hypixel command, without the slash, or null when nothing is sent. */
+		public String command() {
+			return switch (this) {
+				case PARTY -> "pc";
+				case ALL -> "ac";
+				case NONE -> null;
+			};
+		}
+	}
+
 	/** How a set of positions is drawn, for the settings that offer the choice. */
 	public enum MarkStyle {
 		/** Not drawn at all. */
@@ -388,14 +407,28 @@ public class CritterConfig extends Config {
 	public static class AlertConfig {
 
 		@ConfigOption(
-			name = "Encounter alerts",
-			desc = "Banner and sound as each legendary encounter progresses.\n" +
-				"§7Gemzie: §fchamber opens, then 3 catches.\n" +
-				"§7Wumpa: §ffootsteps, awoken, cave reopens.\n" +
-				"§7Doomspiral: §fcandle ritual, summoned, retreats.")
+			name = "Gemzie alerts",
+			desc = "Banner and sound as the Gemzie encounter progresses.\n" +
+				"§7Chamber opens, then the three catches that close it.")
 		@ConfigEditorBoolean
 		@Expose
-		public boolean bossAlerts = true;
+		public boolean gemzieAlert = true;
+
+		@ConfigOption(
+			name = "Wumpa alerts",
+			desc = "Banner and sound as the Wumpa encounter progresses.\n" +
+				"§7Footsteps ~30s out, awoken, then the cave reopening.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean wumpaAlert = true;
+
+		@ConfigOption(
+			name = "Doomspiral alerts",
+			desc = "Banner and sound as the Doomspiral encounter progresses.\n" +
+				"§7Candle ritual, summoned, then it retreating.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean doomspiralAlert = true;
 
 		@ConfigOption(name = "Biome complete", desc = "Announce \"<Biome> Done!\" once every species there has been caught by someone.")
 		@ConfigEditorBoolean
@@ -439,40 +472,88 @@ public class CritterConfig extends Config {
 
 	public static class PartyConfig {
 
-		@ConfigOption(
-			name = "Announce to party",
-			desc = "Post encounter stages to chat so your team sees them too.\n" +
-				"§7Lines are spaced 1.2s apart; Hypixel drops faster bursts.")
-		@ConfigEditorBoolean
+		// Each announcement chooses its own audience: a party wants the encounter
+		// stages, while a Macaw or a spare trade is worth the whole island hearing.
+		// Lines are spaced 1.2s apart whatever the channel; Hypixel drops faster bursts.
+
+		@ConfigOption(name = "Gemzie stages", desc = "Where the Gemzie encounter stages are posted.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
 		@Expose
-		public boolean bossPartyNotify = true;
+		public int gemzieBroadcast = 1;
+
+		@ConfigOption(name = "Wumpa stages", desc = "Where the Wumpa encounter stages are posted.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
+		@Expose
+		public int wumpaBroadcast = 1;
+
+		@ConfigOption(name = "Doomspiral stages", desc = "Where the Doomspiral encounter stages are posted.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
+		@Expose
+		public int doomspiralBroadcast = 1;
 
 		@ConfigOption(
-			name = "Announce Macaw spawns",
-			desc = "Post a Macaw spawn to chat, with where it is if the client can see it.\n" +
+			name = "Completions",
+			desc = "Where \"<Biome> Done!\" and the whole-run milestones are posted.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
+		@Expose
+		public int milestoneBroadcast = 1;
+
+		@ConfigOption(
+			name = "Macaw spawns",
+			desc = "Where a Macaw spawn is posted, with its position if the client can see it.\n" +
 				"§7Whoever is working another biome wants to know there is something to come\n" +
 				"§7back for.")
-		@ConfigEditorBoolean
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
 		@Expose
-		public boolean macawPartyNotify = true;
+		public int macawBroadcast = 1;
 
-		@ConfigOption(name = "Announce Hunter trades", desc = "Post the roaming Hunter NPCs' offers to chat so your team can use them.")
-		@ConfigEditorBoolean
+		@ConfigOption(name = "Hunter trades", desc = "Where the roaming Hunter NPCs' offers are posted.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
 		@Expose
-		public boolean traderPartyNotify = true;
+		public int traderBroadcast = 1;
 
-		@ConfigOption(name = "Post to", desc = "Where /critters share and the announcements are sent.")
+		@ConfigOption(name = "Post /critters share to", desc = "Where the missing list goes when you share it by hand.")
 		@ConfigEditorDropdown(values = {"Party chat", "All chat", "Normal chat"})
 		@Expose
 		public int shareChannel = 0;
 
-		/** The Hypixel command for the selected channel, without the slash. */
+		/** The Hypixel command for the manual share channel, without the slash. */
 		public String shareCommand() {
 			return switch (shareChannel) {
 				case 1 -> "ac";
 				case 2 -> "";
 				default -> "pc";
 			};
+		}
+
+		public Broadcast gemzie() {
+			return broadcast(gemzieBroadcast);
+		}
+
+		public Broadcast wumpa() {
+			return broadcast(wumpaBroadcast);
+		}
+
+		public Broadcast doomspiral() {
+			return broadcast(doomspiralBroadcast);
+		}
+
+		public Broadcast milestones() {
+			return broadcast(milestoneBroadcast);
+		}
+
+		public Broadcast macaw() {
+			return broadcast(macawBroadcast);
+		}
+
+		public Broadcast trades() {
+			return broadcast(traderBroadcast);
+		}
+
+		/** Guards against a config file holding an index that is no longer a choice. */
+		private static Broadcast broadcast(int index) {
+			return index >= 0 && index < Broadcast.values().length
+				? Broadcast.values()[index] : Broadcast.NONE;
 		}
 	}
 }
