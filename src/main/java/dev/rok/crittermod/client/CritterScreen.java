@@ -4,6 +4,8 @@ import dev.rok.crittermod.data.Critter;
 import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.session.MissingReport;
+import dev.rok.crittermod.session.RunHistory;
+import dev.rok.crittermod.session.RunRecord;
 import dev.rok.crittermod.session.SafariSession;
 import dev.rok.crittermod.session.SessionManager;
 import dev.rok.crittermod.session.TrackingMode;
@@ -15,6 +17,9 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +36,10 @@ public final class CritterScreen extends Screen {
 	private static final int PREFERRED_COLUMN_WIDTH = 108;
 	private static final int LINE_HEIGHT = 11;
 	private static final int PANEL_PADDING = 10;
+	/** As many past runs as fit without the panel needing to scroll. */
+	private static final int HISTORY_ROWS = 12;
+
+	private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("d MMM  HH:mm");
 
 	private static final int CAUGHT_BY_YOU = 0xFF55FF55;
 	private static final int CAUGHT_BY_PARTY = 0xFF55FFFF;
@@ -46,6 +55,25 @@ public final class CritterScreen extends Screen {
 
 	private final SafariSession session;
 	private final boolean live;
+
+	/** Which view is showing. Static so it survives closing and reopening the screen. */
+	private static Tab tab = Tab.RUN;
+
+	/** The three things there are to look at. */
+	private enum Tab {
+		/** This run, or the last one if there is none. */
+		RUN("Run"),
+		/** Every saved run, newest first. */
+		HISTORY("History"),
+		/** Totals per species across every saved run. */
+		STATS("Stats");
+
+		final String label;
+
+		Tab(String label) {
+			this.label = label;
+		}
+	}
 
 	/** Shrinks from the preferred width when the window cannot fit four columns. */
 	private int columnWidth;
@@ -66,11 +94,19 @@ public final class CritterScreen extends Screen {
 		int available = width - PANEL_PADDING * 2 - 8;
 		columnWidth = Math.max(60, Math.min(PREFERRED_COLUMN_WIDTH, available / columns));
 		panelWidth = columnWidth * columns + PANEL_PADDING * 2;
-		// Header block, the longest biome column (Haunted has 10), then the player table.
-		int playerRows = session == null ? 0 : session.uniquePerPlayer().size();
-		panelHeight = 46 + (2 + 10) * LINE_HEIGHT + (playerRows + 2) * LINE_HEIGHT + 40;
+		panelHeight = switch (tab) {
+			// Header block, the longest biome column (Haunted has 10), then the player table.
+			case RUN -> 46 + (2 + 10) * LINE_HEIGHT
+				+ ((session == null ? 0 : session.uniquePerPlayer().size()) + 2) * LINE_HEIGHT + 40;
+			// A summary block, then one line per run shown.
+			case HISTORY -> 46 + (HISTORY_ROWS + 2) * LINE_HEIGHT + 46;
+			// A summary block, then the species columns.
+			case STATS -> 46 + (4 + 10) * LINE_HEIGHT + 46;
+		};
 		panelLeft = Math.max(4, (width - panelWidth) / 2);
 		panelTop = Math.max(10, (height - panelHeight) / 2);
+
+		addTabButtons();
 
 		int buttonY = panelTop + panelHeight - 30;
 		int buttonWidth = 80;
@@ -86,6 +122,30 @@ public final class CritterScreen extends Screen {
 			.bounds(buttonX + (buttonWidth + spacing) * 2, buttonY, buttonWidth, 20).build());
 	}
 
+	/** A row of buttons above the panel; the one showing is disabled to mark it. */
+	private void addTabButtons() {
+		Tab[] tabs = Tab.values();
+		int tabWidth = 60;
+		int spacing = 4;
+		int totalWidth = tabWidth * tabs.length + spacing * (tabs.length - 1);
+		int x = panelLeft + (panelWidth - totalWidth) / 2;
+		int y = Math.max(2, panelTop - 24);
+
+		for (Tab value : tabs) {
+			Button button = Button.builder(Component.literal(value.label), b -> switchTo(value))
+				.bounds(x, y, tabWidth, 20).build();
+			button.active = value != tab;
+			addRenderableWidget(button);
+			x += tabWidth + spacing;
+		}
+	}
+
+	private void switchTo(Tab value) {
+		tab = value;
+		// The panel is a different height per tab, so everything is laid out again.
+		rebuildWidgets();
+	}
+
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float partialTick) {
 		super.extractRenderState(graphics, mouseX, mouseY, partialTick);
@@ -96,15 +156,20 @@ public final class CritterScreen extends Screen {
 		Font font = this.font;
 		int y = panelTop + PANEL_PADDING;
 
-		if (session == null) {
-			graphics.text(font, Component.literal("No Critter Safari run tracked yet."),
-				panelLeft + PANEL_PADDING, y, LABEL);
-			return;
+		switch (tab) {
+			case RUN -> {
+				if (session == null) {
+					graphics.text(font, Component.literal("No Critter Safari run tracked yet."),
+						panelLeft + PANEL_PADDING, y, LABEL);
+					return;
+				}
+				y = drawHeader(graphics, font, y);
+				y = drawBiomeColumns(graphics, font, y + 4);
+				drawPlayers(graphics, font, y + 6);
+			}
+			case HISTORY -> drawHistory(graphics, font, y);
+			case STATS -> drawStats(graphics, font, y);
 		}
-
-		y = drawHeader(graphics, font, y);
-		y = drawBiomeColumns(graphics, font, y + 4);
-		drawPlayers(graphics, font, y + 6);
 	}
 
 	private int drawHeader(GuiGraphicsExtractor graphics, Font font, int y) {
@@ -223,6 +288,133 @@ public final class CritterScreen extends Screen {
 			}
 			y += LINE_HEIGHT;
 		}
+	}
+
+	/**
+	 * Every saved run, newest first.
+	 *
+	 * <p>Runs are written when the next one starts, so the one you are in is not here
+	 * yet — that is what the Run tab is for.
+	 */
+	private void drawHistory(GuiGraphicsExtractor graphics, Font font, int y) {
+		int left = panelLeft + PANEL_PADDING;
+		int right = panelLeft + panelWidth - PANEL_PADDING;
+		List<RunRecord> runs = RunHistory.runs();
+
+		graphics.text(font, Component.literal("Saved runs"), left, y, HEADING);
+		String count = runs.size() + " kept";
+		graphics.text(font, Component.literal(count), right - font.width(count), y, DIM);
+		y += LINE_HEIGHT + 3;
+
+		if (runs.isEmpty()) {
+			graphics.text(font, Component.literal("No runs saved yet."), left, y, LABEL);
+			y += LINE_HEIGHT;
+			graphics.text(font, Component.literal("A run is saved when the next one starts."),
+				left, y, DIM);
+			y += LINE_HEIGHT;
+			graphics.text(font, Component.literal("/critters import reads past runs out of your logs."),
+				left, y, DIM);
+			return;
+		}
+
+		graphics.text(font, Component.literal("%d run%s  ·  %s played  ·  %d caught  ·  best %d/%d".formatted(
+			runs.size(), runs.size() == 1 ? "" : "s", formatHours(RunHistory.totalTimeMillis()),
+			RunHistory.totalCatches(), RunHistory.bestDex(), Critters.total())), left, y, LABEL);
+		y += LINE_HEIGHT + 5;
+
+		// Fixed columns: the proportional font makes padded text impossible to align.
+		int timeWidth = Math.min(120, panelWidth / 3);
+		int cell = Math.max(46, (panelWidth - PANEL_PADDING * 2 - timeWidth) / 4);
+		graphics.text(font, Component.literal("When"), left, y, LABEL);
+		graphics.text(font, Component.literal("Length"), left + timeWidth, y, LABEL);
+		graphics.text(font, Component.literal("Party"), left + timeWidth + cell, y, LABEL);
+		graphics.text(font, Component.literal("You"), left + timeWidth + cell * 2, y, LABEL);
+		graphics.text(font, Component.literal("Caught"), left + timeWidth + cell * 3, y, LABEL);
+		y += LINE_HEIGHT + 2;
+
+		int total = Critters.total();
+		for (int i = runs.size() - 1, shown = 0; i >= 0 && shown < HISTORY_ROWS; i--, shown++) {
+			RunRecord run = runs.get(i);
+			boolean perfect = run.partyUnique() == total;
+			graphics.text(font, Component.literal(formatWhen(run.started)), left, y, WHITE);
+			graphics.text(font, Component.literal(formatDuration(run.durationMillis())),
+				left + timeWidth, y, DIM);
+			graphics.text(font, Component.literal(run.partyUnique() + "/" + total),
+				left + timeWidth + cell, y, perfect ? CAUGHT_BY_YOU : WHITE);
+			graphics.text(font, Component.literal(run.ownUnique() + "/" + total),
+				left + timeWidth + cell * 2, y, CAUGHT_BY_PARTY);
+			graphics.text(font, Component.literal(String.valueOf(run.partyTotal())),
+				left + timeWidth + cell * 3, y, DIM);
+			y += LINE_HEIGHT;
+		}
+	}
+
+	/**
+	 * What every species has been worth across the saved runs.
+	 *
+	 * <p>Two numbers per species, because they answer different questions: the total
+	 * says how much of it you have caught, and how many runs it turned up in says how
+	 * reliably it appears at all. A species with a big total from few runs comes in
+	 * numbers when it comes.
+	 */
+	private void drawStats(GuiGraphicsExtractor graphics, Font font, int y) {
+		int left = panelLeft + PANEL_PADDING;
+		int right = panelLeft + panelWidth - PANEL_PADDING;
+		int runs = RunHistory.size();
+
+		graphics.text(font, Component.literal("Across saved runs"), left, y, HEADING);
+		String legend = "total  ·  runs seen in";
+		graphics.text(font, Component.literal(legend), right - font.width(legend), y, DIM);
+		y += LINE_HEIGHT + 3;
+
+		if (runs == 0) {
+			graphics.text(font, Component.literal("Nothing saved yet."), left, y, LABEL);
+			return;
+		}
+
+		int never = RunHistory.neverCaught().size();
+		graphics.text(font, Component.literal("%d runs  ·  %s played  ·  %d catches (%d yours)".formatted(
+			runs, formatHours(RunHistory.totalTimeMillis()),
+			RunHistory.totalCatches(), RunHistory.ownCatches())), left, y, LABEL);
+		y += LINE_HEIGHT;
+		graphics.text(font, Component.literal("%d shards  ·  %.1f catches a run  ·  %d full dex  ·  %d never caught"
+			.formatted(RunHistory.totalShards(), (double) RunHistory.totalCatches() / runs,
+				RunHistory.perfectRuns(), never)), left, y, LABEL);
+		y += LINE_HEIGHT + 5;
+
+		SafariBiome[] biomes = SafariBiome.values();
+		for (int i = 0; i < biomes.length; i++) {
+			SafariBiome biome = biomes[i];
+			int x = panelLeft + PANEL_PADDING + i * columnWidth;
+			int rowY = y;
+
+			graphics.text(font, Component.literal(biome.displayName()), x, rowY,
+				0xFF000000 | biome.colour());
+			rowY += LINE_HEIGHT + 2;
+
+			for (Critter critter : Critters.inBiome(biome)) {
+				RunHistory.SpeciesStat stat = RunHistory.statFor(critter);
+				graphics.text(font, Component.literal(critter.name()), x, rowY,
+					stat.total() == 0 ? UNCAUGHT : WHITE);
+				String note = stat.total() == 0 ? "—"
+					: "%d/%d".formatted(stat.total(), stat.runsSeen());
+				graphics.text(font, Component.literal(note),
+					x + columnWidth - 14 - font.width(note), rowY,
+					stat.total() == 0 ? UNCAUGHT : DIM);
+				rowY += LINE_HEIGHT;
+			}
+		}
+	}
+
+	/** Date and time of day, which is how you recognise a run you remember. */
+	private static String formatWhen(long millis) {
+		return WHEN.format(Instant.ofEpochMilli(millis).atZone(ZoneId.systemDefault()));
+	}
+
+	/** Hours and minutes, for spans far longer than one run. */
+	private static String formatHours(long millis) {
+		long minutes = millis / 60_000;
+		return minutes < 60 ? minutes + "m" : "%dh %02dm".formatted(minutes / 60, minutes % 60);
 	}
 
 	private void copyMissing() {
