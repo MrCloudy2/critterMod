@@ -10,6 +10,7 @@ import net.minecraft.world.phys.Vec3;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Remembers where a critter was when you threw at it, so you can be waiting for it.
@@ -32,6 +33,10 @@ import java.util.Map;
  *
  * <p>One pin at a time: capsules are thrown one at a time, and a second throw is the
  * answer to where the interesting spot now is.
+ *
+ * <p>Not every species is worth it. Commons are caught on the throw, so there is no
+ * second attempt to prepare for, and Hideyho, Wumpa and Doomspiral do not come straight
+ * back — see {@link #worthPinning}.
  */
 public final class RecatchSpots {
 
@@ -45,6 +50,9 @@ public final class RecatchSpots {
 	private static final double STALE_DISTANCE = 5.0;
 	/** Added to the score of anything behind the player, so it always loses to what is not. */
 	private static final double BEHIND_PENALTY = 1000.0;
+
+	/** Species that do not simply reappear where they were, whatever their rarity. */
+	private static final Set<String> NEVER_PINNED = Set.of("Hideyho", "Wumpa", "Doomspiral");
 
 	/** Where a species' body was last seen, and how big it was. */
 	private record Seen(AABB box, long millis) {
@@ -147,7 +155,26 @@ public final class RecatchSpots {
 		return toBox.subtract(look.scale(along)).length();
 	}
 
+	/**
+	 * Whether a failed throw at this species is worth marking the spot for.
+	 *
+	 * <p>Commons are caught on the throw, so there is never a second attempt to prepare
+	 * for. Hideyho, Wumpa and Doomspiral do not come straight back either — they are set
+	 * pieces with their own pacing, and a box left where one used to stand is only in the
+	 * way. Everything else is the case this exists for: it reappears, it runs, and you
+	 * want the next capsule already aimed.
+	 */
+	private static boolean worthPinning(Critter critter) {
+		if (critter.rarity() == Critter.Rarity.COMMON) return false;
+		return !NEVER_PINNED.contains(critter.name());
+	}
+
 	private static void pin(Critter critter) {
+		if (!worthPinning(critter)) {
+			clear();
+			return;
+		}
+
 		Seen seen = lastSeen.get(critter);
 		// A species nobody has seen recently cannot be pinned — the throw was at
 		// something out of the client's view, and guessing a spot would be worse than
