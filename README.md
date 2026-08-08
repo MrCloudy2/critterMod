@@ -24,7 +24,6 @@ actually need when four people split the island one biome each.
 | `/critters import` | Fill the saved history from those logs, once |
 | `/critters testalert` | Fire every alert now, to check them |
 | `/critters debug` | Dump area detection sources |
-| `/critters particles watch` | Record particle types, to identify sparkling critters |
 
 Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` ·
 `notify` · `biomedone`.
@@ -65,10 +64,6 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   uses. Nothing, a highlight, or a full waypoint, and only for the biome you are in.
 - **Macaw call** — the one species a run may not give at all, announced the moment the
   Birdfeeder says so or one appears, with its position.
-- **Sparkling call** — a full-screen alert when a sparkling critter is loaded near you,
-  with its biome and coordinates, and optionally posted to the party. Detected from the
-  name tag for now; `/critters particles watch` is there to identify the particle that
-  really marks one.
 - **Hotspot** — the biome the run makes your Hunting Hotspot, on the progress panel and
   optionally posted to the party. Everyone is given a different one and only their own
   client is told, so saying it is how a party works out who takes which biome.

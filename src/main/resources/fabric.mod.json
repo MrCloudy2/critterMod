@@ -9,12 +9,6 @@
 	"icon": "assets/crittermod/icon.png",
 	"environment": "client",
 	"accessWidener": "crittermod.accesswidener",
-	"mixins": [
-		{
-			"config": "crittermod.mixins.json",
-			"environment": "client"
-		}
-	],
 	"entrypoints": {
 		"client": ["dev.rok.crittermod.CritterMod"],
 		"modmenu": ["dev.rok.crittermod.client.ModMenuIntegration"]
