@@ -95,7 +95,9 @@ modrinth {
 	projectId = 'critter-mod'
 	versionNumber = project.mod_version
 	versionName = "v${project.mod_version}"
-	versionType = 'release'
+	// Beta while the mod is still being shaped around live testing. Modrinth shows
+	// this as the release channel; GitHub releases are marked pre-release to match.
+	versionType = 'beta'
 	uploadFile = tasks.named('jar')
 	gameVersions = [project.minecraft_version]
 	loaders = ['fabric']
