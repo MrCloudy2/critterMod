@@ -34,7 +34,7 @@ public final class MissingHud implements HudElement {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.options.hideGui) return;
 
-		SafariBiome biome = AreaDetector.currentBiome();
+		SafariBiome biome = SafariLocation.biome();
 		if (biome == null) return;
 
 		HudPanel panel = buildPanel(biome, SessionManager.currentOrLast());

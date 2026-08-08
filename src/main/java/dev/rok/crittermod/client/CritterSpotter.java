@@ -48,7 +48,7 @@ public final class CritterSpotter {
 		if (!ConfigManager.get().display.countSpawns) return;
 
 		SafariSession session = SessionManager.current();
-		if (session == null || !AreaDetector.inSafari()) return;
+		if (session == null || !SafariLocation.inSafari()) return;
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.level == null) return;

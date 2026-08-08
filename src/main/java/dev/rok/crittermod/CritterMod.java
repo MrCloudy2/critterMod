@@ -8,7 +8,7 @@ import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
-import dev.rok.crittermod.client.SafariPresence;
+import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.WaypointRenderer;
@@ -19,6 +19,7 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
@@ -52,7 +53,7 @@ public class CritterMod implements ClientModInitializer {
 			for (String part : message.getString().split("\\r?\\n|\\\\n")) {
 				String line = ChatParser.clean(part);
 				if (line.isEmpty()) continue;
-				SafariPresence.onChatMessage(line);
+				SafariLocation.onChatMessage(line);
 				SessionManager.onChatMessage(line);
 				EncounterAlerts.onChatMessage(line);
 				TraderWatch.onChatMessage(line);
@@ -61,12 +62,21 @@ public class CritterMod implements ClientModInitializer {
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
+			// First, and only here: everything below asks it where the player is.
+			SafariLocation.tick();
 			SessionManager.tick();
 			CritterSpotter.tick();
 			NestTracker.tick();
 			CritterHighlighter.tick();
 			ChatQueue.tick();
 		});
+
+		// Hypixel never says you have left the Safari, but moving island reconnects, so
+		// this is the one moment the chat-driven flag is known to be stale.
+		ClientPlayConnectionEvents.JOIN.register(
+			(handler, sender, client) -> SafariLocation.onWorldChange());
+		ClientPlayConnectionEvents.DISCONNECT.register(
+			(handler, client) -> SafariLocation.onWorldChange());
 
 		// Punching a bee nest changes nothing about the block, so the punch itself is
 		// the only signal that it has been done.
