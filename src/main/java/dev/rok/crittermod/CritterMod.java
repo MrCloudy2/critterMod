@@ -4,6 +4,7 @@ import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHighlighter;
 import dev.rok.crittermod.client.CritterHud;
+import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.DarknessFilter;
 import dev.rok.crittermod.client.HideyhoSolver;
@@ -20,6 +21,7 @@ import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
 import net.fabricmc.fabric.api.client.message.v1.ClientReceiveMessageEvents;
@@ -74,7 +76,12 @@ public class CritterMod implements ClientModInitializer {
 			DarknessFilter.tick();
 			TraderWatch.tick();
 			ChatQueue.tick();
+			ConfigManager.tick();
 		});
+
+		// Nothing else writes the settings file on the way out, and the game can be quit
+		// straight from the settings screen.
+		ClientLifecycleEvents.CLIENT_STOPPING.register(client -> ConfigManager.save());
 
 		// Hypixel never says you have left the Safari, but moving island reconnects, so
 		// this is the one moment the chat-driven flag is known to be stale.
