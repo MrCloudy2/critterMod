@@ -469,6 +469,16 @@ public class CritterConfig extends Config {
 		public boolean allDoneNotify = false;
 
 		@ConfigOption(
+			name = "Sparkling critters",
+			desc = "A full-screen call when a sparkling critter is loaded near you.\n" +
+				"§7Rare, worth crossing the map for, and easy to walk past. Chat only says\n" +
+				"§7when someone has already caught one, which is too late to help.\n" +
+				"§7Read off the name tag, so it depends on Hypixel naming them for it.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean sparklingAlert = true;
+
+		@ConfigOption(
 			name = "Hotspot",
 			desc = "Report your Hunting Hotspot in chat when the run names it.")
 		@ConfigEditorBoolean
@@ -534,6 +544,13 @@ public class CritterConfig extends Config {
 		public int macawBroadcast = 1;
 
 		@ConfigOption(
+			name = "Sparkling critters",
+			desc = "Where a sparkling critter is posted, with its biome and coordinates.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
+		@Expose
+		public int sparklingBroadcast = 1;
+
+		@ConfigOption(
 			name = "Your hotspot",
 			desc = "Where your Hunting Hotspot is posted.\n" +
 				"§7Everyone is given a different one and only their own client is told, so\n" +
@@ -589,6 +606,10 @@ public class CritterConfig extends Config {
 
 		public Broadcast macaw() {
 			return broadcast(macawBroadcast);
+		}
+
+		public Broadcast sparkling() {
+			return broadcast(sparklingBroadcast);
 		}
 
 		public Broadcast hotspot() {
