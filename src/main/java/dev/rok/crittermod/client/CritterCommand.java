@@ -467,6 +467,10 @@ public final class CritterCommand {
 			.withStyle(ChatFormatting.WHITE));
 		source.sendFeedback(Component.literal("    inSafari      " + SafariLocation.inSafari())
 			.withStyle(ChatFormatting.WHITE));
+		// Which trigger opened the live run: if a stale run is showing, this says whether
+		// a reset was missed or one fired and something else is wrong.
+		source.sendFeedback(Component.literal("    run opened by " + SessionManager.startedBy())
+			.withStyle(ChatFormatting.WHITE));
 	}
 
 	private static String nameOf(SafariBiome biome) {
