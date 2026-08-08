@@ -246,7 +246,7 @@ public final class EncounterAlerts implements HudElement {
 	private static void chat(String text, ChatFormatting style) {
 		Minecraft client = Minecraft.getInstance();
 		if (client.gui == null) return;
-		client.gui.getChat().addClientSystemMessage(
+		client.gui.hud.getChat().addClientSystemMessage(
 			Component.literal("[Critters] ").withStyle(ChatFormatting.GOLD)
 				.append(Component.literal(text).withStyle(style)));
 	}
@@ -268,7 +268,7 @@ public final class EncounterAlerts implements HudElement {
 		}
 
 		Minecraft client = Minecraft.getInstance();
-		if (client.player == null || client.options.hideGui) return;
+		if (client.player == null || client.gui.hud.isHidden()) return;
 
 		// Fade over the last second so it does not simply vanish.
 		int alpha = 0xFF;

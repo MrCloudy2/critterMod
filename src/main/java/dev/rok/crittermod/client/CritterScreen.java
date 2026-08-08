@@ -457,7 +457,7 @@ public final class CritterScreen extends Screen {
 	private void feedback(String text) {
 		Minecraft client = Minecraft.getInstance();
 		if (client.gui == null) return;
-		client.gui.getChat().addClientSystemMessage(
+		client.gui.hud.getChat().addClientSystemMessage(
 			Component.literal("[Critters] ").withStyle(ChatFormatting.GOLD)
 				.append(Component.literal(text).withStyle(ChatFormatting.YELLOW)));
 	}

@@ -32,7 +32,7 @@ public final class MissingHud implements HudElement {
 		if (!config.display.hudEnabled || !config.display.showMissing) return;
 
 		Minecraft client = Minecraft.getInstance();
-		if (client.player == null || client.options.hideGui) return;
+		if (client.player == null || client.gui.hud.isHidden()) return;
 
 		SafariBiome biome = SafariLocation.biome();
 		if (biome == null) return;
