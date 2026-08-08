@@ -191,6 +191,26 @@ public final class SessionManager {
 	}
 
 	/**
+	 * Ends the run when the player changes island.
+	 *
+	 * <p>The tick close needs three things at once — away from the Safari, quiet for a
+	 * minute, and past a grace period — because the location can blink mid-run and
+	 * closing a live run would be worse than holding a stale one. A server transfer is
+	 * different: it is not a blink, and every way in or out of the Safari is one. So it
+	 * closes the run outright.
+	 *
+	 * <p>This is what stops a run following the player into the next one. Starting a run
+	 * used to rest entirely on the entry banner, and that banner never arrives if another
+	 * mod's chat filter cancels it — nothing downstream of {@code ALLOW_GAME} sees a
+	 * cancelled message. With the old run left open, the guard that starts a new one on
+	 * the first catch never fires, and the catches land in the previous run.
+	 */
+	public static void onWorldChange() {
+		endSession();
+		ticksOutsideSafari = 0;
+	}
+
+	/**
 	 * Files a finished run.
 	 *
 	 * <p>Kept in memory for this session and written to disk, which happens here rather
