@@ -102,10 +102,14 @@ public class CritterMod implements ClientModInitializer {
 
 		// Hypixel never says you have left the Safari, but moving island reconnects, so
 		// this is the one moment the chat-driven flag is known to be stale.
-		ClientPlayConnectionEvents.JOIN.register(
-			(handler, sender, client) -> SafariLocation.onWorldChange());
-		ClientPlayConnectionEvents.DISCONNECT.register(
-			(handler, client) -> SafariLocation.onWorldChange());
+		ClientPlayConnectionEvents.JOIN.register((handler, sender, client) -> {
+			SafariLocation.onWorldChange();
+			SessionManager.onWorldChange();
+		});
+		ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> {
+			SafariLocation.onWorldChange();
+			SessionManager.onWorldChange();
+		});
 
 		// Punching a bee nest changes nothing about the block, so the punch itself is
 		// the only signal that it has been done.
