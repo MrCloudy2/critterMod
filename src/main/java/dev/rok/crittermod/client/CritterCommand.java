@@ -165,7 +165,27 @@ public final class CritterCommand {
 			.then(ClientCommands.literal("waypoints").executes(ctx -> {
 				waypoints(ctx.getSource());
 				return 1;
-			}));
+			}))
+			// Registered unconditionally, unlike the other diagnostics: working out what
+			// marks a sparkling critter needs testers, and asking them to turn a setting
+			// on and rejoin first loses most of them.
+			.then(ClientCommands.literal("particles")
+				.executes(ctx -> {
+					particles(ctx.getSource());
+					return 1;
+				})
+				.then(ClientCommands.literal("watch").executes(ctx -> {
+					ParticleLog.start();
+					ctx.getSource().sendFeedback(prefixed(
+						"Recording particles. Stand next to a sparkling critter, then run "
+							+ "/critters particles.", ChatFormatting.YELLOW));
+					return 1;
+				}))
+				.then(ClientCommands.literal("stop").executes(ctx -> {
+					ParticleLog.stop();
+					ctx.getSource().sendFeedback(prefixed("Stopped recording.", ChatFormatting.YELLOW));
+					return 1;
+				})));
 
 		// Diagnostics exist to work out how the Safari represents things and are noise
 		// in a normal run, so they are only registered when asked for.
@@ -223,6 +243,38 @@ public final class CritterCommand {
 	 * second means the client has the markers and the locator bar is not showing them,
 	 * which is not something this mod can fix from here.
 	 */
+	/**
+	 * Reports what particles have been arriving, and which landed on critters.
+	 *
+	 * <p>The point is the second column. The Safari is full of ambient particles, so a
+	 * big total says nothing; a type that keeps landing <em>on</em> a critter is the one
+	 * worth knowing the name of.
+	 */
+	private static void particles(FabricClientCommandSource source) {
+		if (!ParticleLog.watching() && ParticleLog.tallies().isEmpty()) {
+			source.sendFeedback(prefixed("Not recording. Run /critters particles watch, "
+				+ "stand near a sparkling critter for a few seconds, then run this again.",
+				ChatFormatting.GRAY));
+			return;
+		}
+
+		source.sendFeedback(header(ParticleLog.watching()
+			? "Particles (recording, %ds)".formatted(ParticleLog.secondsWatching())
+			: "Particles (stopped)"));
+
+		List<String> lines = ParticleLog.describe();
+		if (lines.isEmpty()) {
+			source.sendFeedback(Component.literal("  nothing yet").withStyle(ChatFormatting.GRAY));
+			return;
+		}
+		lines.stream().limit(20).forEach(line -> source.sendFeedback(
+			Component.literal(line).withStyle(line.contains("on critters")
+				? ChatFormatting.GREEN : ChatFormatting.DARK_GRAY)));
+		source.sendFeedback(Component.literal(
+			"  green lines landed on a critter — that is what a sparkling one would show")
+			.withStyle(ChatFormatting.GRAY));
+	}
+
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
 		source.sendFeedback(header("Highlights"));
