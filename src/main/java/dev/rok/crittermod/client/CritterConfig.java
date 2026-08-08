@@ -95,11 +95,15 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean showMissing = true;
 
-		@ConfigOption(name = "Highlight walls", desc = "Mark unbroken Cavern walls.")
+		@ConfigOption(name = "Highlight Snooper walls", desc = "Mark unbroken Snooper walls, while you are in the Cavern.")
 		@ConfigEditorBoolean
-		public boolean highlightWalls = false;
+		public boolean highlightSnooperWalls = false;
 
-		@ConfigOption(name = "Highlight bee nests", desc = "Mark bee nests you have not punched yet.")
+		@ConfigOption(name = "Highlight Troodon walls", desc = "Mark unbroken Troodon walls, while you are in the Icy biome.")
+		@ConfigEditorBoolean
+		public boolean highlightTroodonWalls = false;
+
+		@ConfigOption(name = "Highlight bee nests", desc = "Mark bee nests you have not punched yet, while you are in the Forest.")
 		@ConfigEditorBoolean
 		public boolean highlightNests = false;
 
@@ -109,7 +113,7 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Highlight mounds",
-			desc = "Outline detected Rockmite mounds.\n" +
+			desc = "Outline detected Rockmite mounds, while you are in the Cavern.\n" +
 				"§7Matched on interaction hitbox size, which is weaker evidence than the\n" +
 				"§7walls' fixed positions — check the outlines land on real mounds.")
 		@ConfigEditorBoolean
@@ -123,14 +127,21 @@ public class CritterConfig extends Config {
 		public boolean highlightHardToFind = true;
 
 		@ConfigOption(
-			name = "Cavern walls",
+			name = "Snooper walls",
 			desc = "List the breakable Cavern walls still standing, under the missing list.\n" +
 				"§7They want breaking every run to check behind them.\n" +
 				"§7Read from the blocks themselves, so it is exact — but a wall in an unloaded\n" +
 				"§7chunk is marked \"?\" rather than guessed at, since air and out-of-range look\n" +
 				"§7identical from here.")
 		@ConfigEditorBoolean
-		public boolean showWalls = true;
+		public boolean showSnooperWalls = true;
+
+		@ConfigOption(
+			name = "Troodon walls",
+			desc = "List the breakable Icy walls still standing, under the missing list.\n" +
+				"§7Same three fixed positions every run, read the same way as the Snooper walls.")
+		@ConfigEditorBoolean
+		public boolean showTroodonWalls = true;
 
 		@ConfigOption(
 			name = "Bee nests",

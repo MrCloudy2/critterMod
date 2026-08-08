@@ -90,7 +90,7 @@ public final class SessionManager {
 		}
 		Critter snoozle = Critters.byName("Snoozle");
 		boolean gone = snoozle != null
-			&& WallTracker.allConfirmedBroken()
+			&& WallTracker.SNOOPER.allConfirmedBroken()
 			&& current.partyCatches(snoozle) == 0
 			&& current.nearby(snoozle) == 0;
 		TrackingMode.setUnavailable(gone ? Set.of(snoozle) : Set.of());
