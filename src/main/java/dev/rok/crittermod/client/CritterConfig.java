@@ -135,6 +135,15 @@ public class CritterConfig extends Config {
 		@Expose
 		public boolean countSpawns = true;
 
+		@ConfigOption(
+			name = "Hotspot line",
+			desc = "Show which biome is your Hunting Hotspot on the progress panel.\n" +
+				"§7Hypixel names one a few seconds into the run, and everyone in the party\n" +
+				"§7is given a different one.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean showHotspot = true;
+
 		@ConfigOption(name = "Per-player lines", desc = "Show who is covering which biome, under the biome bars.")
 		@ConfigEditorBoolean
 		@Expose
@@ -460,6 +469,13 @@ public class CritterConfig extends Config {
 		public boolean allDoneNotify = false;
 
 		@ConfigOption(
+			name = "Hotspot",
+			desc = "Report your Hunting Hotspot in chat when the run names it.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean hotspotAlert = true;
+
+		@ConfigOption(
 			name = "Macaw spawned",
 			desc = "Banner and chat line the moment a Macaw turns up.\n" +
 				"§7The one species a run is not guaranteed to give at all, so a spawn is\n" +
@@ -517,6 +533,15 @@ public class CritterConfig extends Config {
 		@Expose
 		public int macawBroadcast = 1;
 
+		@ConfigOption(
+			name = "Your hotspot",
+			desc = "Where your Hunting Hotspot is posted.\n" +
+				"§7Everyone is given a different one and only their own client is told, so\n" +
+				"§7saying it is how a party finds out who should take which biome.")
+		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
+		@Expose
+		public int hotspotBroadcast = 1;
+
 		@ConfigOption(name = "Hunter trades", desc = "Where the roaming Hunter NPCs' offers are posted.")
 		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
 		@Expose
@@ -564,6 +589,10 @@ public class CritterConfig extends Config {
 
 		public Broadcast macaw() {
 			return broadcast(macawBroadcast);
+		}
+
+		public Broadcast hotspot() {
+			return broadcast(hotspotBroadcast);
 		}
 
 		public Broadcast trades() {

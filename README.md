@@ -64,6 +64,9 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   uses. Nothing, a highlight, or a full waypoint.
 - **Macaw call** — the one species a run may not give at all, announced the moment the
   Birdfeeder says so or one appears, with its position.
+- **Hotspot** — the biome the run makes your Hunting Hotspot, on the progress panel and
+  optionally posted to the party. Everyone is given a different one and only their own
+  client is told, so saying it is how a party works out who takes which biome.
 - **Shared trades** — a partymate running this mod announces a Hunter offer and your
   client reads it back: same tracker entry, same waypoint, no reading coordinates out
   of chat.
