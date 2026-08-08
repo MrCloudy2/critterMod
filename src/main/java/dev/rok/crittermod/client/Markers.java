@@ -57,7 +57,13 @@ public final class Markers {
 		// It promises to stay in the Haunted biome, and says so in chat every round.
 		if (display.hideyhoSolver && biome == SafariBiome.HAUNTED) {
 			BlockPos hideyho = HideyhoSolver.position();
-			if (hideyho != null) markers.add(block(hideyho, "Hideyho", 0xFF55FF));
+			// Said plainly when the mark is a memory rather than a sighting: it is where
+			// it was when the client last had it, which is where it still is unless it
+			// has re-hidden — and its own chat lines are what clear it.
+			if (hideyho != null) {
+				markers.add(block(hideyho,
+					HideyhoSolver.live() ? "Hideyho" : "Hideyho (last seen)", 0xFF55FF));
+			}
 		}
 
 		if (display.highlightMounds && biome == SafariBiome.CAVERN) {

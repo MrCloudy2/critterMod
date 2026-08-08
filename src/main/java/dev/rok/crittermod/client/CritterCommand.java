@@ -231,6 +231,16 @@ public final class CritterCommand {
 				nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
 		// Reported whether or not the solver is on, since "is it even loaded while
 		// hidden" is the thing worth checking.
+		// The farthest label loaded says what Hypixel's entity tracking range is, which
+		// is the only thing deciding how close you have to get. Nothing here filters by
+		// distance, so whatever this reports is the server's limit, not ours.
+		double farthest = 0;
+		for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+			farthest = Math.max(farthest,
+				source.getPlayer().position().distanceTo(sighting.body().position()));
+		}
+		source.sendFeedback(Component.literal("  critters    %d loaded, farthest %.0fm"
+			.formatted(CritterEntities.all().size(), farthest)).withStyle(ChatFormatting.DARK_GRAY));
 		source.sendFeedback(Component.literal("  pinned      " + (RecatchSpots.pinned() == null
 			? "nothing" : "%s at %.0fm".formatted(RecatchSpots.pinnedCritter().name(),
 				RecatchSpots.distance()))).withStyle(ChatFormatting.DARK_GRAY));
