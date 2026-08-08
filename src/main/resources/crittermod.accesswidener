@@ -1,0 +1,6 @@
+accessWidener	v2	official
+
+# Entity.setSharedFlag is protected, but flag 6 is the glow bit and on a client
+# isCurrentlyGlowing() reads that shared flag rather than hasGlowingTag(). Setting it
+# is therefore the only way to make vanilla outline an entity from the client side.
+accessible	method	net/minecraft/world/entity/Entity	setSharedFlag	(IZ)V
