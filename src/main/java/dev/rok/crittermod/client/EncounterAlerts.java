@@ -144,6 +144,26 @@ public final class EncounterAlerts implements HudElement {
 		announce("Everything except Macaw done!", 1.6f);
 	}
 
+	/**
+	 * A Macaw has turned up.
+	 *
+	 * <p>Not a staged encounter like the bosses, so it says the one thing there is to
+	 * say. {@code where} is the spot to send people to, or null when the Birdfeeder
+	 * announced it from out of range.
+	 */
+	public static void onMacawSpawn(String where) {
+		CritterConfig config = ConfigManager.get();
+		if (!config.alerts.macawAlert) return;
+
+		String detail = where == null ? "" : " (" + where + ")";
+		banner("MACAW SPAWNED", READY_COLOUR, 1.6f);
+		chat("Macaw spawned!" + detail, ChatFormatting.GOLD);
+
+		if (config.party.macawPartyNotify) {
+			ChatQueue.enqueue(shareChannel() + "Macaw spawned!" + detail, isCommand());
+		}
+	}
+
 	/** All 37 caught by someone. */
 	public static void onAllDone() {
 		if (!ConfigManager.get().alerts.allDoneNotify) return;
