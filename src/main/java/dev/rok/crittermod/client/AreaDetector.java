@@ -1,6 +1,8 @@
 package dev.rok.crittermod.client;
 
+import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.world.phys.Vec3;
@@ -17,14 +19,19 @@ import java.util.Map;
 /**
  * Works out where the player is on the Critter Safari.
  *
- * <p>Whether they are <em>at</em> the Safari comes from the scoreboard sidebar, which
- * names both the island and the zone — see {@link #inSafari()}. Which <em>biome</em>
- * they are standing in comes from the sidebar or tab list if either names one, and
- * otherwise from position via {@link SafariAreaMap}.
+ * <p>Whether they are <em>at</em> the Safari is decided primarily by the critter name
+ * tags in the world — see {@link #inSafari()}. Which <em>biome</em> they are standing
+ * in comes from the sidebar or tab list if either names one, and otherwise from
+ * position via {@link SafariAreaMap}.
  *
  * <p>Use {@code /critters debug} to see what each source reports in-game.
  */
 public final class AreaDetector {
+
+	/** Ticks between world scans for critter name tags; the HUD asks every frame. */
+	private static final long LABEL_CACHE_MILLIS = 500;
+	private static boolean labelsSeen;
+	private static long labelsCheckedAt;
 
 	/** Recomputed only when the player has moved, since the HUD asks every frame. */
 	private static double cachedX = Double.NaN;
@@ -132,26 +139,70 @@ public final class AreaDetector {
 	 * Whether the player is at the Critter Safari — inside it, or at the Critter Safari
 	 * Entrance in Torrhus Canyon. The tracker is wanted in both.
 	 *
-	 * <p>A plain scan of every sidebar line for the word "Safari" — nothing else. The
-	 * area rows carry prefix glyphs that {@link #strip} removes as private-use
-	 * characters, so filtering on those prefixes finds nothing at all.
+	 * <p>Sources in order of how much they can be trusted: a critter name tag in the
+	 * world, then the sidebar, then the tab list, then the chat-driven flag. The sidebar
+	 * was the primary source and turned out not to mention the Safari at all from
+	 * inside it, which switched the whole HUD off while nine name tags were in view.
 	 *
-	 * <p>The sidebar is authoritative in both directions. It has to be: leaving the
-	 * Safari sends no chat message and no transfer notice, so a flag set on entry has
-	 * nothing to switch it back off. That was the bug where the HUD followed you across
-	 * Torrhus Canyon.
+	 * <p>Only the first three can clear themselves, which is why the chat flag is last:
+	 * leaving sends no message and no transfer notice, so on its own it would keep the
+	 * HUD on across Torrhus Canyon.
 	 */
 	public static boolean inSafari() {
-		List<String> lines = sidebarLines();
-		if (lines.isEmpty()) return SafariPresence.inSafari();
+		// Strongest signal first. Critter name tags exist nowhere else, so one in the
+		// world settles it outright — no text to parse and nothing to get wrong.
+		if (critterLabelsNearby()) {
+			SafariPresence.set(true);
+			return true;
+		}
 
-		for (String line : lines) {
+		for (String line : sidebarLines()) {
 			if (line.contains("Safari")) {
 				SafariPresence.set(true);
 				return true;
 			}
 		}
-		SafariPresence.set(false);
+		for (String entry : tabListEntries()) {
+			if (entry.contains("Safari")) {
+				SafariPresence.set(true);
+				return true;
+			}
+		}
+
+		// Chat said we came in and nothing has said otherwise. Kept last because it is
+		// the only source that cannot clear itself.
+		return SafariPresence.inSafari();
+	}
+
+	/**
+	 * Whether any critter name tag is loaded.
+	 *
+	 * <p>Hypixel labels every critter with an entity whose custom name is exactly the
+	 * species name. Those exist only in the Safari, which makes this proof of being
+	 * there in a way that reading the sidebar is not — the sidebar was found to say
+	 * nothing about the Safari while nine such labels were in view.
+	 *
+	 * <p>Any entity type counts: most are armour stands but a Hideyho arrives as a
+	 * player.
+	 */
+	public static boolean critterLabelsNearby() {
+		long now = System.currentTimeMillis();
+		if (now - labelsCheckedAt < LABEL_CACHE_MILLIS) return labelsSeen;
+		labelsCheckedAt = now;
+
+		Minecraft client = Minecraft.getInstance();
+		if (client.level == null) {
+			labelsSeen = false;
+			return false;
+		}
+		for (Entity entity : client.level.entitiesForRendering()) {
+			if (!entity.hasCustomName()) continue;
+			if (Critters.byName(strip(entity.getCustomName().getString())) != null) {
+				labelsSeen = true;
+				return true;
+			}
+		}
+		labelsSeen = false;
 		return false;
 	}
 

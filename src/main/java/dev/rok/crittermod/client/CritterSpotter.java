@@ -6,7 +6,6 @@ import dev.rok.crittermod.session.SafariSession;
 import dev.rok.crittermod.session.SessionManager;
 import net.minecraft.client.Minecraft;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityType;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -56,9 +55,8 @@ public final class CritterSpotter {
 
 		Map<Critter, Integer> present = new HashMap<>();
 		for (Entity entity : client.level.entitiesForRendering()) {
-			// Only the label stands carry the species name; the mob underneath is an
-			// ordinary vanilla entity that says nothing useful.
-			if (entity.getType() != EntityType.ARMOR_STAND) continue;
+			// Usually an armour stand, but not always — a Hideyho label arrives as a
+			// player entity — so the name is what identifies it, not the type.
 			if (!entity.hasCustomName()) continue;
 
 			String label = strip(entity.getCustomName().getString());
