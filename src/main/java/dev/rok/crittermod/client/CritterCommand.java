@@ -201,12 +201,13 @@ public final class CritterCommand {
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
 		source.sendFeedback(header("Highlights"));
-		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s".formatted(
+		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s".formatted(
 			config.display.highlightSnooperWalls ? "snooper " : "",
 			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
 			config.display.hideyhoSolver ? "hideyho " : "",
+			config.display.recatchHelper ? "recatch " : "",
 			config.display.highlightMounds ? "mounds" : ""))
 			.withStyle(ChatFormatting.GREEN));
 		// Everything but the trades is gated on the biome, so the biome is half the
@@ -230,6 +231,9 @@ public final class CritterCommand {
 				nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
 		// Reported whether or not the solver is on, since "is it even loaded while
 		// hidden" is the thing worth checking.
+		source.sendFeedback(Component.literal("  pinned      " + (RecatchSpots.pinned() == null
+			? "nothing" : "%s at %.0fm".formatted(RecatchSpots.pinnedCritter().name(),
+				RecatchSpots.distance()))).withStyle(ChatFormatting.DARK_GRAY));
 		BlockPos hideyho = HideyhoSolver.position();
 		source.sendFeedback(Component.literal("  hideyho     " + (hideyho == null ? "not loaded"
 			: "%d %d %d".formatted(hideyho.getX(), hideyho.getY(), hideyho.getZ())))

@@ -16,9 +16,9 @@ import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
 import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
+import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
@@ -41,8 +41,8 @@ public final class WaypointRenderer {
 
 	private static final float MAX_DISTANCE = 200.0f;
 	private static final float LINE_WIDTH = 3.0f;
-	/** Where the label sits above the bottom of the box. */
-	private static final float LABEL_HEIGHT = 1.4f;
+	/** Where the label sits above the top of the box. */
+	private static final float LABEL_HEIGHT = 0.4f;
 	/** Vanilla's name-tag scale, so labels match the size of mob names. */
 	private static final float LABEL_SCALE = 0.025f;
 
@@ -87,12 +87,13 @@ public final class WaypointRenderer {
 		VertexConsumer lines = buffers.getBuffer(LINES);
 
 		for (Markers.Marker marker : markers) {
-			BlockPos pos = marker.pos();
-			if (pos.distToCenterSqr(camera) > MAX_DISTANCE * MAX_DISTANCE) continue;
+			if (tooFar(marker, camera)) continue;
 
+			AABB box = marker.box();
 			poses.pushPose();
-			poses.translate(pos.getX() - camera.x, pos.getY() - camera.y, pos.getZ() - camera.z);
-			box(poses, lines, marker.colour());
+			poses.translate(box.minX - camera.x, box.minY - camera.y, box.minZ - camera.z);
+			box(poses, lines, (float) box.getXsize(), (float) box.getYsize(),
+				(float) box.getZsize(), marker.colour());
 			poses.popPose();
 		}
 		// Flushed here rather than left to the end of the frame, so every box is drawn
@@ -100,25 +101,40 @@ public final class WaypointRenderer {
 		buffers.endBatch(LINES);
 
 		for (Markers.Marker marker : markers) {
-			BlockPos pos = marker.pos();
-			double distanceSq = pos.distToCenterSqr(camera);
-			if (distanceSq > MAX_DISTANCE * MAX_DISTANCE) continue;
-			label(poses, buffers, marker, camera, Math.sqrt(distanceSq));
+			if (tooFar(marker, camera)) continue;
+			label(poses, buffers, marker, camera,
+				marker.box().getCenter().distanceTo(camera));
 		}
 	}
 
-	/** Twelve edges of a unit cube, slightly outset so it does not z-fight the block. */
-	private static void box(PoseStack poses, VertexConsumer lines, int colour) {
-		float a = -0.005f;
-		float b = 1.005f;
+	private static boolean tooFar(Markers.Marker marker, Vec3 camera) {
+		return marker.box().getCenter().distanceToSqr(camera) > MAX_DISTANCE * MAX_DISTANCE;
+	}
+
+	/**
+	 * Twelve edges of the marked box, drawn from its own corner and slightly outset so
+	 * it does not z-fight whatever it is drawn around.
+	 */
+	private static void box(PoseStack poses, VertexConsumer lines,
+							float xSize, float ySize, float zSize, int colour) {
+		float o = 0.005f;
+		float x0 = -o;
+		float y0 = -o;
+		float z0 = -o;
+		float x1 = xSize + o;
+		float y1 = ySize + o;
+		float z1 = zSize + o;
 		float red = ((colour >> 16) & 0xFF) / 255f;
 		float green = ((colour >> 8) & 0xFF) / 255f;
 		float blue = (colour & 0xFF) / 255f;
 
 		float[][] edges = {
-			{a, a, a, b, a, a}, {b, a, a, b, a, b}, {b, a, b, a, a, b}, {a, a, b, a, a, a},
-			{a, b, a, b, b, a}, {b, b, a, b, b, b}, {b, b, b, a, b, b}, {a, b, b, a, b, a},
-			{a, a, a, a, b, a}, {b, a, a, b, b, a}, {b, a, b, b, b, b}, {a, a, b, a, b, b},
+			{x0, y0, z0, x1, y0, z0}, {x1, y0, z0, x1, y0, z1},
+			{x1, y0, z1, x0, y0, z1}, {x0, y0, z1, x0, y0, z0},
+			{x0, y1, z0, x1, y1, z0}, {x1, y1, z0, x1, y1, z1},
+			{x1, y1, z1, x0, y1, z1}, {x0, y1, z1, x0, y1, z0},
+			{x0, y0, z0, x0, y1, z0}, {x1, y0, z0, x1, y1, z0},
+			{x1, y0, z1, x1, y1, z1}, {x0, y0, z1, x0, y1, z1},
 		};
 		for (float[] e : edges) {
 			line(poses, lines, e[0], e[1], e[2], e[3], e[4], e[5], red, green, blue);
@@ -159,14 +175,14 @@ public final class WaypointRenderer {
 							  Markers.Marker marker, Vec3 camera, double distance) {
 		Minecraft client = Minecraft.getInstance();
 		Font font = client.font;
-		BlockPos pos = marker.pos();
+		AABB box = marker.box();
 		String text = "%s §7%dm".formatted(marker.label(), Math.round(distance));
 
 		poses.pushPose();
 		poses.translate(
-			pos.getX() + 0.5 - camera.x,
-			pos.getY() + LABEL_HEIGHT - camera.y,
-			pos.getZ() + 0.5 - camera.z);
+			box.getCenter().x - camera.x,
+			box.maxY + LABEL_HEIGHT - camera.y,
+			box.getCenter().z - camera.z);
 		poses.mulPose(client.gameRenderer.getMainCamera().rotation());
 		poses.scale(LABEL_SCALE, -LABEL_SCALE, LABEL_SCALE);
 
