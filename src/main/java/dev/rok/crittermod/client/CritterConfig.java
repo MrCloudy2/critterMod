@@ -407,6 +407,16 @@ public class CritterConfig extends Config {
 	public static class AlertConfig {
 
 		@ConfigOption(
+			name = "Play a sound",
+			desc = "Play a note alongside every banner this mod shows.\n" +
+				"§7Off by default: the banner is already in the middle of the screen, and a\n" +
+				"§7run fires plenty of them. Covers the encounters, the completions and the\n" +
+				"§7Macaw call — the pitch still varies by what happened.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean alertSound = false;
+
+		@ConfigOption(
 			name = "Gemzie alerts",
 			desc = "Banner and sound as the Gemzie encounter progresses.\n" +
 				"§7Chamber opens, then the three catches that close it.")

@@ -234,6 +234,9 @@ public final class EncounterAlerts implements HudElement {
 		colour = bannerColour;
 		shownAtMillis = System.currentTimeMillis();
 
+		// Silent unless asked for: the banner is already in the middle of the screen,
+		// and a run fires plenty of these.
+		if (!ConfigManager.get().alerts.alertSound) return;
 		Minecraft client = Minecraft.getInstance();
 		if (client.player != null) {
 			client.player.playSound(SoundEvents.UI_TOAST_CHALLENGE_COMPLETE, 1.0f, pitch);
