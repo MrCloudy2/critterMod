@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,16 +26,26 @@ public final class TraderWatch {
 
 	/** The same offer re-read by clicking the NPC again should not re-announce. */
 	private static final long REPEAT_COOLDOWN_MILLIS = 5 * 60 * 1000L;
-	/** You are stood at the NPC when its dialog opens, so it is well within this. */
-	private static final double SEARCH_RADIUS = 12.0;
 	/** Bounds the tracker box; the oldest trade drops off beyond this. */
 	private static final int MAX_TRACKED = 6;
+	/** How often the Hunters' positions are refreshed. They barely move. */
+	private static final int SCAN_INTERVAL_TICKS = 20;
 
 	private static final TraderParser PARSER = new TraderParser();
 	private static final Map<String, Long> announced = new HashMap<>();
 	/** Speaker -> where their offer was found, until the price line completes it. */
 	private static final Map<String, Spot> offerSpots = new HashMap<>();
+	/**
+	 * Where each Hunter was last seen.
+	 *
+	 * <p>An NPC talks for several seconds and you are free to walk off mid-sentence, so
+	 * by the time a line worth recording arrives the NPC can be out of range — or gone
+	 * from the client entirely. Falling back to where the player is standing then sends
+	 * the party to wherever you happened to have wandered, which is the bug this fixes.
+	 */
+	private static final Map<String, Spot> lastSeen = new HashMap<>();
 	private static final List<Trade> found = new ArrayList<>();
+	private static int ticks;
 
 	/** Where an offer was found. */
 	public record Spot(int x, int y, int z, SafariBiome biome) {
@@ -60,6 +69,27 @@ public final class TraderWatch {
 	private TraderWatch() {
 	}
 
+	/**
+	 * Keeps track of where the Hunters are standing.
+	 *
+	 * <p>Done continuously rather than only when one speaks, so a trade can be placed at
+	 * the NPC even if the dialog finishes after you have walked away from it.
+	 */
+	public static void tick() {
+		if (++ticks < SCAN_INTERVAL_TICKS) return;
+		ticks = 0;
+		if (!SafariLocation.inSafari()) return;
+
+		Minecraft client = Minecraft.getInstance();
+		if (client.level == null) return;
+
+		for (Entity entity : client.level.entitiesForRendering()) {
+			String name = nameOf(entity);
+			if (name == null || !isHunter(name)) continue;
+			lastSeen.put(name, spotAt(entity.blockPosition()));
+		}
+	}
+
 	/** Feeds one cleaned chat line; records and announces when a trade becomes complete. */
 	public static void onChatMessage(String line) {
 		TraderParser.TradeOffer offer = PARSER.parse(line);
@@ -68,11 +98,8 @@ public final class TraderWatch {
 		// which point the player may have turned away from the NPC.
 		String opening = PARSER.offerJustRegistered();
 		if (opening != null) {
-			BlockPos pos = locate(opening);
-			if (pos != null) {
-				offerSpots.put(opening, new Spot(pos.getX(), pos.getY(), pos.getZ(),
-					SafariLocation.biome()));
-			}
+			Spot spot = locate(opening);
+			if (spot != null) offerSpots.put(opening, spot);
 		}
 
 		if (offer == null) return;
@@ -112,39 +139,52 @@ public final class TraderWatch {
 	}
 
 	/**
-	 * Where to send people: the NPC's own position if it can be found nearby, otherwise
-	 * where the player is standing.
+	 * Where to send people, in order of how well it is known: the NPC itself if it is
+	 * still loaded, else where it was last seen, else where the player is standing.
 	 *
-	 * <p>Hypixel renders an NPC's label on a separate entity from its body, so this
-	 * matches on either and takes the nearest. The player is talking to the NPC at this
-	 * point, so the fallback is only ever a couple of blocks out.
+	 * <p>Searched across everything loaded rather than within a radius of the player,
+	 * since the whole problem is that the player may no longer be next to it. Hypixel
+	 * renders an NPC's label on a separate entity from its body, so either counts, and
+	 * both sit at the same spot.
 	 */
-	private static BlockPos locate(String npcName) {
+	private static Spot locate(String npcName) {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null) return null;
-		if (client.level == null) return client.player.blockPosition();
 
-		Vec3 origin = client.player.position();
-		Entity nearest = null;
-		double nearestSq = SEARCH_RADIUS * SEARCH_RADIUS;
-
-		for (Entity entity : client.level.entitiesForRendering()) {
-			double distanceSq = entity.position().distanceToSqr(origin);
-			if (distanceSq > nearestSq) continue;
-			if (!named(entity, npcName)) continue;
-			nearestSq = distanceSq;
-			nearest = entity;
+		if (client.level != null) {
+			for (Entity entity : client.level.entitiesForRendering()) {
+				String name = nameOf(entity);
+				if (name != null && name.contains(npcName)) return spotAt(entity.blockPosition());
+			}
 		}
-		return nearest != null ? nearest.blockPosition() : client.player.blockPosition();
+
+		for (Map.Entry<String, Spot> seen : lastSeen.entrySet()) {
+			if (seen.getKey().contains(npcName)) return seen.getValue();
+		}
+
+		// Last resort, and marked as such: the player has walked off, so this is only
+		// roughly where the NPC was.
+		return spotAt(client.player.blockPosition());
 	}
 
-	private static boolean named(Entity entity, String npcName) {
-		if (entity.hasCustomName() && matches(entity.getCustomName(), npcName)) return true;
-		return matches(entity.getDisplayName(), npcName);
+	/** Builds a spot, taking the biome from the position itself rather than the player's. */
+	private static Spot spotAt(BlockPos pos) {
+		SafariBiome biome = SafariAreaMap.biomeAt(pos.getX(), pos.getY(), pos.getZ());
+		return new Spot(pos.getX(), pos.getY(), pos.getZ(),
+			biome != null ? biome : SafariLocation.biome());
 	}
 
-	private static boolean matches(Component name, String npcName) {
-		return name != null && name.getString().replaceAll("§.", "").contains(npcName);
+	/** The four roaming traders are all Hunters or Huntresses. */
+	private static boolean isHunter(String name) {
+		return name.startsWith("Hunter ") || name.startsWith("Huntress ");
+	}
+
+	/** An entity's name as plain text — its custom name if it has one, else its own. */
+	private static String nameOf(Entity entity) {
+		Component name = entity.hasCustomName() ? entity.getCustomName() : entity.getDisplayName();
+		if (name == null) return null;
+		String text = name.getString().replaceAll("§.", "").replaceAll("[\\p{Cf}\\p{Co}]", "").trim();
+		return text.isEmpty() ? null : text;
 	}
 
 	/** Legendaries stand out, since those are the trades worth crossing the map for. */
@@ -178,6 +218,7 @@ public final class TraderWatch {
 		PARSER.reset();
 		announced.clear();
 		offerSpots.clear();
+		lastSeen.clear();
 		found.clear();
 	}
 }
