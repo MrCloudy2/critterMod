@@ -51,7 +51,7 @@ public final class SparklingAlert implements HudElement {
 		}
 
 		Minecraft client = Minecraft.getInstance();
-		if (client.player == null || client.options.hideGui) return;
+		if (client.player == null || client.gui.hud.isHidden()) return;
 
 		int alpha = 0xFF;
 		long fadeStart = DISPLAY_MILLIS - FADE_MILLIS;

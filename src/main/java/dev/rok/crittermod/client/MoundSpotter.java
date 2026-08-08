@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -78,7 +79,7 @@ public final class MoundSpotter {
 		List<Entity> creatures = new ArrayList<>();
 		for (Entity entity : client.level.entitiesForRendering()) {
 			if (entity.position().distanceToSqr(client.player.position()) > SCAN_RADIUS * SCAN_RADIUS) continue;
-			if (entity.getType() != EntityType.INTERACTION) {
+			if (entity.getType() != EntityTypes.INTERACTION) {
 				if (isCreature(entity)) creatures.add(entity);
 				continue;
 			}
@@ -135,12 +136,12 @@ public final class MoundSpotter {
 	/** Excludes the scaffolding entities Hypixel builds its props out of. */
 	private static boolean isCreature(Entity entity) {
 		EntityType<?> type = entity.getType();
-		return type != EntityType.ARMOR_STAND
-			&& type != EntityType.ITEM_DISPLAY
-			&& type != EntityType.BLOCK_DISPLAY
-			&& type != EntityType.TEXT_DISPLAY
-			&& type != EntityType.PLAYER
-			&& type != EntityType.ITEM;
+		return type != EntityTypes.ARMOR_STAND
+			&& type != EntityTypes.ITEM_DISPLAY
+			&& type != EntityTypes.BLOCK_DISPLAY
+			&& type != EntityTypes.TEXT_DISPLAY
+			&& type != EntityTypes.PLAYER
+			&& type != EntityTypes.ITEM;
 	}
 
 	/**
@@ -165,11 +166,11 @@ public final class MoundSpotter {
 
 		List<Entity> creatures = new ArrayList<>();
 		for (Entity entity : client.level.entitiesForRendering()) {
-			if (entity.getType() != EntityType.INTERACTION && isCreature(entity)) creatures.add(entity);
+			if (entity.getType() != EntityTypes.INTERACTION && isCreature(entity)) creatures.add(entity);
 		}
 
 		for (Entity entity : client.level.entitiesForRendering()) {
-			if (entity.getType() != EntityType.INTERACTION) continue;
+			if (entity.getType() != EntityTypes.INTERACTION) continue;
 			if (entity.position().distanceToSqr(client.player.position()) > SCAN_RADIUS * SCAN_RADIUS) continue;
 			String size = "%.2f x %.2f".formatted(
 				entity.getBoundingBox().getXsize(), entity.getBoundingBox().getYsize());
