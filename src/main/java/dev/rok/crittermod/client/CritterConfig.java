@@ -522,6 +522,16 @@ public class CritterConfig extends Config {
 		@Expose
 		public int traderBroadcast = 1;
 
+		@ConfigOption(
+			name = "Take partymates' trades",
+			desc = "Read trades announced by other people running this mod, off party chat.\n" +
+				"§7A Hunter's dialog is only shown to whoever clicked it, so their client is\n" +
+				"§7the only one that knows the offer — this puts it in your tracker and on a\n" +
+				"§7waypoint just as if you had found it.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean acceptSharedTrades = true;
+
 		@ConfigOption(name = "Post /critters share to", desc = "Where the missing list goes when you share it by hand.")
 		@ConfigEditorDropdown(values = {"Party chat", "All chat", "Normal chat"})
 		@Expose

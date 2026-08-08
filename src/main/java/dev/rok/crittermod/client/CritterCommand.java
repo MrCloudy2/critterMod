@@ -145,6 +145,10 @@ public final class CritterCommand {
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: Say, do you have a use for a Nozzlenose Shard? I found it lying around...");
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: I'll give you it in exchange for a Yogi Berry!");
 				MacawWatch.onChatMessage("Two Macaws were attracted to the Birdfeeder!");
+				// As a partymate running this mod would announce it, so the reading side
+				// can be checked without a second player.
+				TraderWatch.onChatMessage(
+					"Party > [VIP] Partymate: Hunter Dennis (Icy -106 87 -7): Gimmiegold Shard for Purple Gem");
 				return 1;
 			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {

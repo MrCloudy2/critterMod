@@ -33,6 +33,15 @@ public enum SafariBiome {
 		return colour;
 	}
 
+	/** Resolves a bare biome name such as {@code "Icy"}, as this mod's own messages write it. */
+	public static SafariBiome fromDisplayName(String name) {
+		if (name == null) return null;
+		for (SafariBiome biome : values()) {
+			if (biome.displayName.equalsIgnoreCase(name)) return biome;
+		}
+		return null;
+	}
+
 	/** Resolves a scoreboard/tab area string such as {@code "⏣ Icy Biome"}. */
 	public static SafariBiome fromAreaName(String area) {
 		if (area == null) return null;
