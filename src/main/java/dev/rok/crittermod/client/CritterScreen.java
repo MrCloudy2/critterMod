@@ -112,7 +112,7 @@ public final class CritterScreen extends Screen {
 		int left = panelLeft + PANEL_PADDING;
 
 		String heading = live
-			? "Critter Safari  " + formatDuration(session.durationMillis())
+			? "Critter Safari  " + formatDuration(session.elapsedMillis(System.currentTimeMillis()))
 			: "Critter Safari  (last run)";
 		graphics.text(font, Component.literal(heading), left, y, HEADING);
 
