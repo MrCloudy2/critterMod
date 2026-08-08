@@ -99,6 +99,17 @@ public final class WaypointManager {
 		}
 	}
 
+	/** How many markers this mod currently has registered. */
+	public static int activeCount() {
+		return active.size();
+	}
+
+	/** Whether the client has any waypoints at all, this mod's or the server's. */
+	public static boolean anyTracked() {
+		ClientWaypointManager manager = manager();
+		return manager != null && manager.hasWaypoints();
+	}
+
 	/** Removes every waypoint this mod added, leaving the server's own alone. */
 	public static void clear() {
 		ClientWaypointManager manager = manager();
