@@ -207,7 +207,7 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Floor drops",
-			desc = "Mark the drops lying on the floor.\n" +
+			desc = "Mark the drops lying on the floor of the biome you are in.\n" +
 				"§7Hypixel makes one out of three string item displays in a single block,\n" +
 				"§7which is what this looks for — the same test Skyblocker uses.\n" +
 				"§7§lHighlight§r§7 draws a box where it is, seen only when you could see the\n" +
