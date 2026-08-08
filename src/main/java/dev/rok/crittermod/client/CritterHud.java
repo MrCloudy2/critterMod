@@ -46,15 +46,21 @@ public final class CritterHud implements HudElement {
 	/** Builds the panel for the current run, or {@code null} when there is nothing to show. */
 	static HudPanel buildPanel() {
 		CritterConfig config = ConfigManager.get();
+
+		// Standing at the entrance before going in, no run has been tracked yet. Showing
+		// an empty tracker is right there: it says the mod is watching and gives the
+		// biome targets. Returning nothing just looked like it was broken.
 		SafariSession session = SessionManager.currentOrLast();
-		if (session == null) return null;
+		boolean waiting = session == null;
+		if (waiting) session = new SafariSession(Minecraft.getInstance().getUser().getName(),
+			System.currentTimeMillis());
 
 		int total = Critters.total();
 		boolean live = SessionManager.current() != null;
 
 		HudPanel panel = new HudPanel();
-		panel.title(live
-			? "Critter Safari  " + formatDuration(session.durationMillis())
+		panel.title(waiting ? "Critter Safari (ready)"
+			: live ? "Critter Safari  " + formatDuration(session.durationMillis())
 			: "Critter Safari (last run)", HEADER);
 
 		panel.bar("Party", session.partyUnique(), total, LABEL,
