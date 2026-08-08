@@ -1,5 +1,6 @@
 package dev.rok.crittermod.client;
 
+import dev.rok.crittermod.data.SafariBiome;
 import net.minecraft.core.BlockPos;
 
 import java.util.ArrayList;
@@ -17,16 +18,20 @@ public final class Markers {
 
 	public static List<Marker> collect() {
 		CritterConfig.DisplayConfig display = ConfigManager.get().display;
+		SafariBiome biome = SafariLocation.biome();
 		List<Marker> markers = new ArrayList<>();
 
-		if (display.highlightWalls) {
-			for (WallTracker.Wall wall : WallTracker.walls()) {
-				if (wall.state() != WallTracker.State.INTACT) continue;
-				markers.add(new Marker(wall.pos(), "Wall", 0xFFAA00));
-			}
+		// Everything but the trades belongs to one biome, so it is only marked while you
+		// are in that biome. Boxes floating through the terrain of a biome they have
+		// nothing to do with are just noise.
+		if (display.highlightSnooperWalls) {
+			addWalls(markers, WallTracker.SNOOPER, biome);
+		}
+		if (display.highlightTroodonWalls) {
+			addWalls(markers, WallTracker.TROODON, biome);
 		}
 
-		if (display.highlightNests) {
+		if (display.highlightNests && biome == SafariBiome.FOREST) {
 			for (NestTracker.Nest nest : NestTracker.nests()) {
 				if (!nest.unpunched()) continue;
 				markers.add(new Marker(nest.pos(), "Nest", 0x55FF55));
@@ -41,11 +46,25 @@ public final class Markers {
 			}
 		}
 
-		if (display.highlightMounds) {
+		if (display.highlightMounds && biome == SafariBiome.CAVERN) {
 			for (BlockPos pos : MoundSpotter.mounds()) {
 				markers.add(new Marker(pos, "Mound", 0xCC7744));
 			}
 		}
 		return markers;
+	}
+
+	/**
+	 * Marks the walls of one set that are still standing.
+	 *
+	 * <p>A broken wall leaves air behind, and air is also what an unloaded chunk reports,
+	 * so only walls confirmed to still hold a block are marked — never a guess.
+	 */
+	private static void addWalls(List<Marker> markers, WallTracker walls, SafariBiome biome) {
+		if (biome != walls.biome()) return;
+		for (WallTracker.Wall wall : walls.walls()) {
+			if (wall.state() != WallTracker.State.INTACT) continue;
+			markers.add(new Marker(wall.pos(), walls.name() + " wall", 0xFFAA00));
+		}
 	}
 }

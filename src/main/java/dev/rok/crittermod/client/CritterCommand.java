@@ -201,14 +201,17 @@ public final class CritterCommand {
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
 		source.sendFeedback(header("Highlights"));
-		source.sendFeedback(Component.literal("  on: %s%s%s%s".formatted(
-			config.display.highlightWalls ? "walls " : "",
+		source.sendFeedback(Component.literal("  on: %s%s%s%s%s".formatted(
+			config.display.highlightSnooperWalls ? "snooper " : "",
+			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
 			config.display.highlightMounds ? "mounds" : ""))
 			.withStyle(ChatFormatting.GREEN));
-		source.sendFeedback(Component.literal("  in Safari   " + SafariLocation.inSafari())
-			.withStyle(ChatFormatting.GRAY));
+		// Everything but the trades is gated on the biome, so the biome is half the
+		// answer to "why is nothing showing".
+		source.sendFeedback(Component.literal("  in Safari   " + SafariLocation.inSafari()
+			+ "  biome " + nameOf(SafariLocation.biome())).withStyle(ChatFormatting.GRAY));
 		source.sendFeedback(Component.literal("  highlighted " + Markers.collect().size())
 			.withStyle(ChatFormatting.WHITE));
 
@@ -219,11 +222,11 @@ public final class CritterCommand {
 			source.sendFeedback(Component.literal(line).withStyle(
 				line.contains("<-") ? ChatFormatting.GREEN : ChatFormatting.WHITE)));
 
-		long walls = WallTracker.walls().stream()
-			.filter(w -> w.state() == WallTracker.State.INTACT).count();
 		long nests = NestTracker.nests().stream().filter(NestTracker.Nest::unpunched).count();
-		source.sendFeedback(Component.literal("  candidates  walls %d · nests %d · trades %d".formatted(
-			walls, nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
+		source.sendFeedback(Component.literal(
+			"  candidates  snooper %d · troodon %d · nests %d · trades %d".formatted(
+				WallTracker.SNOOPER.intactCount(), WallTracker.TROODON.intactCount(),
+				nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	private static void openSettings() {

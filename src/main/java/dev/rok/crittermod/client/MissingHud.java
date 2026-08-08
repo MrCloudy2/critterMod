@@ -113,7 +113,8 @@ public final class MissingHud implements HudElement {
 			}
 		}
 
-		appendWalls(panel, biome);
+		appendWalls(panel, biome, WallTracker.SNOOPER, ConfigManager.get().display.showSnooperWalls);
+		appendWalls(panel, biome, WallTracker.TROODON, ConfigManager.get().display.showTroodonWalls);
 		appendNests(panel, biome);
 		appendMounds(panel, biome);
 		return panel;
@@ -160,26 +161,27 @@ public final class MissingHud implements HudElement {
 	}
 
 	/**
-	 * Lists the Cavern walls still to break. They want doing every run to check behind
-	 * them, and being blocks rather than entities they can be read exactly.
+	 * Lists one set of walls still to break, while you are in the biome they are in.
+	 * They want doing every run to check behind them, and being blocks rather than
+	 * entities they can be read exactly.
 	 */
-	private static void appendWalls(HudPanel panel, SafariBiome biome) {
-		if (biome != SafariBiome.CAVERN) return;
-		if (!ConfigManager.get().display.showWalls) return;
+	private static void appendWalls(HudPanel panel, SafariBiome biome, WallTracker tracker, boolean show) {
+		if (biome != tracker.biome() || !show) return;
 
-		List<WallTracker.Wall> walls = WallTracker.walls();
+		List<WallTracker.Wall> walls = tracker.walls();
 		if (walls.isEmpty()) return;
 
 		long intact = walls.stream().filter(w -> w.state() == WallTracker.State.INTACT).count();
 		long unknown = walls.stream().filter(w -> w.state() == WallTracker.State.UNKNOWN).count();
 		if (intact == 0 && unknown == 0) {
 			panel.blank();
-			panel.line("walls all broken", DONE);
+			panel.line(tracker.name() + " walls all broken", DONE);
 			return;
 		}
 
 		panel.blank();
-		panel.title("Walls to break: " + intact + (unknown > 0 ? " (+" + unknown + "?)" : ""), WALL);
+		panel.title("%s walls to break: %d%s".formatted(
+			tracker.name(), intact, unknown > 0 ? " (+" + unknown + "?)" : ""), WALL);
 		for (WallTracker.Wall wall : walls) {
 			if (wall.state() == WallTracker.State.BROKEN) continue;
 			String mark = wall.state() == WallTracker.State.UNKNOWN ? "?" : "";
