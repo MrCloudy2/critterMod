@@ -174,6 +174,15 @@ public class CritterConfig extends Config {
 		public boolean debugCommands = false;
 
 		@ConfigOption(
+			name = "Waypoint mounds",
+			desc = "Mark detected Rockmite mounds as waypoints.\n" +
+				"§7Mounds are interaction entities matched by hitbox size, which is narrower\n" +
+				"§7evidence than the walls' fixed positions — check the marks land on real\n" +
+				"§7mounds before trusting it.")
+		@ConfigEditorBoolean
+		public boolean waypointMounds = false;
+
+		@ConfigOption(
 			name = "Rockmite mounds",
 			desc = "Count the mounds broken this run and how many held a Rockmite.\n" +
 				"§7Off by default: only the outcome is known, from chat. How many mounds are\n" +

@@ -210,6 +210,12 @@ public final class CritterCommand {
 			+ "  (client has any: " + WaypointManager.anyTracked() + ")")
 			.withStyle(ChatFormatting.WHITE));
 
+		List<String> interactions = MoundSpotter.describeAll();
+		source.sendFeedback(Component.literal("  interaction entities nearby: " + interactions.size()
+			+ "  (mound-sized: " + MoundSpotter.mounds().size() + ")").withStyle(ChatFormatting.YELLOW));
+		interactions.stream().limit(12).forEach(line ->
+			source.sendFeedback(Component.literal(line).withStyle(ChatFormatting.WHITE)));
+
 		long walls = WallTracker.walls().stream()
 			.filter(w -> w.state() == WallTracker.State.INTACT).count();
 		long nests = NestTracker.nests().stream().filter(NestTracker.Nest::unpunched).count();
