@@ -33,7 +33,14 @@ import java.util.Map;
  */
 public final class CritterScreen extends Screen {
 
-	private static final int PREFERRED_COLUMN_WIDTH = 108;
+	/** Never narrower than this, however small the window is. */
+	private static final int MIN_COLUMN_WIDTH = 70;
+	/** Blank space between the longest species name and its count. */
+	private static final int COLUMN_GAP = 8;
+	/** Blank space between a column's count and the next column. */
+	private static final int COLUMN_PAD = 8;
+	/** The widest count any column draws — "303/41" on the Stats tab. */
+	private static final String WIDEST_NOTE = "000/00";
 	private static final int LINE_HEIGHT = 11;
 	private static final int PANEL_PADDING = 10;
 	/** As many past runs as fit without the panel needing to scroll. */
@@ -92,7 +99,9 @@ public final class CritterScreen extends Screen {
 	protected void init() {
 		int columns = SafariBiome.values().length;
 		int available = width - PANEL_PADDING * 2 - 8;
-		columnWidth = Math.max(60, Math.min(PREFERRED_COLUMN_WIDTH, available / columns));
+		// Measured from the longest species name rather than guessed at: "Mantis Shrimp"
+		// and "Shuddersquid" ran into their own counts at a fixed width.
+		columnWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(measureColumnWidth(), available / columns));
 		panelWidth = columnWidth * columns + PANEL_PADDING * 2;
 		panelHeight = switch (tab) {
 			// Header block, the longest biome column (Haunted has 10), then the player table.
@@ -120,6 +129,15 @@ public final class CritterScreen extends Screen {
 			.bounds(buttonX + buttonWidth + spacing, buttonY, buttonWidth, 20).build());
 		addRenderableWidget(Button.builder(Component.literal("Close"), b -> onClose())
 			.bounds(buttonX + (buttonWidth + spacing) * 2, buttonY, buttonWidth, 20).build());
+	}
+
+	/** Wide enough for the longest name, a gap, the widest count and the next column. */
+	private int measureColumnWidth() {
+		int widestName = 0;
+		for (Critter critter : Critters.all()) {
+			widestName = Math.max(widestName, font.width(critter.name()));
+		}
+		return widestName + COLUMN_GAP + font.width(WIDEST_NOTE) + COLUMN_PAD;
 	}
 
 	/** A row of buttons above the panel; the one showing is disabled to mark it. */
@@ -221,7 +239,7 @@ public final class CritterScreen extends Screen {
 			graphics.text(font, Component.literal(biome.displayName()), x, rowY,
 				0xFF000000 | biome.colour());
 			String count = session.partyUnique(biome) + "/" + max;
-			graphics.text(font, Component.literal(count), x + columnWidth - 14 - font.width(count), rowY,
+			graphics.text(font, Component.literal(count), x + columnWidth - COLUMN_PAD - font.width(count), rowY,
 				complete ? CAUGHT_BY_YOU : WHITE);
 			rowY += LINE_HEIGHT + 2;
 
@@ -244,7 +262,7 @@ public final class CritterScreen extends Screen {
 					: caught == 0 && session.attempts(critter) > 0 ? session.attempts(critter) + "t" : "";
 				if (!note.isEmpty()) {
 					graphics.text(font, Component.literal(note),
-						x + columnWidth - 14 - font.width(note), rowY, DIM);
+						x + columnWidth - COLUMN_PAD - font.width(note), rowY, DIM);
 				}
 				rowY += LINE_HEIGHT;
 			}
@@ -399,7 +417,7 @@ public final class CritterScreen extends Screen {
 				String note = stat.total() == 0 ? "—"
 					: "%d/%d".formatted(stat.total(), stat.runsSeen());
 				graphics.text(font, Component.literal(note),
-					x + columnWidth - 14 - font.width(note), rowY,
+					x + columnWidth - COLUMN_PAD - font.width(note), rowY,
 					stat.total() == 0 ? UNCAUGHT : DIM);
 				rowY += LINE_HEIGHT;
 			}
