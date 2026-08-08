@@ -70,6 +70,7 @@ public class CritterMod implements ClientModInitializer {
 			NestTracker.tick();
 			CritterHighlighter.tick();
 			HideyhoSolver.tick();
+			TraderWatch.tick();
 			ChatQueue.tick();
 		});
 
