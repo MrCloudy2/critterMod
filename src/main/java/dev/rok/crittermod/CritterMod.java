@@ -2,6 +2,7 @@ package dev.rok.crittermod;
 
 import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
+import dev.rok.crittermod.client.CritterHighlighter;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.MissingHud;
@@ -62,6 +63,7 @@ public class CritterMod implements ClientModInitializer {
 			SessionManager.tick();
 			CritterSpotter.tick();
 			NestTracker.tick();
+			CritterHighlighter.tick();
 			ChatQueue.tick();
 		});
 

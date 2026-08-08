@@ -16,6 +16,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
@@ -522,6 +527,26 @@ public final class CritterCommand {
 				hit.isCurrentlyGlowing(), hit.isInvisible(),
 				hit.getBoundingBox().getXsize(), hit.getBoundingBox().getYsize()))
 				.withStyle(ChatFormatting.DARK_GRAY));
+
+			// A mound may well be a head on an armour stand, and they come in different
+			// sizes — so the small flag, the scale attribute and what is worn on the
+			// head are the three things that would identify one.
+			if (hit instanceof LivingEntity living) {
+				double scale = living.getAttributes().hasAttribute(Attributes.SCALE)
+					? living.getAttributeValue(Attributes.SCALE) : 1.0;
+				String small = hit instanceof ArmorStand stand
+					? "small %s  marker %s".formatted(stand.isSmall(), stand.isMarker()) : "-";
+				source.sendFeedback(Component.literal("  scale %.2f   %s".formatted(scale, small))
+					.withStyle(ChatFormatting.DARK_GRAY));
+
+				for (EquipmentSlot slot : EquipmentSlot.values()) {
+					ItemStack worn = living.getItemBySlot(slot);
+					if (worn.isEmpty()) continue;
+					source.sendFeedback(Component.literal("  %-10s %s  x%d".formatted(
+						slot.getName(), stripCodes(worn.getHoverName().getString()), worn.getCount()))
+						.withStyle(ChatFormatting.AQUA));
+				}
+			}
 			return;
 		}
 
