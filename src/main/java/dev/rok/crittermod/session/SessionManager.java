@@ -2,6 +2,7 @@ package dev.rok.crittermod.session;
 
 import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
+import dev.rok.crittermod.client.HideyhoSolver;
 import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.MoundTracker;
@@ -174,6 +175,7 @@ public final class SessionManager {
 		NestTracker.reset();
 		MoundTracker.reset();
 		RecatchSpots.reset();
+		HideyhoSolver.reset();
 	}
 
 	private static void endSession() {
