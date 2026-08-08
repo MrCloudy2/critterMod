@@ -318,6 +318,17 @@ public class CritterConfig extends Config {
 		public boolean allDoneNotify = false;
 
 		@ConfigOption(
+			name = "Macaw spawned",
+			desc = "Banner and chat line the moment a Macaw turns up.\n" +
+				"§7The one species a run is not guaranteed to give at all, so a spawn is\n" +
+				"§7news. Noticed from the Birdfeeder's own announcement, which arrives\n" +
+				"§7wherever you are, and from one appearing in the world, which comes with\n" +
+				"§7coordinates.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean macawAlert = true;
+
+		@ConfigOption(
 			name = "Hunter trades",
 			desc = "Report the roaming Hunter NPCs' shard-for-item offers, with the biome they are in.\n" +
 				"§7Their dialog is only shown to whoever clicked them, so an offer can go unused\n" +
@@ -336,6 +347,15 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		@Expose
 		public boolean bossPartyNotify = true;
+
+		@ConfigOption(
+			name = "Announce Macaw spawns",
+			desc = "Post a Macaw spawn to chat, with where it is if the client can see it.\n" +
+				"§7Whoever is working another biome wants to know there is something to come\n" +
+				"§7back for.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean macawPartyNotify = true;
 
 		@ConfigOption(name = "Announce Hunter trades", desc = "Post the roaming Hunter NPCs' offers to chat so your team can use them.")
 		@ConfigEditorBoolean
