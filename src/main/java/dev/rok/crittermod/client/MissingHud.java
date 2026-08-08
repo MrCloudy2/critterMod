@@ -121,12 +121,27 @@ public final class MissingHud implements HudElement {
 	}
 
 	/**
-	 * Reports the mounds broken this run. There is no "left to break" figure to give —
-	 * mounds are only known from chat as they fall apart — and only about a fifth hold
-	 * a Rockmite anyway, so the useful number is how many rolls have been taken.
+	 * Counts the mounds still standing near you, and optionally how many have been
+	 * broken this run.
+	 *
+	 * <p>The standing count is of mounds detected around you, not of mounds in the
+	 * Cavern — they are found by their hitbox within scanning range — so it is left out
+	 * entirely when none are in range rather than shown as a zero that would read as
+	 * "none left".
 	 */
 	private static void appendMounds(HudPanel panel, SafariBiome biome) {
 		if (biome != SafariBiome.CAVERN) return;
+
+		if (ConfigManager.get().display.showMoundCount) {
+			int nearby = MoundSpotter.mounds().size();
+			if (nearby > 0) {
+				panel.blank();
+				panel.pair("Mounds to break", String.valueOf(nearby), WALL, DIM);
+			}
+		}
+
+		// Only about a fifth of mounds hold a Rockmite, so the number of rolls taken is
+		// worth having on its own.
 		if (!ConfigManager.get().advanced.showMounds) return;
 		if (MoundTracker.broken() == 0) return;
 
@@ -136,7 +151,7 @@ public final class MissingHud implements HudElement {
 	}
 
 	/**
-	 * Lists the bee nests still to punch. Honeybugs come from these, and unlike the
+	 * Counts the bee nests still to punch. Honeybugs come from these, and unlike the
 	 * walls they have to be found by sweeping rather than read off fixed positions —
 	 * so the count is of nests come across, not of nests on the map.
 	 */
@@ -153,17 +168,18 @@ public final class MissingHud implements HudElement {
 			panel.line("all %d nests punched".formatted(nests.size()), DONE);
 			return;
 		}
-
-		panel.title("Bee nests to punch: " + unpunched, WALL);
-		nests.stream().filter(NestTracker.Nest::unpunched).limit(5).forEach(nest ->
-			panel.pair("  %d %d %d".formatted(nest.pos().getX(), nest.pos().getY(), nest.pos().getZ()),
-				"%dm".formatted(Math.round(nest.distance())), WALL, DIM));
+		// Just the count: the waypoints know where they are, and a list of coordinates
+		// was only ever a way of getting there without them.
+		panel.pair("Bee nests to punch", String.valueOf(unpunched), WALL, DIM);
 	}
 
 	/**
-	 * Lists one set of walls still to break, while you are in the biome they are in.
+	 * Counts one set of walls still to break, while you are in the biome they are in.
 	 * They want doing every run to check behind them, and being blocks rather than
-	 * entities they can be read exactly.
+	 * entities they can be counted exactly.
+	 *
+	 * <p>A wall in an unloaded chunk is added as {@code +n?} rather than counted:
+	 * air and out-of-range look identical from here.
 	 */
 	private static void appendWalls(HudPanel panel, SafariBiome biome, WallTracker tracker, boolean show) {
 		if (biome != tracker.biome() || !show) return;
@@ -180,14 +196,7 @@ public final class MissingHud implements HudElement {
 		}
 
 		panel.blank();
-		panel.title("%s walls to break: %d%s".formatted(
-			tracker.name(), intact, unknown > 0 ? " (+" + unknown + "?)" : ""), WALL);
-		for (WallTracker.Wall wall : walls) {
-			if (wall.state() == WallTracker.State.BROKEN) continue;
-			String mark = wall.state() == WallTracker.State.UNKNOWN ? "?" : "";
-			panel.pair("  %d %d %d%s".formatted(
-					wall.pos().getX(), wall.pos().getY(), wall.pos().getZ(), mark),
-				"%dm".formatted(Math.round(wall.distance())), WALL, DIM);
-		}
+		panel.pair(tracker.name() + " walls to break",
+			intact + (unknown > 0 ? " (+" + unknown + "?)" : ""), WALL, DIM);
 	}
 }
