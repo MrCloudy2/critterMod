@@ -6,6 +6,7 @@ import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import dev.rok.crittermod.importer.LogScanner;
 import dev.rok.crittermod.session.MissingReport;
+import dev.rok.crittermod.session.RunHistory;
 import dev.rok.crittermod.session.SafariSession;
 import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommands;
@@ -153,6 +154,10 @@ public final class CritterCommand {
 			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {
 				history(ctx.getSource());
+				return 1;
+			}))
+			.then(ClientCommands.literal("import").executes(ctx -> {
+				importRuns(ctx.getSource());
 				return 1;
 			}))
 			.then(ClientCommands.literal("waypoints").executes(ctx -> {
@@ -666,6 +671,36 @@ public final class CritterCommand {
 	}
 
 	/** Replays this instance's log directory and reports past runs. */
+	/**
+	 * Fills the saved history from the chat logs on disk.
+	 *
+	 * <p>The mod only starts recording runs once it is installed, but the logs go back
+	 * as far as the instance does, and the same parser reads them. Runs already held are
+	 * skipped on their start time, so running it twice changes nothing.
+	 */
+	private static void importRuns(FabricClientCommandSource source) {
+		Path logs = source.getClient().gameDirectory.toPath().resolve("logs");
+		if (!Files.isDirectory(logs)) {
+			source.sendError(prefixed("No logs directory at " + logs, ChatFormatting.RED));
+			return;
+		}
+
+		source.sendFeedback(prefixed("Reading past runs out of " + logs + " …", ChatFormatting.GRAY));
+		new Thread(() -> {
+			try {
+				List<SafariSession> sessions = LogScanner.scan(logs, null);
+				source.getClient().execute(() -> {
+					int added = RunHistory.importRuns(sessions);
+					source.sendFeedback(prefixed("Imported %d run(s); %d saved in total."
+						.formatted(added, RunHistory.size()), ChatFormatting.YELLOW));
+				});
+			} catch (Exception e) {
+				source.getClient().execute(() ->
+					source.sendError(prefixed("Log scan failed: " + e.getMessage(), ChatFormatting.RED)));
+			}
+		}, "crittermod-run-import").start();
+	}
+
 	private static void history(FabricClientCommandSource source) {
 		Path logs = source.getClient().gameDirectory.toPath().resolve("logs");
 		if (!Files.isDirectory(logs)) {

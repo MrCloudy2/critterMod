@@ -21,6 +21,7 @@ actually need when four people split the island one biome each.
 | `/critters text` | The run summary as chat text |
 | `/critters reset` | Clear the current run |
 | `/critters history` | Replay this instance's logs, list past runs |
+| `/critters import` | Fill the saved history from those logs, once |
 | `/critters testalert` | Fire every alert now, to check them |
 | `/critters debug` | Dump area detection sources |
 
@@ -56,6 +57,11 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   a list of hiding spots. Off by default.
 - **Darkness toggle** — drops the Warden darkness while you are at the Safari, fog
   included. Off by default.
+- **Saved runs** — every finished run is written to `config/crittermod-runs.json` when
+  the next one starts, so the History and Stats tabs survive restarts. `/critters
+  import` seeds them from the logs you already have.
+- **Stats** — per species, how many you have caught across every saved run and how many
+  runs it turned up in, alongside totals: time played, catches a run, full-dex runs.
 - **Log replay** — reconstruct past runs from rotated chat logs, in game or offline.
 
 Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
@@ -80,7 +86,10 @@ run stays viewable until the next one begins.
 
 ## The run screen
 
-`/critters` or `/ct` opens a full view of the current run: one column per biome
+`/critters` or `/ct` opens a full view of the current run — or the last one, whenever
+you are not at the Safari. Three tabs: **Run**, **History** and **Stats**.
+
+The Run tab: one column per biome
 listing every species, colour-coded by who has it — **green** you caught it, **aqua**
 only a partymate did, **grey** nobody has. A species caught more than once shows `xN`;
 one that has only been thrown at shows `Nt`, so "escaping" reads differently from

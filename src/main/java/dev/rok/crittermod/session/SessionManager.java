@@ -188,10 +188,17 @@ public final class SessionManager {
 		current = null;
 	}
 
+	/**
+	 * Files a finished run.
+	 *
+	 * <p>Kept in memory for this session and written to disk, which happens here rather
+	 * than mid-run: a run that is still going is still changing.
+	 */
 	private static void archive(SafariSession session) {
 		lastSession = session;
 		history.add(session);
 		while (history.size() > MAX_HISTORY) history.removeFirst();
+		RunHistory.record(session);
 	}
 
 	/** The run in progress, or {@code null} outside the Safari. */

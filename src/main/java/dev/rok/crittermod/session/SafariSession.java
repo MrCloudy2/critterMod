@@ -261,6 +261,24 @@ public final class SafariSession {
 
 	// --- misc ----------------------------------------------------------------
 
+	/** Your catches by species, for anything that has to record or replay this run. */
+	public Map<Critter, Integer> ownCatchCounts() {
+		return Map.copyOf(ownCatches);
+	}
+
+	/** Partymates' catches by species, summed across whoever made them. */
+	public Map<Critter, Integer> sharedCatchCounts() {
+		Map<Critter, Integer> totals = new LinkedHashMap<>();
+		sharedCatches.forEach((critter, byPlayer) -> totals.put(critter,
+			byPlayer.values().stream().mapToInt(Integer::intValue).sum()));
+		return totals;
+	}
+
+	/** Capsules thrown, by species. */
+	public Map<Critter, Integer> attemptCounts() {
+		return Map.copyOf(attempts);
+	}
+
 	public int attempts(Critter critter) {
 		return attempts.getOrDefault(critter, 0);
 	}

@@ -21,8 +21,10 @@ import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.WaypointRenderer;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
+import dev.rok.crittermod.session.RunHistory;
 import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
 import net.fabricmc.fabric.api.event.player.UseBlockCallback;
@@ -138,6 +140,10 @@ public class CritterMod implements ClientModInitializer {
 			new EncounterAlerts());
 
 		WaypointRenderer.register();
+
+		// Past runs live next to the settings, as plain JSON, so they survive updates
+		// and can be read or thrown away by hand.
+		RunHistory.load(FabricLoader.getInstance().getConfigDir().resolve("crittermod-runs.json"));
 
 		LOGGER.info("Critter Safari tracker ready");
 	}
