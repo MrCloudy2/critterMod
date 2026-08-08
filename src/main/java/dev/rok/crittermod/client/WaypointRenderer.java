@@ -15,6 +15,7 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.renderer.rendertype.LayeringTransform;
 import net.minecraft.client.renderer.rendertype.OutputTarget;
 import net.minecraft.client.renderer.rendertype.RenderSetup;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.LightCoordsUtil;
@@ -84,10 +85,15 @@ public final class WaypointRenderer {
 		Vec3 camera = client.gameRenderer.getMainCamera().position();
 		PoseStack poses = context.poseStack();
 		MultiBufferSource.BufferSource buffers = context.bufferSource();
-		VertexConsumer lines = buffers.getBuffer(LINES);
 
 		for (Markers.Marker marker : markers) {
 			if (tooFar(marker, camera)) continue;
+
+			// A highlight is drawn with the vanilla line type, which is depth-tested, so
+			// it only shows where the thing itself would be visible. A waypoint uses the
+			// one with the depth test off and shows through the terrain.
+			boolean waypoint = marker.style() == Markers.Style.WAYPOINT;
+			VertexConsumer lines = buffers.getBuffer(waypoint ? LINES : RenderTypes.LINES);
 
 			AABB box = marker.box();
 			poses.pushPose();
@@ -99,9 +105,12 @@ public final class WaypointRenderer {
 		// Flushed here rather than left to the end of the frame, so every box is drawn
 		// before the first label and a waypoint reads as one thing.
 		buffers.endBatch(LINES);
+		buffers.endBatch(RenderTypes.LINES);
 
 		for (Markers.Marker marker : markers) {
-			if (tooFar(marker, camera)) continue;
+			// Only a waypoint is named: a highlight sits on something you can already
+			// see, so a label over it is just something else to read.
+			if (marker.style() != Markers.Style.WAYPOINT || tooFar(marker, camera)) continue;
 			label(poses, buffers, marker, camera,
 				marker.box().getCenter().distanceTo(camera));
 		}

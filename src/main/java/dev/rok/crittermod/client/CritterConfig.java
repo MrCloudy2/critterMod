@@ -25,6 +25,16 @@ import io.github.notenoughupdates.moulconfig.common.text.StructuredText;
  */
 public class CritterConfig extends Config {
 
+	/** How a set of positions is drawn, for the settings that offer the choice. */
+	public enum MarkStyle {
+		/** Not drawn at all. */
+		OFF,
+		/** A box where it is, visible only when you could see the thing anyway. */
+		HIGHLIGHT,
+		/** A box through the terrain, named, with its distance — the full waypoint. */
+		WAYPOINT
+	}
+
 	@Override
 	public StructuredText getTitle() {
 		return StructuredText.of("Critter Safari Tracker");
@@ -162,6 +172,24 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		@Expose
 		public boolean recatchHelper = false;
+
+		@ConfigOption(
+			name = "Floor drops",
+			desc = "Mark the drops lying on the floor.\n" +
+				"§7Hypixel makes one out of three string item displays in a single block,\n" +
+				"§7which is what this looks for — the same test Skyblocker uses.\n" +
+				"§7§lHighlight§r§7 draws a box where it is, seen only when you could see the\n" +
+				"§7drop anyway. §lWaypoint§r§7 draws it through the terrain, named and with\n" +
+				"§7its distance.")
+		@ConfigEditorDropdown(values = {"Nothing", "Highlight", "Waypoint"})
+		@Expose
+		public int floorDrops = 0;
+
+		/** The chosen style, guarded against a config file holding something out of range. */
+		public MarkStyle floorDropStyle() {
+			return floorDrops >= 0 && floorDrops < MarkStyle.values().length
+				? MarkStyle.values()[floorDrops] : MarkStyle.OFF;
+		}
 
 		@ConfigOption(
 			name = "Highlight hard-to-find critters",
