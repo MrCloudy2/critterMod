@@ -39,8 +39,21 @@ public final class MoundSpotter {
 	private MoundSpotter() {
 	}
 
+	/** Both the HUD and the waypoints ask every frame; the answer changes far slower. */
+	private static final long CACHE_MILLIS = 500;
+	private static List<BlockPos> cached = List.of();
+	private static long cachedAt;
+
 	/** Interaction entities near the player whose hitbox matches a mound. */
 	public static List<BlockPos> mounds() {
+		long now = System.currentTimeMillis();
+		if (now - cachedAt < CACHE_MILLIS) return cached;
+		cachedAt = now;
+		cached = scan();
+		return cached;
+	}
+
+	private static List<BlockPos> scan() {
 		Minecraft client = Minecraft.getInstance();
 		List<BlockPos> found = new ArrayList<>();
 		if (client.level == null || client.player == null) return found;

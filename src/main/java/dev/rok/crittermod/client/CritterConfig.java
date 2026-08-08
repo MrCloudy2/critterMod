@@ -145,6 +145,15 @@ public class CritterConfig extends Config {
 		public boolean removeDarkness = false;
 
 		@ConfigOption(
+			name = "Rockmite mounds",
+			desc = "Count the mounds still standing near you, under the Cavern missing list.\n" +
+				"§7Mounds are found by their hitbox within scanning range, so this is how many\n" +
+				"§7are around you rather than how many are left in the Cavern — it is left off\n" +
+				"§7entirely when none are in range, rather than shown as a misleading zero.")
+		@ConfigEditorBoolean
+		public boolean showMoundCount = true;
+
+		@ConfigOption(
 			name = "Snooper walls",
 			desc = "List the breakable Cavern walls still standing, under the missing list.\n" +
 				"§7They want breaking every run to check behind them.\n" +
