@@ -42,6 +42,15 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   and `Everything Done!`.
 - **Hunter trades** — reports the roaming NPCs' shard-for-item offers, with the biome,
   so a partymate holding the right item can go and take it.
+- **Things to break** — the Snooper walls in the Cavern, the Troodon walls in the Icy
+  biome and the bee nests in the Forest, listed under the missing panel with their
+  coordinates and distance. Walls are read from the blocks themselves, so a wall in an
+  unloaded chunk is marked `?` rather than guessed at.
+- **Waypoints** — a wireframe box with a floating label, drawn through terrain, for
+  those walls, the nests, the Hunter trade spots and the Rockmite mounds. Each is
+  separately toggleable, all off by default, and each only shows in its own biome.
+- **Bloodbat outlines** — the species that is genuinely hard to see, glowing through
+  the Haunted geometry.
 - **Log replay** — reconstruct past runs from rotated chat logs, in game or offline.
 
 Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
