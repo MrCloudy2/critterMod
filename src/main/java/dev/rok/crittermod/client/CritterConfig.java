@@ -95,15 +95,15 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean showMissing = true;
 
-		@ConfigOption(name = "Highlight walls", desc = "Mark unbroken Cavern walls.\n§7No renderer yet — the positions are tracked and the toggle is live.")
+		@ConfigOption(name = "Highlight walls", desc = "Mark unbroken Cavern walls.")
 		@ConfigEditorBoolean
 		public boolean highlightWalls = false;
 
-		@ConfigOption(name = "Highlight bee nests", desc = "Mark bee nests you have not punched yet.\n§7No renderer yet — the positions are tracked and the toggle is live.")
+		@ConfigOption(name = "Highlight bee nests", desc = "Mark bee nests you have not punched yet.")
 		@ConfigEditorBoolean
 		public boolean highlightNests = false;
 
-		@ConfigOption(name = "Highlight shard trades", desc = "Mark where a Hunter offered a trade.\n§7No renderer yet — the positions are tracked and the toggle is live.")
+		@ConfigOption(name = "Highlight shard trades", desc = "Mark where a Hunter offered a trade.")
 		@ConfigEditorBoolean
 		public boolean highlightTrades = false;
 
