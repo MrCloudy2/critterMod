@@ -59,7 +59,7 @@ public final class NestTracker {
 		ticks = 0;
 
 		if (!ConfigManager.get().display.showNests) return;
-		if (!AreaDetector.inSafari()) return;
+		if (!SafariLocation.inSafari()) return;
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.level == null || client.player == null) return;

@@ -1,9 +1,8 @@
 package dev.rok.crittermod.session;
 
-import dev.rok.crittermod.client.AreaDetector;
 import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
-import dev.rok.crittermod.client.SafariPresence;
+import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
@@ -64,7 +63,7 @@ public final class SessionManager {
 		// opened by the entry message or the first catch, never from here: the
 		// entrance counts as "at the Safari", so starting here would open an empty
 		// run and archive the one just finished.
-		if (AreaDetector.inSafari()) {
+		if (SafariLocation.inSafari()) {
 			ticksOutsideSafari = 0;
 			return;
 		}
@@ -109,7 +108,7 @@ public final class SessionManager {
 		// treat it as an explicit run start rather than waiting for the area change.
 		if (event.type() == CritterEvent.Type.ENTERED_SAFARI) {
 			startSession();
-			SafariPresence.set(true);
+			SafariLocation.markEntered();
 			ticksOutsideSafari = 0;
 			return;
 		}
@@ -117,7 +116,7 @@ public final class SessionManager {
 		// A catch or capsule throw only happens inside the Safari, so it is proof of
 		// presence in its own right. Relying on the entry banner alone would leave
 		// the mod blind after joining mid-run or missing that one message.
-		SafariPresence.set(true);
+		SafariLocation.markEntered();
 
 		if (current == null) startSession();
 		lastEventMillis = System.currentTimeMillis();
