@@ -95,13 +95,25 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		public boolean showMissing = true;
 
-		@ConfigOption(
-			name = "Waypoints",
-			desc = "Mark unbroken Cavern walls, unpunched bee nests and Hunter trade spots on the\n" +
-				"§7locator bar, using Minecraft's own waypoint system.\n" +
-				"§cUntested — off by default.")
+		@ConfigOption(name = "Highlight walls", desc = "Outline unbroken Cavern walls through terrain.")
 		@ConfigEditorBoolean
-		public boolean waypoints = false;
+		public boolean highlightWalls = false;
+
+		@ConfigOption(name = "Highlight bee nests", desc = "Outline bee nests you have not punched yet.")
+		@ConfigEditorBoolean
+		public boolean highlightNests = false;
+
+		@ConfigOption(name = "Highlight shard trades", desc = "Outline where a Hunter offered a trade.")
+		@ConfigEditorBoolean
+		public boolean highlightTrades = false;
+
+		@ConfigOption(
+			name = "Highlight mounds",
+			desc = "Outline detected Rockmite mounds.\n" +
+				"§7Matched on interaction hitbox size, which is weaker evidence than the\n" +
+				"§7walls' fixed positions — check the outlines land on real mounds.")
+		@ConfigEditorBoolean
+		public boolean highlightMounds = false;
 
 		@ConfigOption(
 			name = "Highlight hard-to-find critters",

@@ -200,14 +200,16 @@ public final class CritterCommand {
 	 */
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
-		source.sendFeedback(header("Waypoints"));
-		source.sendFeedback(Component.literal("  setting     "
-			+ (config.display.waypoints ? "on" : "off — enable under Display"))
-			.withStyle(config.display.waypoints ? ChatFormatting.GREEN : ChatFormatting.RED));
+		source.sendFeedback(header("Highlights"));
+		source.sendFeedback(Component.literal("  on: %s%s%s%s".formatted(
+			config.display.highlightWalls ? "walls " : "",
+			config.display.highlightNests ? "nests " : "",
+			config.display.highlightTrades ? "trades " : "",
+			config.display.highlightMounds ? "mounds" : ""))
+			.withStyle(ChatFormatting.GREEN));
 		source.sendFeedback(Component.literal("  in Safari   " + AreaDetector.inSafari())
 			.withStyle(ChatFormatting.GRAY));
-		source.sendFeedback(Component.literal("  registered  " + WaypointManager.activeCount()
-			+ "  (client has any: " + WaypointManager.anyTracked() + ")")
+		source.sendFeedback(Component.literal("  highlighted " + Markers.collect().size())
 			.withStyle(ChatFormatting.WHITE));
 
 		List<String> sizes = MoundSpotter.describeAll();
