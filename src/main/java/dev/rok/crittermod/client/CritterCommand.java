@@ -202,13 +202,15 @@ public final class CritterCommand {
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
 		source.sendFeedback(header("Highlights"));
-		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s".formatted(
+		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s%s".formatted(
 			config.display.highlightSnooperWalls ? "snooper " : "",
 			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
 			config.display.hideyhoSolver ? "hideyho " : "",
 			config.display.recatchHelper ? "recatch " : "",
+			config.display.floorDropStyle() == CritterConfig.MarkStyle.OFF ? ""
+				: "drops:" + config.display.floorDropStyle().name().toLowerCase() + " ",
 			config.display.highlightMounds ? "mounds" : ""))
 			.withStyle(ChatFormatting.GREEN));
 		// Everything but the trades is gated on the biome, so the biome is half the
@@ -242,6 +244,8 @@ public final class CritterCommand {
 		}
 		source.sendFeedback(Component.literal("  critters    %d loaded, farthest %.0fm"
 			.formatted(CritterEntities.all().size(), farthest)).withStyle(ChatFormatting.DARK_GRAY));
+		source.sendFeedback(Component.literal("  floor drops " + FloorDrops.positions().size())
+			.withStyle(ChatFormatting.DARK_GRAY));
 		source.sendFeedback(Component.literal("  pinned      " + (RecatchSpots.pinned() == null
 			? "nothing" : "%s at %.0fm".formatted(RecatchSpots.pinnedCritter().name(),
 				RecatchSpots.distance()))).withStyle(ChatFormatting.DARK_GRAY));

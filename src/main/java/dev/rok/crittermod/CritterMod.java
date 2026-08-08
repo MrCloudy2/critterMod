@@ -8,6 +8,7 @@ import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.CritterEntities;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.DarknessFilter;
+import dev.rok.crittermod.client.FloorDrops;
 import dev.rok.crittermod.client.HideyhoSolver;
 import dev.rok.crittermod.client.MacawWatch;
 import dev.rok.crittermod.client.MissingHud;
@@ -24,6 +25,7 @@ import dev.rok.crittermod.session.SessionManager;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.player.AttackBlockCallback;
+import net.fabricmc.fabric.api.event.player.UseBlockCallback;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientLifecycleEvents;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
@@ -82,6 +84,7 @@ public class CritterMod implements ClientModInitializer {
 			CritterHighlighter.tick();
 			HideyhoSolver.tick();
 			MacawWatch.tick();
+			FloorDrops.tick();
 			RecatchSpots.tick();
 			DarknessFilter.tick();
 			TraderWatch.tick();
@@ -104,6 +107,13 @@ public class CritterMod implements ClientModInitializer {
 		// the only signal that it has been done.
 		AttackBlockCallback.EVENT.register((player, level, hand, pos, direction) -> {
 			NestTracker.onAttack(pos);
+			// A drop being picked up would clear itself a few seconds later anyway;
+			// dropping it on the interaction just makes the mark go when you expect.
+			FloorDrops.onInteract(pos);
+			return InteractionResult.PASS;
+		});
+		UseBlockCallback.EVENT.register((player, level, hand, hit) -> {
+			FloorDrops.onInteract(hit.getBlockPos());
 			return InteractionResult.PASS;
 		});
 
