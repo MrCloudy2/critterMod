@@ -152,6 +152,18 @@ public class CritterConfig extends Config {
 		public boolean hideyhoSolver = false;
 
 		@ConfigOption(
+			name = "Recatch helper",
+			desc = "Pin where a critter was when you threw a capsule at it.\n" +
+				"§7A throw takes it out of the world and puts the CAPTURING ball off to one\n" +
+				"§7side; if the capture fails it comes back to the spot it left from and\n" +
+				"§7starts running again. The box marks that spot, at the size the critter\n" +
+				"§7was, so the next capsule can be in the air before it is.\n" +
+				"§7Cleared by catching it, by it running off, or after 40s.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean recatchHelper = false;
+
+		@ConfigOption(
 			name = "Highlight hard-to-find critters",
 			desc = "Outline the mobs of species that are awkward to spot, Bloodbats especially.\n" +
 				"§7Uses the client-side glow flag, so they show through walls.")

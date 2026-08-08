@@ -5,12 +5,13 @@ import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHighlighter;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.ConfigManager;
+import dev.rok.crittermod.client.CritterEntities;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.DarknessFilter;
-import dev.rok.crittermod.client.HideyhoSolver;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
+import dev.rok.crittermod.client.RecatchSpots;
 import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
@@ -62,17 +63,20 @@ public class CritterMod implements ClientModInitializer {
 				EncounterAlerts.onChatMessage(line);
 				TraderWatch.onChatMessage(line);
 				MoundTracker.onChatMessage(line);
+				RecatchSpots.onChatMessage(line);
 			}
 		});
 
 		ClientTickEvents.END_CLIENT_TICK.register(client -> {
 			// First, and only here: everything below asks it where the player is.
 			SafariLocation.tick();
+			// One sweep of the world's critters, for everything below that wants them.
+			CritterEntities.tick();
 			SessionManager.tick();
 			CritterSpotter.tick();
 			NestTracker.tick();
 			CritterHighlighter.tick();
-			HideyhoSolver.tick();
+			RecatchSpots.tick();
 			DarknessFilter.tick();
 			TraderWatch.tick();
 			ChatQueue.tick();
