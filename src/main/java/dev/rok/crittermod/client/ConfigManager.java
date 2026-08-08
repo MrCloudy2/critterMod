@@ -39,7 +39,7 @@ public final class ConfigManager {
 	 * cannot miss a close that happens by any route.
 	 */
 	public static void tick() {
-		boolean open = ourScreen != null && Minecraft.getInstance().screen == ourScreen;
+		boolean open = ourScreen != null && Minecraft.getInstance().gui.screen() == ourScreen;
 		if (wasOpen && !open) {
 			save();
 			ourScreen = null;

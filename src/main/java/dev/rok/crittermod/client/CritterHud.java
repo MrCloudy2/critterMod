@@ -30,7 +30,7 @@ public final class CritterHud implements HudElement {
 		if (!config.display.hudEnabled) return;
 
 		Minecraft client = Minecraft.getInstance();
-		if (client.player == null || client.options.hideGui) return;
+		if (client.player == null || client.gui.hud.isHidden()) return;
 		if (config.display.onlyInSafari && !SafariLocation.inSafari()) return;
 
 		HudPanel panel = buildPanel();

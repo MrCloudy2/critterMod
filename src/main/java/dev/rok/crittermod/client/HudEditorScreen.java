@@ -43,7 +43,7 @@ public final class HudEditorScreen extends Screen {
 	/** Opens the editor on the next tick, from wherever the settings screen was. */
 	public static void open() {
 		Minecraft client = Minecraft.getInstance();
-		client.execute(() -> client.setScreen(new HudEditorScreen()));
+		client.execute(() -> client.setScreenAndShow(new HudEditorScreen()));
 	}
 
 	@Override

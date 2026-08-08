@@ -51,7 +51,7 @@ public final class HotspotWatch {
 		if (config.alerts.hotspotAlert) {
 			Minecraft client = Minecraft.getInstance();
 			if (client.gui != null) {
-				client.gui.getChat().addClientSystemMessage(
+				client.gui.hud.getChat().addClientSystemMessage(
 					Component.literal("[Critters] ").withStyle(ChatFormatting.GOLD)
 						.append(Component.literal("Your hotspot: ").withStyle(ChatFormatting.GRAY))
 						.append(Component.literal(biome.displayName()).withStyle(ChatFormatting.YELLOW)));
