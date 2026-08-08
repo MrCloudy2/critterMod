@@ -53,10 +53,10 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   separately toggleable, all off by default, and each only shows in its own biome.
 - **Bloodbat outlines** — the species that is genuinely hard to see, glowing through
   the Haunted geometry.
-- **Hideyho solver** — hiding only moves it, and its name tag stays loaded on the
-  client throughout, so the waypoint is where it actually is rather than a guess from
-  a list of hiding spots. The mark survives the entity unloading, so one pass within
-  range is enough. Off by default.
+- **Hideyho tracker** — its name tag stays loaded for the whole round, which is why the
+  missing panel keeps counting one; the mark is that tag's position, and it survives the
+  entity unloading so one pass within range holds it. Dropped as soon as it says it has
+  moved. Off by default.
 - **Recatch helper** — a throw takes the critter out of the world; if the capture fails
   it comes back to the spot it left from and starts running. The spot is pinned at the
   critter's own size so the next capsule is already aimed. Off by default.
