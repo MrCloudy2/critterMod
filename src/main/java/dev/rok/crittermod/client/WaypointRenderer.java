@@ -136,6 +136,8 @@ public final class WaypointRenderer {
 		float red = ((colour >> 16) & 0xFF) / 255f;
 		float green = ((colour >> 8) & 0xFF) / 255f;
 		float blue = (colour & 0xFF) / 255f;
+		// The picker offers alpha, so a colour set part-transparent draws that way.
+		float alpha = ((colour >>> 24) & 0xFF) / 255f;
 
 		float[][] edges = {
 			{x0, y0, z0, x1, y0, z0}, {x1, y0, z0, x1, y0, z1},
@@ -146,13 +148,13 @@ public final class WaypointRenderer {
 			{x1, y0, z1, x1, y1, z1}, {x0, y0, z1, x0, y1, z1},
 		};
 		for (float[] e : edges) {
-			line(poses, lines, e[0], e[1], e[2], e[3], e[4], e[5], red, green, blue);
+			line(poses, lines, e[0], e[1], e[2], e[3], e[4], e[5], red, green, blue, alpha);
 		}
 	}
 
 	private static void line(PoseStack poses, VertexConsumer lines,
 							 float x1, float y1, float z1, float x2, float y2, float z2,
-							 float r, float g, float b) {
+							 float r, float g, float b, float a) {
 		var pose = poses.last();
 		// The line format wants a normal along the segment and a width per vertex.
 		// Leaving the width off is a hard crash — "Missing elements in vertex" — rather
@@ -166,9 +168,9 @@ public final class WaypointRenderer {
 		ny /= length;
 		nz /= length;
 
-		lines.addVertex(pose, x1, y1, z1).setColor(r, g, b, 1.0f)
+		lines.addVertex(pose, x1, y1, z1).setColor(r, g, b, a)
 			.setNormal(pose, nx, ny, nz).setLineWidth(LINE_WIDTH);
-		lines.addVertex(pose, x2, y2, z2).setColor(r, g, b, 1.0f)
+		lines.addVertex(pose, x2, y2, z2).setColor(r, g, b, a)
 			.setNormal(pose, nx, ny, nz).setLineWidth(LINE_WIDTH);
 	}
 

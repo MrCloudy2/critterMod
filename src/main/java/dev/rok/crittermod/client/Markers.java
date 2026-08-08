@@ -40,16 +40,19 @@ public final class Markers {
 		// are in that biome. Boxes floating through the terrain of a biome they have
 		// nothing to do with are just noise.
 		if (display.highlightSnooperWalls) {
-			addWalls(markers, WallTracker.SNOOPER, biome);
+			addWalls(markers, WallTracker.SNOOPER, biome,
+				Colours.argb(display.snooperWallColour, 0xFFFFAA00));
 		}
 		if (display.highlightTroodonWalls) {
-			addWalls(markers, WallTracker.TROODON, biome);
+			addWalls(markers, WallTracker.TROODON, biome,
+				Colours.argb(display.troodonWallColour, 0xFF55AAFF));
 		}
 
 		if (display.highlightNests && biome == SafariBiome.FOREST) {
 			for (NestTracker.Nest nest : NestTracker.nests()) {
 				if (!nest.unpunched()) continue;
-				markers.add(block(nest.pos(), "Nest", 0x55FF55));
+				markers.add(block(nest.pos(), "Nest",
+					Colours.argb(display.nestColour, 0xFF55FF55)));
 			}
 		}
 
@@ -58,7 +61,7 @@ public final class Markers {
 				TraderWatch.Spot spot = trade.spot();
 				if (spot == null) continue;
 				markers.add(block(new BlockPos(spot.x(), spot.y(), spot.z()),
-					trade.critter().name(), 0x55FFFF));
+					trade.critter().name(), Colours.argb(display.tradeColour, 0xFF55FFFF)));
 			}
 		}
 
@@ -69,22 +72,22 @@ public final class Markers {
 			// it was when the client last had it, which is where it still is unless it
 			// has re-hidden — and its own chat lines are what clear it.
 			if (hideyho != null) {
-				markers.add(block(hideyho,
-					HideyhoSolver.live() ? "Hideyho" : "Hideyho (last seen)", 0xFF55FF));
+				markers.add(block(hideyho, HideyhoSolver.live() ? "Hideyho" : "Hideyho (last seen)",
+					Colours.argb(display.hideyhoColour, 0xFFFF55FF)));
 			}
 		}
 
 		if (display.highlightMounds && biome == SafariBiome.CAVERN) {
 			for (BlockPos pos : MoundSpotter.mounds()) {
-				markers.add(block(pos, "Mound", 0xCC7744));
+				markers.add(block(pos, "Mound", Colours.argb(display.moundColour, 0xFFCC7744)));
 			}
 		}
 
 		// Not gated on the biome: it is pinned by a capsule you threw, so it is wherever
 		// you were standing when you threw it.
 		if (display.recatchHelper && RecatchSpots.pinned() != null) {
-			markers.add(new Marker(RecatchSpots.pinned(),
-				RecatchSpots.pinnedCritter().name(), 0xFFFF55, Style.WAYPOINT));
+			markers.add(new Marker(RecatchSpots.pinned(), RecatchSpots.pinnedCritter().name(),
+				Colours.argb(display.recatchColour, 0xFFFFFF55), Style.WAYPOINT));
 		}
 
 		// Drops turn up anywhere, so no biome gate. The style is the setting itself.
@@ -92,7 +95,8 @@ public final class Markers {
 		if (drops != CritterConfig.MarkStyle.OFF) {
 			Style style = drops == CritterConfig.MarkStyle.WAYPOINT ? Style.WAYPOINT : Style.HIGHLIGHT;
 			for (BlockPos pos : FloorDrops.positions()) {
-				markers.add(new Marker(new AABB(pos), "Floor drop", 0x55FFAA, style));
+				markers.add(new Marker(new AABB(pos), "Floor drop",
+					Colours.argb(display.floorDropColour, 0xFF55FFAA), style));
 			}
 		}
 		return markers;
@@ -109,11 +113,11 @@ public final class Markers {
 	 * <p>A broken wall leaves air behind, and air is also what an unloaded chunk reports,
 	 * so only walls confirmed to still hold a block are marked — never a guess.
 	 */
-	private static void addWalls(List<Marker> markers, WallTracker walls, SafariBiome biome) {
+	private static void addWalls(List<Marker> markers, WallTracker walls, SafariBiome biome, int colour) {
 		if (biome != walls.biome()) return;
 		for (WallTracker.Wall wall : walls.walls()) {
 			if (wall.state() != WallTracker.State.INTACT) continue;
-			markers.add(block(wall.pos(), walls.name() + " wall", 0xFFAA00));
+			markers.add(block(wall.pos(), walls.name() + " wall", colour));
 		}
 	}
 }

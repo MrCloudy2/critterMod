@@ -1,9 +1,13 @@
 package dev.rok.crittermod.client;
 
 import com.google.gson.annotations.Expose;
+import io.github.notenoughupdates.moulconfig.ChromaColour;
 import io.github.notenoughupdates.moulconfig.Config;
 import io.github.notenoughupdates.moulconfig.annotations.Category;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigAccordionId;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorAccordion;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorBoolean;
+import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorColour;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorButton;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorDropdown;
 import io.github.notenoughupdates.moulconfig.annotations.ConfigEditorSlider;
@@ -275,6 +279,73 @@ public class CritterConfig extends Config {
 		@ConfigEditorSlider(minValue = 0.5f, maxValue = 3.0f, minStep = 0.05f)
 		@Expose
 		public float tradesScale = HudBox.DEFAULT_SCALE;
+
+		// --- colours -------------------------------------------------------------
+
+		/** Accordion id for the colour pickers, kept together so they fold away. */
+		private static final int COLOURS = 2;
+
+		@ConfigOption(name = "Waypoint colours", desc = "The colour of each kind of mark.")
+		@ConfigEditorAccordion(id = COLOURS)
+		public boolean coloursAccordion = false;
+
+		@ConfigOption(name = "Snooper walls", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String snooperWallColour = colour(0xFF, 0xAA, 0x00);
+
+		@ConfigOption(name = "Troodon walls", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String troodonWallColour = colour(0x55, 0xAA, 0xFF);
+
+		@ConfigOption(name = "Bee nests", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String nestColour = colour(0x55, 0xFF, 0x55);
+
+		@ConfigOption(name = "Hunter trades", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String tradeColour = colour(0x55, 0xFF, 0xFF);
+
+		@ConfigOption(name = "Hideyho", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String hideyhoColour = colour(0xFF, 0x55, 0xFF);
+
+		@ConfigOption(name = "Rockmite mounds", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String moundColour = colour(0xCC, 0x77, 0x44);
+
+		@ConfigOption(name = "Recatch spot", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String recatchColour = colour(0xFF, 0xFF, 0x55);
+
+		@ConfigOption(name = "Floor drops", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String floorDropColour = colour(0x55, 0xFF, 0xAA);
+
+		/**
+		 * An opaque, non-chroma colour in MoulConfig's own format.
+		 *
+		 * <p>{@code speed:alpha:r:g:b} — speed 0 meaning it does not cycle. Stored as that
+		 * string rather than as an int so the picker can offer alpha and chroma at all.
+		 */
+		private static String colour(int red, int green, int blue) {
+			return ChromaColour.Companion.special(0, 255, red, green, blue);
+		}
 
 		// Positions are fractions of the screen, so a box stays put across resolution
 		// and GUI-scale changes. Set by dragging in the editor, not by hand.
