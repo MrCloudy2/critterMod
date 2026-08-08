@@ -11,6 +11,7 @@ import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.SafariPresence;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
+import dev.rok.crittermod.client.WaypointManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
 import dev.rok.crittermod.session.SessionManager;
@@ -64,6 +65,7 @@ public class CritterMod implements ClientModInitializer {
 			CritterSpotter.tick();
 			NestTracker.tick();
 			CritterHighlighter.tick();
+			WaypointManager.tick();
 			ChatQueue.tick();
 		});
 
