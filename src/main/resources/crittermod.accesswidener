@@ -4,3 +4,10 @@ accessWidener	v2	official
 # isCurrentlyGlowing() reads that shared flag rather than hasGlowingTag(). Setting it
 # is therefore the only way to make vanilla outline an entity from the client side.
 accessible	method	net/minecraft/world/entity/Entity	setSharedFlag	(IZ)V
+
+# Waypoints have to be visible through terrain to be worth having, and every vanilla
+# line render type is depth-tested. Building one that is not needs the lines pipeline
+# snippet to copy the shaders and vertex format from, and the RenderType factory to
+# wrap it in. Both are package-private; nothing else about them is being changed.
+accessible	field	net/minecraft/client/renderer/RenderPipelines	LINES_SNIPPET	Lcom/mojang/blaze3d/pipeline/RenderPipeline$Snippet;
+accessible	method	net/minecraft/client/renderer/rendertype/RenderType	create	(Ljava/lang/String;Lnet/minecraft/client/renderer/rendertype/RenderSetup;)Lnet/minecraft/client/renderer/rendertype/RenderType;

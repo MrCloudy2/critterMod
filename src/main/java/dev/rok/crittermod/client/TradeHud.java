@@ -26,7 +26,7 @@ public final class TradeHud implements HudElement {
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.options.hideGui) return;
-		if (config.display.onlyInSafari && !AreaDetector.inSafari()) return;
+		if (config.display.onlyInSafari && !SafariLocation.inSafari()) return;
 
 		HudPanel panel = buildPanel();
 		if (panel == null) return;

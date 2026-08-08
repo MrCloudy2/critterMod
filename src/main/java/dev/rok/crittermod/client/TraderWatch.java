@@ -71,7 +71,7 @@ public final class TraderWatch {
 			BlockPos pos = locate(opening);
 			if (pos != null) {
 				offerSpots.put(opening, new Spot(pos.getX(), pos.getY(), pos.getZ(),
-					AreaDetector.currentBiome()));
+					SafariLocation.biome()));
 			}
 		}
 

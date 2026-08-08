@@ -172,7 +172,7 @@ public enum HudBox {
 	}
 
 	private static HudPanel missingPanel() {
-		SafariBiome biome = AreaDetector.currentBiome();
+		SafariBiome biome = SafariLocation.biome();
 		if (biome == null) return null;
 		return MissingHud.buildPanel(biome, SessionManager.currentOrLast());
 	}

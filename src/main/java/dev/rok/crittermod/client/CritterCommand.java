@@ -207,7 +207,7 @@ public final class CritterCommand {
 			config.display.highlightTrades ? "trades " : "",
 			config.display.highlightMounds ? "mounds" : ""))
 			.withStyle(ChatFormatting.GREEN));
-		source.sendFeedback(Component.literal("  in Safari   " + AreaDetector.inSafari())
+		source.sendFeedback(Component.literal("  in Safari   " + SafariLocation.inSafari())
 			.withStyle(ChatFormatting.GRAY));
 		source.sendFeedback(Component.literal("  highlighted " + Markers.collect().size())
 			.withStyle(ChatFormatting.WHITE));
@@ -375,15 +375,18 @@ public final class CritterCommand {
 	private static void debug(FabricClientCommandSource source) {
 		source.sendFeedback(header("Area sources"));
 
-		List<String> sidebar = AreaDetector.sidebarLines();
+		// Shown with the § codes intact, as & — the area line is recognised by its
+		// formatting, so a stripped dump would hide exactly what decides the answer.
+		List<String> sidebar = SafariLocation.sidebarLines();
 		source.sendFeedback(Component.literal("  sidebar (" + sidebar.size() + " lines):")
 			.withStyle(ChatFormatting.YELLOW));
 		for (String line : sidebar) {
-			source.sendFeedback(Component.literal("    | " + line).withStyle(ChatFormatting.GRAY));
+			source.sendFeedback(Component.literal("    | " + line.replace('§', '&'))
+				.withStyle(ChatFormatting.GRAY));
 		}
 
 		// Most tab entries are player names; only metadata rows matter here.
-		List<String> interesting = AreaDetector.tabListEntries().stream()
+		List<String> interesting = SafariLocation.tabListEntries().stream()
 			.filter(e -> e.contains("Area") || e.contains("Biome") || e.contains("⏣")
 				|| e.contains("Safari") || e.contains("Zone"))
 			.toList();
@@ -397,18 +400,21 @@ public final class CritterCommand {
 		source.sendFeedback(Component.literal("  position: %.1f %.1f %.1f"
 			.formatted(pos.x, pos.y, pos.z)).withStyle(ChatFormatting.YELLOW));
 		source.sendFeedback(Component.literal("    nearest mapped node: %.1f blocks (of %d)"
-			.formatted(AreaDetector.distanceToNearestNode(), SafariAreaMap.nodeCount()))
+			.formatted(SafariLocation.distanceToNearestNode(), SafariAreaMap.nodeCount()))
 			.withStyle(ChatFormatting.GRAY));
 
 		source.sendFeedback(Component.literal("  resolved:").withStyle(ChatFormatting.YELLOW));
-		source.sendFeedback(Component.literal("    from text     " + nameOf(AreaDetector.biomeFromText()))
-			.withStyle(ChatFormatting.GRAY));
-		source.sendFeedback(Component.literal("    from position " + nameOf(AreaDetector.biomeFromPosition()))
-			.withStyle(ChatFormatting.GRAY));
-		source.sendFeedback(Component.literal("    currentBiome  " + nameOf(AreaDetector.currentBiome()))
+		source.sendFeedback(Component.literal("    area          "
+			+ (SafariLocation.area() == null ? "not stated" : SafariLocation.area()))
 			.withStyle(ChatFormatting.WHITE));
-		source.sendFeedback(Component.literal("    inSafari      " + AreaDetector.inSafari()
-			+ "  (chat flag: " + SafariPresence.inSafari() + ")").withStyle(ChatFormatting.WHITE));
+		source.sendFeedback(Component.literal("    decided by    " + SafariLocation.source())
+			.withStyle(ChatFormatting.GRAY));
+		source.sendFeedback(Component.literal("    from position " + nameOf(SafariLocation.biomeFromPosition()))
+			.withStyle(ChatFormatting.GRAY));
+		source.sendFeedback(Component.literal("    biome         " + nameOf(SafariLocation.biome()))
+			.withStyle(ChatFormatting.WHITE));
+		source.sendFeedback(Component.literal("    inSafari      " + SafariLocation.inSafari())
+			.withStyle(ChatFormatting.WHITE));
 	}
 
 	private static String nameOf(SafariBiome biome) {
