@@ -136,6 +136,15 @@ public class CritterConfig extends Config {
 		public boolean highlightHardToFind = true;
 
 		@ConfigOption(
+			name = "Remove the darkness effect",
+			desc = "Drop the Warden darkness while you are at the Safari.\n" +
+				"§7Taken off the client's own copy of your effects, so both the dimming and\n" +
+				"§7the fog go — vanilla's Darkness Pulsing accessibility slider only scales\n" +
+				"§7the dimming. Nothing is sent to the server.")
+		@ConfigEditorBoolean
+		public boolean removeDarkness = false;
+
+		@ConfigOption(
 			name = "Snooper walls",
 			desc = "List the breakable Cavern walls still standing, under the missing list.\n" +
 				"§7They want breaking every run to check behind them.\n" +
