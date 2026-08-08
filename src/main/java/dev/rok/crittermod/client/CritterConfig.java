@@ -175,14 +175,14 @@ public class CritterConfig extends Config {
 		public boolean highlightMounds = false;
 
 		@ConfigOption(
-			name = "Hideyho tracker",
-			desc = "Keep a mark on the Hideyho your client has already seen, in the Haunted biome.\n" +
-				"§7Its name tag stays loaded the whole round, which is why the missing panel\n" +
-				"§7keeps counting one. The mark is that tag's position — the same thing the\n" +
-				"§7nearby-spawn counter reads — and it is dropped when it says it has moved.")
+			name = "Hideyho solver",
+			desc = "Mark where Hideyho is hiding, while you are in the Haunted biome.\n" +
+				"§7Hiding only moves it: its name tag stays loaded on the client the whole\n" +
+				"§7time, which is why the missing panel still counts one while nobody can see\n" +
+				"§7it. So this is where it actually is, not a list of known hiding spots.")
 		@ConfigEditorBoolean
 		@Expose
-		public boolean hideyhoTracker = false;
+		public boolean hideyhoSolver = false;
 
 		@ConfigOption(
 			name = "Recatch helper",

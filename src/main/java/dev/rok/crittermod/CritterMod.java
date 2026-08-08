@@ -9,7 +9,7 @@ import dev.rok.crittermod.client.CritterEntities;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.DarknessFilter;
 import dev.rok.crittermod.client.FloorDrops;
-import dev.rok.crittermod.client.HideyhoTracker;
+import dev.rok.crittermod.client.HideyhoSolver;
 import dev.rok.crittermod.client.MacawWatch;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.MoundTracker;
@@ -70,7 +70,7 @@ public class CritterMod implements ClientModInitializer {
 				TraderWatch.onChatMessage(line);
 				MoundTracker.onChatMessage(line);
 				RecatchSpots.onChatMessage(line);
-				HideyhoTracker.onChatMessage(line);
+				HideyhoSolver.onChatMessage(line);
 				MacawWatch.onChatMessage(line);
 			}
 		});
@@ -84,7 +84,7 @@ public class CritterMod implements ClientModInitializer {
 			CritterSpotter.tick();
 			NestTracker.tick();
 			CritterHighlighter.tick();
-			HideyhoTracker.tick();
+			HideyhoSolver.tick();
 			MacawWatch.tick();
 			FloorDrops.tick();
 			RecatchSpots.tick();
