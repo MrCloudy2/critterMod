@@ -147,6 +147,7 @@ public final class CritterCommand {
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: I'll give you it in exchange for a Yogi Berry!");
 				MacawWatch.onChatMessage("Two Macaws were attracted to the Birdfeeder!");
 				HotspotWatch.onChatMessage("HOTSPOT! Your Hunting Hotspot is the Icy Biome!");
+				SparklingAlert.show("Rockmite", "Cavern -96 40 42");
 				// As a partymate running this mod would announce it, so the reading side
 				// can be checked without a second player.
 				TraderWatch.onChatMessage(
