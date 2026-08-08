@@ -38,7 +38,8 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
 - **Three HUD boxes** — overall progress, what is still missing in the biome you are
   standing in, and the Hunter trades found this run. All movable and resizable.
 - **Encounter alerts** — Gemzie, Wumpa and Doomspiral tracked ready → started → done,
-  with optional party-chat announcements.
+  each settable on its own, and each choosing its own audience: nobody, party chat or
+  all chat.
 - **Completion alerts** — optional `<Biome> Done!`, `Everything except Macaw done!`
   and `Everything Done!`.
 - **Hunter trades** — reports the roaming NPCs' shard-for-item offers, with the biome,
@@ -54,7 +55,19 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   the Haunted geometry.
 - **Hideyho solver** — hiding only moves it, and its name tag stays loaded on the
   client throughout, so the waypoint is where it actually is rather than a guess from
-  a list of hiding spots. Off by default.
+  a list of hiding spots. The mark survives the entity unloading, so one pass within
+  range is enough. Off by default.
+- **Recatch helper** — a throw takes the critter out of the world; if the capture fails
+  it comes back to the spot it left from and starts running. The spot is pinned at the
+  critter's own size so the next capsule is already aimed. Off by default.
+- **Floor drops** — three string item displays in one block, the same test Skyblocker
+  uses. Nothing, a highlight, or a full waypoint.
+- **Macaw call** — the one species a run may not give at all, announced the moment the
+  Birdfeeder says so or one appears, with its position.
+- **Shared trades** — a partymate running this mod announces a Hunter offer and your
+  client reads it back: same tracker entry, same waypoint, no reading coordinates out
+  of chat.
+- **Per-mark colours** — eight pickers with alpha and chroma, one per kind of mark.
 - **Darkness toggle** — drops the Warden darkness while you are at the Safari, fog
   included. Off by default.
 - **Saved runs** — every finished run is written to `config/crittermod-runs.json` when
@@ -108,9 +121,9 @@ species you have already thrown capsules at is marked `n tried`, so "hasn't been
 found yet" is distinguishable from "keeps escaping". Species caught by a partymate
 count as done, since the goal is party-wide coverage.
 
-**Encounter alerts** — a scaled banner, a sound and a chat line as each legendary
-encounter moves through ready → started → done, with an option to announce the same
-stages to party chat:
+**Encounter alerts** — a scaled banner and a chat line as each legendary encounter
+moves through ready → started → done, with the sound off by default and each encounter
+choosing who hears about it:
 
 | Encounter | Ready | Started | Done |
 |---|---|---|---|
