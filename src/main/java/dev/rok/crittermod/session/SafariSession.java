@@ -297,8 +297,21 @@ public final class SafariSession {
 		return startedAtMillis;
 	}
 
+	/**
+	 * How long the run lasted, start to last event.
+	 *
+	 * <p>This is the span of a <em>finished</em> run, and deliberately not "how long ago
+	 * it started": a run that ended twenty minutes ago should not still be counting, and
+	 * a replayed run has no now to measure against. A live run wants
+	 * {@link #elapsedMillis(long)} instead.
+	 */
 	public long durationMillis() {
 		return Math.max(0, lastEventMillis - startedAtMillis);
+	}
+
+	/** How long the run has been going at {@code now} — the figure for a live timer. */
+	public long elapsedMillis(long now) {
+		return Math.max(0, now - startedAtMillis);
 	}
 
 	/** True when nothing has been recorded yet — used to suppress an empty HUD. */

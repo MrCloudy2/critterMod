@@ -60,7 +60,7 @@ public final class CritterHud implements HudElement {
 
 		HudPanel panel = new HudPanel();
 		panel.title(waiting ? "Critter Safari (ready)"
-			: live ? "Critter Safari  " + formatDuration(session.durationMillis())
+			: live ? "Critter Safari  " + formatDuration(session.elapsedMillis(System.currentTimeMillis()))
 			: "Critter Safari (last run)", HEADER);
 
 		panel.bar("Party", session.partyUnique(), total, LABEL,
