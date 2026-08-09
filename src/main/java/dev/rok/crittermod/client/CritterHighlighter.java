@@ -38,7 +38,8 @@ public final class CritterHighlighter {
 		Minecraft client = Minecraft.getInstance();
 		if (client.level == null) return;
 
-		if (!ConfigManager.get().display.highlightHardToFind || !SafariLocation.inSafari()) {
+		if (!ConfigManager.get().display.highlightHardToFind
+			|| !ConfigManager.get().display.showsHere()) {
 			clear();
 			return;
 		}

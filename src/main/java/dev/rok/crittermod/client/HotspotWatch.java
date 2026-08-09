@@ -20,8 +20,13 @@ import java.util.regex.Pattern;
  */
 public final class HotspotWatch {
 
+	/**
+	 * Anchored at the start, so it cannot match the same sentence quoted inside
+	 * something a player typed. The chat gate already filters those out; this is the
+	 * second lock on the same door.
+	 */
 	private static final Pattern HOTSPOT =
-		Pattern.compile("Your Hunting Hotspot is the (.+?) Biome!");
+		Pattern.compile("^HOTSPOT! Your Hunting Hotspot is the (.+?) Biome!$");
 
 	private static SafariBiome hotspot;
 
@@ -36,7 +41,7 @@ public final class HotspotWatch {
 	/** Feeds one cleaned chat line. */
 	public static void onChatMessage(String line) {
 		Matcher matcher = HOTSPOT.matcher(line);
-		if (!matcher.find()) return;
+		if (!matcher.matches()) return;
 
 		SafariBiome found = SafariBiome.fromDisplayName(matcher.group(1));
 		// An unrecognised biome name means Hypixel has changed something; better to

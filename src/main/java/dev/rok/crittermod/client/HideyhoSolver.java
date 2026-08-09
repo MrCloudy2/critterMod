@@ -34,6 +34,9 @@ public final class HideyhoSolver {
 		"You found me!",
 	};
 
+	/** How its own lines arrive once formatting is stripped. */
+	private static final String SPEAKER = "[MOB] Hideyho:";
+
 	private static BlockPos position;
 	private static boolean live;
 
@@ -58,6 +61,9 @@ public final class HideyhoSolver {
 
 	/** Feeds one cleaned chat line. */
 	public static void onChatMessage(String line) {
+		// Only what Hideyho itself says counts. Quoted in someone's chat, the same words
+		// would drop a mark that is still good.
+		if (!line.startsWith(SPEAKER)) return;
 		for (String ending : MOVED_OR_FOUND) {
 			if (line.contains(ending)) {
 				clear();
