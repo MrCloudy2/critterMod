@@ -227,12 +227,13 @@ public final class CritterCommand {
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
 		source.sendFeedback(header("Highlights"));
-		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s%s".formatted(
+		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s%s%s".formatted(
 			config.display.highlightSnooperWalls ? "snooper " : "",
 			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
 			config.display.hideyhoSolver ? "hideyho " : "",
+			config.display.highlightHideonwalls ? "perches " : "",
 			config.display.recatchHelper ? "recatch " : "",
 			config.display.floorDropStyle() == CritterConfig.MarkStyle.OFF ? ""
 				: "drops:" + config.display.floorDropStyle().name().toLowerCase() + " ",
