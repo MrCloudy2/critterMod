@@ -522,7 +522,7 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Macaw spawned",
-			desc = "Banner and chat line the moment a Macaw turns up.\n" +
+			desc = "Full-screen call and a chat line the moment a Macaw turns up.\n" +
 				"§7The one species a run is not guaranteed to give at all, so a spawn is\n" +
 				"§7news. Noticed from the Birdfeeder's own announcement, which arrives\n" +
 				"§7wherever you are, and from one appearing in the world, which comes with\n" +

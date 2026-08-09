@@ -44,7 +44,8 @@ public final class SparklingWatch {
 		String where = describe(pos);
 
 		if (config.alerts.sparklingAlert) {
-			SparklingAlert.show(sighting.critter().name(), where);
+			FullScreenAlert.show("SPARKLING!", sighting.critter().name(), where,
+				FullScreenAlert.SPARKLING);
 		}
 		EncounterAlerts.post(config.party.sparkling(),
 			"SPARKLING %s! (%s)".formatted(sighting.critter().name(), where));
@@ -68,6 +69,6 @@ public final class SparklingWatch {
 	/** A new run has its own sparklings; the last one's are gone. */
 	public static void reset() {
 		announced.clear();
-		SparklingAlert.clear();
+		FullScreenAlert.clear();
 	}
 }
