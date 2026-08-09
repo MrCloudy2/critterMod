@@ -48,6 +48,25 @@ public class CritterConfig extends Config {
 		}
 	}
 
+	/** Where the panels and the in-world marks are shown. */
+	public enum Scope {
+		/** Inside the Safari only — nothing at the entrance over in Torrhus Canyon. */
+		SAFARI,
+		/** Inside and at the entrance, which is where a run is about to start. */
+		SAFARI_AND_ENTRANCE,
+		/** Wherever you are, Safari or not. */
+		EVERYWHERE;
+
+		/** Whether this scope covers the place the player is standing. */
+		public boolean covers(SafariLocation.Where where) {
+			return switch (this) {
+				case EVERYWHERE -> true;
+				case SAFARI_AND_ENTRANCE -> where != SafariLocation.Where.ELSEWHERE;
+				case SAFARI -> where == SafariLocation.Where.INSIDE;
+			};
+		}
+	}
+
 	/** How a set of positions is drawn, for the settings that offer the choice. */
 	public enum MarkStyle {
 		/** Not drawn at all. */
@@ -108,10 +127,26 @@ public class CritterConfig extends Config {
 		@Expose
 		public boolean hudEnabled = true;
 
-		@ConfigOption(name = "Only in the Safari", desc = "Hide the HUD outside the Critter Safari and its entrance.")
-		@ConfigEditorBoolean
+		@ConfigOption(
+			name = "Show where",
+			desc = "Where the panels and the in-world marks appear.\n" +
+				"§7The entrance is a separate area over in Torrhus Canyon, and its name also\n" +
+				"§7carries \"Safari\" — so it is its own choice rather than something you get\n" +
+				"§7whether you wanted it or not.")
+		@ConfigEditorDropdown(values = {"Only in the Safari", "Safari and entrance", "Everywhere"})
 		@Expose
-		public boolean onlyInSafari = true;
+		public int showWhere = 1;
+
+		/** The chosen scope, guarded against a config file holding something out of range. */
+		public Scope scope() {
+			return showWhere >= 0 && showWhere < Scope.values().length
+				? Scope.values()[showWhere] : Scope.SAFARI_AND_ENTRANCE;
+		}
+
+		/** Whether the display should be up where the player is standing right now. */
+		public boolean showsHere() {
+			return scope().covers(SafariLocation.where());
+		}
 
 		@ConfigOption(
 			name = "Count unique only",

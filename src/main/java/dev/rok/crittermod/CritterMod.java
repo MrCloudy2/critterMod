@@ -67,6 +67,15 @@ public class CritterMod implements ClientModInitializer {
 			for (String part : message.getString().split("\\r?\\n|\\\\n")) {
 				String line = ChatParser.clean(part);
 				if (line.isEmpty()) continue;
+
+				// Anything a player can type, a player can quote. Only the shared-trade
+				// reader wants what people say — it is looking for this mod's own
+				// announcement — so everything else sees the game's messages alone.
+				if (ChatParser.playerSaid(line)) {
+					TraderWatch.onChatMessage(line);
+					continue;
+				}
+
 				SafariLocation.onChatMessage(line);
 				SessionManager.onChatMessage(line);
 				EncounterAlerts.onChatMessage(line);

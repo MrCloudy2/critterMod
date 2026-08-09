@@ -29,6 +29,10 @@ public final class MacawWatch {
 	/** Long enough that the two ways of noticing the same spawn cannot both fire. */
 	private static final long COOLDOWN_MILLIS = 60_000;
 
+	/** The Birdfeeder's own line, from its start, with the count left open. */
+	private static final java.util.regex.Pattern BIRDFEEDER =
+		java.util.regex.Pattern.compile("^\\S+ " + NAME + "s? (?:were|was) attracted to the Birdfeeder!$");
+
 	private static boolean wasLoaded;
 	private static long lastAnnounced;
 
@@ -37,11 +41,10 @@ public final class MacawWatch {
 
 	/** Feeds one cleaned chat line. */
 	public static void onChatMessage(String line) {
-		// "Two Macaws were attracted to the Birdfeeder!" is the wording seen; matched on
-		// the two halves so a singular or a different count still lands.
-		if (line.contains(NAME) && line.contains("attracted to the Birdfeeder")) {
-			announce(null);
-		}
+		// "Two Macaws were attracted to the Birdfeeder!" is the wording seen; matched
+		// loosely enough that a singular or a different count still lands, but anchored
+		// so a player quoting it cannot set it off.
+		if (BIRDFEEDER.matcher(line).matches()) announce(null);
 	}
 
 	public static void tick() {

@@ -30,6 +30,7 @@ public final class MissingHud implements HudElement {
 	public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
 		CritterConfig config = ConfigManager.get();
 		if (!config.display.hudEnabled || !config.display.showMissing) return;
+		if (!config.display.showsHere()) return;
 
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.options.hideGui) return;

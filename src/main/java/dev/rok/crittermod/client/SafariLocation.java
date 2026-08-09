@@ -38,6 +38,16 @@ import java.util.regex.Pattern;
  */
 public final class SafariLocation {
 
+	/** Which of the three places the player is. */
+	public enum Where {
+		/** Not at the Safari at all. */
+		ELSEWHERE,
+		/** The Critter Safari Entrance, over in Torrhus Canyon — not the island itself. */
+		ENTRANCE,
+		/** Inside the Safari, where the critters are. */
+		INSIDE
+	}
+
 	/** Where the current answer came from; shown by {@code /critters debug}. */
 	public enum Source {
 		/** The server's own area line — the only self-clearing source. */
@@ -62,8 +72,16 @@ public final class SafariLocation {
 
 	private static final String TAB_AREA_PREFIX = "Area: ";
 
+	/**
+	 * Names that mean the entrance rather than the island.
+	 *
+	 * <p>The entrance area also carries "Safari" in its name, which is why matching on
+	 * that alone put the overlays up in Torrhus Canyon.
+	 */
+	private static final String[] ENTRANCE_WORDS = {"Entrance", "Entry"};
+
 	private static String area;
-	private static boolean inSafari;
+	private static Where where = Where.ELSEWHERE;
 	private static SafariBiome biome;
 	private static Source source = Source.NONE;
 
@@ -77,7 +95,17 @@ public final class SafariLocation {
 
 	/** Whether the player is at the Critter Safari, its entrance included. */
 	public static boolean inSafari() {
-		return inSafari;
+		return where != Where.ELSEWHERE;
+	}
+
+	/** Whether the player is inside the Safari proper, the entrance not counting. */
+	public static boolean inside() {
+		return where == Where.INSIDE;
+	}
+
+	/** The full answer, for anything that treats the entrance differently. */
+	public static Where where() {
+		return where;
 	}
 
 	/** The biome being stood in, or {@code null} when it cannot be determined. */
@@ -101,26 +129,28 @@ public final class SafariLocation {
 		String stated = statedArea();
 		if (stated != null) {
 			area = stated;
-			inSafari = stated.contains("Safari");
+			where = classify(stated);
 			source = Source.AREA_LINE;
 			// The server has spoken, so the chat flag has nothing left to add. Clearing
 			// it here is what stops a run "following" the player out to the Hub.
-			chatEntered = inSafari;
+			chatEntered = where != Where.ELSEWHERE;
 		} else if (critterLabelsNearby()) {
+			// Critters only exist on the island, so their labels mean inside, not the
+			// entrance.
 			area = null;
-			inSafari = true;
+			where = Where.INSIDE;
 			source = Source.CRITTER_LABELS;
 		} else if (chatEntered) {
 			area = null;
-			inSafari = true;
+			where = Where.INSIDE;
 			source = Source.CHAT;
 		} else {
 			area = null;
-			inSafari = false;
+			where = Where.ELSEWHERE;
 			source = Source.NONE;
 		}
 
-		biome = inSafari ? resolveBiome() : null;
+		biome = where == Where.INSIDE ? resolveBiome() : null;
 	}
 
 	/**
@@ -134,7 +164,7 @@ public final class SafariLocation {
 	/** Marks the player as being at the Safari on evidence other than the area line. */
 	public static void markEntered() {
 		chatEntered = true;
-		inSafari = true;
+		if (where != Where.INSIDE) where = Where.INSIDE;
 		if (source == Source.NONE) source = Source.CHAT;
 	}
 
@@ -146,13 +176,31 @@ public final class SafariLocation {
 	 */
 	public static void onWorldChange() {
 		chatEntered = false;
-		inSafari = false;
+		where = Where.ELSEWHERE;
 		area = null;
 		biome = null;
 		source = Source.NONE;
 	}
 
 	// --- reading the server's area line --------------------------------------
+
+	/**
+	 * Reads an area name as one of the three places.
+	 *
+	 * <p>Two independent signals, because either alone gets it wrong. The name has to
+	 * mention the Safari and not look like the entrance; and the position has to fall in
+	 * the mapped Safari areas, which the entrance cannot since it is on another island
+	 * entirely. A name that says nothing about an entrance but sits nowhere near the map
+	 * is treated as the entrance rather than as inside — the cautious way round, since
+	 * being wrong the other way is what put waypoints in Torrhus Canyon.
+	 */
+	private static Where classify(String stated) {
+		if (!stated.contains("Safari")) return Where.ELSEWHERE;
+		for (String word : ENTRANCE_WORDS) {
+			if (stated.contains(word)) return Where.ENTRANCE;
+		}
+		return biomeFromPosition() != null ? Where.INSIDE : Where.ENTRANCE;
+	}
 
 	/** The area SkyBlock states, from the scoreboard or the tab list, or {@code null}. */
 	private static String statedArea() {
