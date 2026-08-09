@@ -35,7 +35,34 @@ public final class ChatParser {
 	private static final Pattern ENTERED =
 		Pattern.compile("^(?:\\[[^]]+]\\s*)?(\\w{1,16}) entered Critter Safari!$");
 
+	/**
+	 * Lines a player typed, as opposed to lines the game sent.
+	 *
+	 * <p>Hypixel's chat channels announce themselves — {@code Party > [MVP+] Name: …} —
+	 * and open chat carries a rank in front of the name. {@code [NPC]} and {@code [MOB]}
+	 * look the same in shape but are the game talking, so they are excluded by name.
+	 *
+	 * <p>This exists because a partymate pasting a message they received made the mod act
+	 * on it: someone copying their own hotspot line into party chat set the reader's
+	 * hotspot and made it announce a second one, which the other client could then read
+	 * back in turn.
+	 */
+	private static final Pattern PLAYER_SAID = Pattern.compile(
+		"^(?:Party|Guild|Officer|Co-op|Team|Friend) >.*"
+			+ "|^(?:From|To) .*"
+			+ "|^(?:\\[(?!NPC]|MOB])[^]]+]\\s*)?\\w{1,16}: .*");
+
 	private ChatParser() {
+	}
+
+	/**
+	 * Whether a cleaned line was typed by a player.
+	 *
+	 * <p>Watchers that match on a phrase anywhere in the line must not run on these:
+	 * anything a player can type, a player can quote.
+	 */
+	public static boolean playerSaid(String line) {
+		return PLAYER_SAID.matcher(line).matches();
 	}
 
 	/**
