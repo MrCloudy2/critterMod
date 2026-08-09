@@ -145,7 +145,8 @@ public final class CritterCommand {
 				EncounterAlerts.onAllDone();
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: Say, do you have a use for a Nozzlenose Shard? I found it lying around...");
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: I'll give you it in exchange for a Yogi Berry!");
-				MacawWatch.onChatMessage("Two Macaws were attracted to the Birdfeeder!");
+				BirdfeederWatch.onChatMessage("A Bluebird was attracted to the Birdfeeder!");
+				BirdfeederWatch.onChatMessage("Two Macaws were attracted to the Birdfeeder!");
 				HotspotWatch.onChatMessage("HOTSPOT! Your Hunting Hotspot is the Icy Biome!");
 				FullScreenAlert.show("SPARKLING!", "Rockmite", "Cavern -96 40 42",
 					FullScreenAlert.SPARKLING);

@@ -63,8 +63,9 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   critter's own size so the next capsule is already aimed. Off by default.
 - **Floor drops** — three string item displays in one block, the same test Skyblocker
   uses. Nothing, a highlight, or a full waypoint, and only for the biome you are in.
-- **Macaw call** — the one species a run may not give at all, announced full-screen the
-  moment the Birdfeeder says so or one appears, with its position.
+- **Birdfeeder calls** — the Macaw, the one species a run may not give at all, announced
+  full-screen the moment the Birdfeeder says so or one appears, with its position. The
+  Bluebird and Parakeet can be called too, behind a setting, each in its rarity's colour.
 - **Hotspot** — the biome the run makes your Hunting Hotspot, on the progress panel and
   optionally posted to the party. Everyone is given a different one and only their own
   client is told, so saying it is how a party works out who takes which biome.
