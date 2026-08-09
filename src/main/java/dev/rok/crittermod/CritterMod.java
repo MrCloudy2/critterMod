@@ -17,7 +17,7 @@ import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.RecatchSpots;
 import dev.rok.crittermod.client.SafariLocation;
-import dev.rok.crittermod.client.SparklingAlert;
+import dev.rok.crittermod.client.FullScreenAlert;
 import dev.rok.crittermod.client.SparklingWatch;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
@@ -158,8 +158,8 @@ public class CritterMod implements ClientModInitializer {
 			new EncounterAlerts());
 		HudElementRegistry.attachElementBefore(
 			VanillaHudElements.CHAT,
-			Identifier.fromNamespaceAndPath(MOD_ID, "sparkling_alert"),
-			new SparklingAlert());
+			Identifier.fromNamespaceAndPath(MOD_ID, "full_screen_alert"),
+			new FullScreenAlert());
 
 		WaypointRenderer.register();
 

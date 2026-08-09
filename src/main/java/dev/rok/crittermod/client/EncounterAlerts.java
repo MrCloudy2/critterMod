@@ -156,7 +156,11 @@ public final class EncounterAlerts implements HudElement {
 		if (!config.alerts.macawAlert) return;
 
 		String detail = where == null ? "" : " (" + where + ")";
-		banner("MACAW SPAWNED", READY_COLOUR, 1.6f);
+		// The full-screen call rather than the banner strip: a Macaw is the one species
+		// a run may not give at all, so it is worth the same interruption a sparkling is.
+		FullScreenAlert.show("MACAW!", "Macaw spawned",
+			where == null ? "somewhere in the Forest" : where, FullScreenAlert.MACAW);
+		sound(1.6f);
 		chat("Macaw spawned!" + detail, ChatFormatting.GOLD);
 
 		post(config.party.macaw(), "Macaw spawned!" + detail);
@@ -233,9 +237,11 @@ public final class EncounterAlerts implements HudElement {
 		message = text;
 		colour = bannerColour;
 		shownAtMillis = System.currentTimeMillis();
+		sound(pitch);
+	}
 
-		// Silent unless asked for: the banner is already in the middle of the screen,
-		// and a run fires plenty of these.
+	/** Silent unless asked for: a run fires plenty of these. */
+	private static void sound(float pitch) {
 		if (!ConfigManager.get().alerts.alertSound) return;
 		Minecraft client = Minecraft.getInstance();
 		if (client.player != null) {
