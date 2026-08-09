@@ -49,8 +49,9 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   coordinates and distance. Walls are read from the blocks themselves, so a wall in an
   unloaded chunk is marked `?` rather than guessed at.
 - **Waypoints** — a wireframe box with a floating label, drawn through terrain, for
-  those walls, the nests, the Hunter trade spots and the Rockmite mounds. Each is
-  separately toggleable, all off by default, and each only shows in its own biome.
+  those walls, the nests, the Hunter trade spots, the Rockmite mounds and the eight
+  Hideonwall perches. Each is separately toggleable, all off by default, and each only
+  shows in its own biome.
 - **Bloodbat outlines** — the species that is genuinely hard to see, glowing through
   the Haunted geometry.
 - **Hideyho solver** — hiding only moves it, and its name tag stays loaded on the
