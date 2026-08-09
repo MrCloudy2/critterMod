@@ -529,6 +529,16 @@ public class CritterConfig extends Config {
 		public boolean sparklingAlert = true;
 
 		@ConfigOption(
+			name = "Every bird at the Birdfeeder",
+			desc = "Call the Bluebird and the Parakeet too, not just the Macaw.\n" +
+				"§7Off by default: those two come often enough to be wallpaper, where the\n" +
+				"§7Macaw is the one a run may never give. Each is shown in its own rarity's\n" +
+				"§7colour, so one is not mistaken for the other.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean birdfeederAlert = false;
+
+		@ConfigOption(
 			name = "Hotspot",
 			desc = "Report your Hunting Hotspot in chat when the run names it.")
 		@ConfigEditorBoolean
