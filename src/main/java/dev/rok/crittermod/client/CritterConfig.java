@@ -476,6 +476,18 @@ public class CritterConfig extends Config {
 		public boolean alertSound = false;
 
 		@ConfigOption(
+			name = "Only in that biome",
+			desc = "Keep each encounter's ready and done calls to whoever is in its biome.\n" +
+				"§7Gemzie is the Cavern's, Wumpa the Icy biome's, Doomspiral the Haunted's.\n" +
+				"§7In a party split a biome each, only one person is standing in it — without\n" +
+				"§7this, everyone is interrupted and party chat gets four copies of the same\n" +
+				"§7line.\n" +
+				"§7When the biome cannot be worked out at all, the call still fires.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean encountersInBiomeOnly = true;
+
+		@ConfigOption(
 			name = "Gemzie alerts",
 			desc = "Banner and sound as the Gemzie encounter progresses.\n" +
 				"§7Chamber opens, then the three catches that close it.")

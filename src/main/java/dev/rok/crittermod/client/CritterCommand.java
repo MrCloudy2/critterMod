@@ -133,16 +133,18 @@ public final class CritterCommand {
 			.then(ClientCommands.literal("testalert").executes(ctx -> {
 				// Walks every stage without waiting for a real encounter, so banners,
 				// sounds and party messages can all be checked anywhere.
-				EncounterAlerts.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
-				EncounterAlerts.onChatMessage("You hear the sound of massive footsteps echoing through the Icy Biome... What could it be?");
-				EncounterAlerts.onChatMessage("The Wumpa has awoken.");
-				EncounterAlerts.onChatMessage("The cave opens up again...");
-				EncounterAlerts.onChatMessage("Your ritual summoned a Doomspiral into this world. Stay still.");
-				EncounterAlerts.onChatMessage("The Doomspiral retreats back underground...");
-				for (int i = 0; i < 3; i++) EncounterAlerts.onCatch("Gemzie");
-				EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
-				EncounterAlerts.onAllButMacaw();
-				EncounterAlerts.onAllDone();
+				EncounterAlerts.whileTesting(() -> {
+					EncounterAlerts.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
+					EncounterAlerts.onChatMessage("You hear the sound of massive footsteps echoing through the Icy Biome... What could it be?");
+					EncounterAlerts.onChatMessage("The Wumpa has awoken.");
+					EncounterAlerts.onChatMessage("The cave opens up again...");
+					EncounterAlerts.onChatMessage("Your ritual summoned a Doomspiral into this world. Stay still.");
+					EncounterAlerts.onChatMessage("The Doomspiral retreats back underground...");
+					for (int i = 0; i < 3; i++) EncounterAlerts.onCatch("Gemzie");
+					EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
+					EncounterAlerts.onAllButMacaw();
+					EncounterAlerts.onAllDone();
+				});
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: Say, do you have a use for a Nozzlenose Shard? I found it lying around...");
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: I'll give you it in exchange for a Yogi Berry!");
 				BirdfeederWatch.onChatMessage("A Bluebird was attracted to the Birdfeeder!");
