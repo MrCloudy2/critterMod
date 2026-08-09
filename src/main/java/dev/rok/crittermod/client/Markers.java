@@ -77,6 +77,15 @@ public final class Markers {
 			}
 		}
 
+		// Fixed perches rather than anything read from the world: an empty one looks the
+		// same as an occupied one, so the mark means "check here".
+		if (display.highlightHideonwalls && biome == SafariBiome.HAUNTED) {
+			for (BlockPos pos : HideonwallSpots.positions()) {
+				markers.add(block(pos, "Hideonwall perch",
+					Colours.argb(display.hideonwallColour, 0xFFAA55FF)));
+			}
+		}
+
 		if (display.highlightMounds && biome == SafariBiome.CAVERN) {
 			for (BlockPos pos : MoundSpotter.mounds()) {
 				markers.add(block(pos, "Mound", Colours.argb(display.moundColour, 0xFFCC7744)));

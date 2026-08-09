@@ -210,6 +210,15 @@ public class CritterConfig extends Config {
 		public boolean highlightTrades = false;
 
 		@ConfigOption(
+			name = "Highlight Hideonwall perches",
+			desc = "Mark the eight places a Hideonwall turns up, while you are in the Haunted biome.\n" +
+				"§7Fixed spots, not sightings: an empty perch looks exactly like an occupied\n" +
+				"§7one, so the mark means check here rather than one is here.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean highlightHideonwalls = false;
+
+		@ConfigOption(
 			name = "Highlight mounds",
 			desc = "Outline detected Rockmite mounds, while you are in the Cavern.\n" +
 				"§7Matched on interaction hitbox size, which is weaker evidence than the\n" +
@@ -387,6 +396,12 @@ public class CritterConfig extends Config {
 		@ConfigAccordionId(id = COLOURS)
 		@Expose
 		public String moundColour = colour(0xCC, 0x77, 0x44);
+
+		@ConfigOption(name = "Hideonwall perches", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String hideonwallColour = colour(0xAA, 0x55, 0xFF);
 
 		@ConfigOption(name = "Recatch spot", desc = "")
 		@ConfigEditorColour
