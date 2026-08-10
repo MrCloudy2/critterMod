@@ -3,8 +3,18 @@
 A client-side Fabric mod for **Minecraft 26.1.2** that tracks a party's progress through
 Hypixel SkyBlock's **Critter Safari**, one run at a time.
 
-Requires **Fabric Loader 0.19+**, **Fabric API**, **fabric-language-kotlin** and Java 25.
-MoulConfig is bundled. Mod Menu is optional.
+## Installing
+
+1. Install **Fabric Loader 0.19 or newer** for Minecraft **26.1.2**.
+2. Put these in your `mods` folder:
+   - this mod's jar
+   - [Fabric API](https://modrinth.com/mod/fabric-api)
+   - [fabric-language-kotlin](https://modrinth.com/mod/fabric-language-kotlin)
+   - optionally [Mod Menu](https://modrinth.com/mod/modmenu), for a settings button
+3. Launch the game and go to the Critter Safari. The panels appear on their own.
+4. `/cm` opens the settings, `/ct` opens the run screen.
+
+MoulConfig is bundled inside the jar — nothing to install for it.
 
 ## Features
 
@@ -89,11 +99,11 @@ Quick toggles: `/critters hud` · `panel` · `alerts` · `notify` · `biomedone`
 
 ## Building
 
+Requires JDK 25.
+
 ```bash
 ./gradlew build
 ```
-
-Requires JDK 25. The jar is written to `build/libs/`.
 
 ## License
 
