@@ -230,12 +230,11 @@ public final class CritterCommand {
 	private static void waypoints(FabricClientCommandSource source) {
 		CritterConfig config = ConfigManager.get();
 		source.sendFeedback(header("Highlights"));
-		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s%s%s".formatted(
+		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s%s".formatted(
 			config.display.highlightSnooperWalls ? "snooper " : "",
 			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
-			config.display.hideyhoSolver ? "hideyho " : "",
 			config.display.highlightHideonwalls ? "perches " : "",
 			config.display.recatchHelper ? "recatch " : "",
 			config.display.floorDropStyle() == CritterConfig.MarkStyle.OFF ? ""
@@ -278,10 +277,6 @@ public final class CritterCommand {
 		source.sendFeedback(Component.literal("  pinned      " + (RecatchSpots.pinned() == null
 			? "nothing" : "%s at %.0fm".formatted(RecatchSpots.pinnedCritter().name(),
 				RecatchSpots.distance()))).withStyle(ChatFormatting.DARK_GRAY));
-		BlockPos hideyho = HideyhoSolver.position();
-		source.sendFeedback(Component.literal("  hideyho     " + (hideyho == null ? "not loaded"
-			: "%d %d %d".formatted(hideyho.getX(), hideyho.getY(), hideyho.getZ())))
-			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	private static void openSettings() {
