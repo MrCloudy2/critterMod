@@ -52,8 +52,9 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
   those walls, the nests, the Hunter trade spots, the Rockmite mounds and the eight
   Hideonwall perches. Each is separately toggleable, all off by default, and each only
   shows in its own biome.
-- **Bloodbat outlines** — the species that is genuinely hard to see, glowing through
-  the Haunted geometry.
+- **Bloodbat outlines** — a box on the species that is genuinely hard to see against the
+  Haunted geometry. Depth-tested, so it marks one you could see anyway rather than
+  showing you what is behind a wall.
 - **Hideyho solver** — hiding only moves it, and its name tag stays loaded on the
   client throughout, so the waypoint is where it actually is rather than a guess from
   a list of hiding spots. The mark survives the entity unloading, so one pass within

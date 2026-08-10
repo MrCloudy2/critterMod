@@ -269,8 +269,9 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Highlight hard-to-find critters",
-			desc = "Outline the mobs of species that are awkward to spot, Bloodbats especially.\n" +
-				"§7Uses the client-side glow flag, so they show through walls.")
+			desc = "Box the mobs of species that are awkward to spot, Bloodbats especially.\n" +
+				"§7Drawn where it stands and depth-tested, so it marks one you could see\n" +
+				"§7anyway rather than showing you what is behind a wall.")
 		@ConfigEditorBoolean
 		@Expose
 		public boolean highlightHardToFind = true;
@@ -396,6 +397,12 @@ public class CritterConfig extends Config {
 		@ConfigAccordionId(id = COLOURS)
 		@Expose
 		public String moundColour = colour(0xCC, 0x77, 0x44);
+
+		@ConfigOption(name = "Hard-to-find critters", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String hardToFindColour = colour(0xFF, 0x55, 0x55);
 
 		@ConfigOption(name = "Hideonwall perches", desc = "")
 		@ConfigEditorColour
