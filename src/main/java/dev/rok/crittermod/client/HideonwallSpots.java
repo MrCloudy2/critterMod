@@ -20,7 +20,7 @@ public final class HideonwallSpots {
 
 	private static final int[][] PERCHES = {
 		{18, 71, -57},
-		{-4, 71, -85},
+		{-5, 71, -85},
 		{-23, 71, -76},
 		{-25, 71, -65},
 		{-25, 79, -57},
