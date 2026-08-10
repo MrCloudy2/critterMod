@@ -164,11 +164,12 @@ public class CritterConfig extends Config {
 			name = "Show nearby spawns",
 			desc = "Mark a missing species with how many are loaded around you right now.\n" +
 				"§7Read off their name tags, refreshed twice a second.\n" +
-				"§7This is not a total and cannot be: the client never sees the far side of\n" +
-				"§7the map, and a partymate catching something out of range is never observed.")
+				"§7Off by default: it counts ones you cannot see as readily as ones you can.\n" +
+				"§7It is not a total either — the client never sees the far side of the map,\n" +
+				"§7and a partymate catching something out of range is never observed.")
 		@ConfigEditorBoolean
 		@Expose
-		public boolean countSpawns = true;
+		public boolean countSpawns = false;
 
 		@ConfigOption(
 			name = "Hotspot line",
