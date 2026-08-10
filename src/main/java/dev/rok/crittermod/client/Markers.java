@@ -10,6 +10,14 @@ import java.util.List;
 /** The positions worth highlighting, each behind its own setting. */
 public final class Markers {
 
+	/**
+	 * Species awkward enough to spot that a box around them earns its place.
+	 *
+	 * <p>Bloodbats are small, dark, and sit against Haunted geometry the same colour as
+	 * they are.
+	 */
+	private static final java.util.Set<String> HARD_TO_FIND = java.util.Set.of("Bloodbat");
+
 	/** How a marker is drawn. */
 	public enum Style {
 		/** Through the terrain, with its name and distance floating above it. */
@@ -74,6 +82,19 @@ public final class Markers {
 			if (hideyho != null) {
 				markers.add(block(hideyho, HideyhoSolver.live() ? "Hideyho" : "Hideyho (last seen)",
 					Colours.argb(display.hideyhoColour, 0xFFFF55FF)));
+			}
+		}
+
+		// Boxed where it stands, never through the terrain: this marks something you
+		// could see anyway, which is the whole difference between helping you spot it
+		// and telling you what is behind a wall.
+		if (display.highlightHardToFind) {
+			for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+				if (!HARD_TO_FIND.contains(sighting.critter().name())) continue;
+				// The name tag alone gives nothing to box; the mob under it is the thing.
+				if (sighting.mob() == null) continue;
+				markers.add(new Marker(sighting.mob().getBoundingBox(), sighting.critter().name(),
+					Colours.argb(display.hardToFindColour, 0xFFFF5555), Style.HIGHLIGHT));
 			}
 		}
 
