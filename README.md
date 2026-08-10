@@ -55,10 +55,6 @@ Quick toggles, all also in the settings: `/critters hud` · `panel` · `alerts` 
 - **Bloodbat outlines** — a box on the species that is genuinely hard to see against the
   Haunted geometry. Depth-tested, so it marks one you could see anyway rather than
   showing you what is behind a wall.
-- **Hideyho solver** — hiding only moves it, and its name tag stays loaded on the
-  client throughout, so the waypoint is where it actually is rather than a guess from
-  a list of hiding spots. The mark survives the entity unloading, so one pass within
-  range is enough. Off by default.
 - **Recatch helper** — a throw takes the critter out of the world; if the capture fails
   it comes back to the spot it left from and starts running. The spot is pinned at the
   critter's own size so the next capsule is already aimed. Off by default.

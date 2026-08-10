@@ -228,16 +228,6 @@ public class CritterConfig extends Config {
 		public boolean highlightMounds = false;
 
 		@ConfigOption(
-			name = "Hideyho solver",
-			desc = "Mark where Hideyho is hiding, while you are in the Haunted biome.\n" +
-				"§7Hiding only moves it: its name tag stays loaded on the client the whole\n" +
-				"§7time, which is why the missing panel still counts one while nobody can see\n" +
-				"§7it. So this is where it actually is, not a list of known hiding spots.")
-		@ConfigEditorBoolean
-		@Expose
-		public boolean hideyhoSolver = false;
-
-		@ConfigOption(
 			name = "Recatch helper",
 			desc = "Pin where a critter was when you threw a capsule at it.\n" +
 				"§7A throw takes it out of the world and puts the CAPTURING ball off to one\n" +
@@ -385,12 +375,6 @@ public class CritterConfig extends Config {
 		@ConfigAccordionId(id = COLOURS)
 		@Expose
 		public String tradeColour = colour(0x55, 0xFF, 0xFF);
-
-		@ConfigOption(name = "Hideyho", desc = "")
-		@ConfigEditorColour
-		@ConfigAccordionId(id = COLOURS)
-		@Expose
-		public String hideyhoColour = colour(0xFF, 0x55, 0xFF);
 
 		@ConfigOption(name = "Rockmite mounds", desc = "")
 		@ConfigEditorColour
