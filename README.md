@@ -26,8 +26,10 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 - Capsule throws counted, so "keeps escaping" reads differently from "not found yet"
 - Species a run can no longer produce marked as such
 - Runs saved to disk when the next one starts
-- History tab: every saved run, with length, dex and catches
+- History tab: every saved run, with length, dex, catches and what it was worth
 - Stats tab: totals per species across every run, time played, catches a run, full-dex runs
+- Shard value: what a run gave, priced per species at live bazaar prices — coins now, coins
+  a run, coins an hour, and the total across every saved run
 - Log replay: reconstruct past runs from chat logs, in game or offline
 
 **On screen**
@@ -75,6 +77,8 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 
 - Settings GUI built with MoulConfig, reachable from Mod Menu
 - Warden darkness removed while at the Safari, optional
+- Bazaar prices from Hypixel's public endpoint — no key, no account, nothing about you in
+  the request, and it can be turned off
 
 ## Commands
 
@@ -87,6 +91,7 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 | `/critters copy` | Copy that list to the clipboard |
 | `/critters share` | Post it to party chat |
 | `/critters players` | Unique catches per player per biome |
+| `/critters prices` | Refresh the bazaar prices and price this run's shards |
 | `/critters text` | The run summary as chat text |
 | `/critters reset` | Clear the current run |
 | `/critters history` | Replay this instance's logs, list past runs |

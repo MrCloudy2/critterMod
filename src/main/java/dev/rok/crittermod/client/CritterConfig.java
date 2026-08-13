@@ -67,6 +67,14 @@ public class CritterConfig extends Config {
 		}
 	}
 
+	/** Which side of the bazaar spread a shard is valued at. */
+	public enum PriceSource {
+		/** The best standing buy order — what selling to the bazaar pays right now. */
+		INSTANT_SELL,
+		/** The cheapest standing sell offer — what you would list at, and wait for. */
+		SELL_OFFER
+	}
+
 	/** How a set of positions is drawn, for the settings that offer the choice. */
 	public enum MarkStyle {
 		/** Not drawn at all. */
@@ -115,6 +123,10 @@ public class CritterConfig extends Config {
 	@Category(name = "Party", desc = "What gets announced to your team")
 	@Expose
 	public PartyConfig party = new PartyConfig();
+
+	@Category(name = "Profit", desc = "What the shards are worth")
+	@Expose
+	public ProfitConfig profit = new ProfitConfig();
 
 	@Category(name = "Advanced", desc = "Diagnostics and unfinished work")
 	@Expose
@@ -431,6 +443,50 @@ public class CritterConfig extends Config {
 		public float tradesX = 0.006f;
 		@Expose
 		public float tradesY = 0.62f;
+	}
+
+	public static class ProfitConfig {
+
+		@ConfigOption(
+			name = "Track shard value",
+			desc = "Price the shards a run gives, from the bazaar.\n" +
+				"§7Shards are read out of the same catch messages the tracker already sees —\n" +
+				"§7a catch gives a random number of them, so what a run is worth cannot be\n" +
+				"§7worked out from the catch counts.\n" +
+				"§7§lThis fetches prices from api.hypixel.net§r§7 while you are at the Safari or\n" +
+				"§7have the run screen open, at most once every two minutes. It is a public\n" +
+				"§7endpoint: no key, no account, and nothing about you in the request.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean enabled = true;
+
+		@ConfigOption(
+			name = "Price",
+			desc = "Which side of the spread a shard is counted at.\n" +
+				"§7§lInstant sell§r§7 is the best standing buy order — what selling to the bazaar\n" +
+				"§7pays you this second. §lSell offer§r§7 is the cheapest standing sell offer, what\n" +
+				"§7you would list at and wait for. The second is the bigger number and the\n" +
+				"§7slower money.\n" +
+				"§7Both are read off the top of the order book rather than Hypixel's average,\n" +
+				"§7which one junk order priced at a coin can drag to nothing.")
+		@ConfigEditorDropdown(values = {"Instant sell", "Sell offer"})
+		@Expose
+		public int priceSource = 0;
+
+		/** The chosen side, guarded against a config file holding something out of range. */
+		public PriceSource priceSource() {
+			return priceSource >= 0 && priceSource < PriceSource.values().length
+				? PriceSource.values()[priceSource] : PriceSource.INSTANT_SELL;
+		}
+
+		@ConfigOption(
+			name = "Subtract bazaar tax",
+			desc = "Take the 1.25% bazaar tax off, since both prices are a sell.\n" +
+				"§7On by default: it is money you never see. Turn it off if you have Bazaar\n" +
+				"§7Flipper, which pays less than this assumes.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean subtractTax = true;
 	}
 
 	public static class AdvancedConfig {

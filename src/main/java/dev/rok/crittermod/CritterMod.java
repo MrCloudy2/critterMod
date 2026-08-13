@@ -1,5 +1,6 @@
 package dev.rok.crittermod;
 
+import dev.rok.crittermod.client.BazaarPrices;
 import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
@@ -99,6 +100,8 @@ public class CritterMod implements ClientModInitializer {
 			RecatchSpots.tick();
 			DarknessFilter.tick();
 			TraderWatch.tick();
+			// Off-thread, at most every two minutes, and only where a price is shown.
+			BazaarPrices.tick();
 			ChatQueue.tick();
 			ConfigManager.tick();
 		});

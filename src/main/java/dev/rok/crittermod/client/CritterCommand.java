@@ -158,6 +158,10 @@ public final class CritterCommand {
 					"Party > [VIP] Partymate: Hunter Dennis (Icy -106 87 -7): Gimmiegold Shard for Purple Gem");
 				return 1;
 			}))
+			.then(ClientCommands.literal("prices").executes(ctx -> {
+				prices(ctx.getSource());
+				return 1;
+			}))
 			.then(ClientCommands.literal("history").executes(ctx -> {
 				history(ctx.getSource());
 				return 1;
@@ -328,13 +332,71 @@ public final class CritterCommand {
 					.withStyle(ChatFormatting.DARK_GRAY)));
 		}
 
+		if (ConfigManager.get().profit.enabled && BazaarPrices.known()) {
+			source.sendFeedback(Component.literal("  Value ")
+				.withStyle(ChatFormatting.GRAY)
+				.append(Component.literal("%s coins".formatted(
+					BazaarPrices.format(BazaarPrices.valueOf(session))))
+					.withStyle(ChatFormatting.GOLD))
+				.append(Component.literal("  ·  %d shards".formatted(session.totalShards()))
+					.withStyle(ChatFormatting.DARK_GRAY)));
+		}
+
 		if (!session.sparklings().isEmpty()) {
 			source.sendFeedback(Component.literal("  SPARKLING: " + session.sparklings().stream()
 				.map(Critter::name).reduce((a, b) -> a + ", " + b).orElse(""))
 				.withStyle(ChatFormatting.LIGHT_PURPLE));
 		}
-		source.sendFeedback(Component.literal("  /ct run screen · /cm settings · text · missing · copy · share · players · reset · history")
+		source.sendFeedback(Component.literal("  /ct run screen · /cm settings · text · missing · copy · share · players · prices · reset · history")
 			.withStyle(ChatFormatting.DARK_GRAY));
+	}
+
+	/**
+	 * Forces a bazaar refresh and reports what the shards this run gave are worth.
+	 *
+	 * <p>The prices are fetched off-thread, so the report is of whatever is held right
+	 * now — run it twice if it says they have never loaded.
+	 */
+	private static void prices(FabricClientCommandSource source) {
+		CritterConfig config = ConfigManager.get();
+		if (!config.profit.enabled) {
+			source.sendFeedback(prefixed("Shard value is off — turn it on in /cm under Profit.",
+				ChatFormatting.GRAY));
+			return;
+		}
+
+		BazaarPrices.refreshNow();
+		long age = BazaarPrices.ageMillis();
+		source.sendFeedback(header("Shard prices"));
+		source.sendFeedback(Component.literal("  %s, tax %s  ·  %s".formatted(
+			config.profit.priceSource() == CritterConfig.PriceSource.SELL_OFFER
+				? "sell offer" : "instant sell",
+			config.profit.subtractTax ? "taken off" : "left in",
+			age < 0 ? "never loaded" : "fetched %ds ago".formatted(age / 1000)))
+			.withStyle(ChatFormatting.GRAY));
+		if (BazaarPrices.lastError() != null) {
+			source.sendFeedback(Component.literal("  last error: " + BazaarPrices.lastError())
+				.withStyle(ChatFormatting.RED));
+		}
+		source.sendFeedback(Component.literal("  refreshing…").withStyle(ChatFormatting.DARK_GRAY));
+
+		SafariSession session = SessionManager.currentOrLast();
+		if (session == null || !BazaarPrices.known()) return;
+
+		source.sendFeedback(Component.literal("  this run: %s coins from %d shards".formatted(
+			BazaarPrices.format(BazaarPrices.valueOf(session)), session.totalShards()))
+			.withStyle(ChatFormatting.GOLD));
+		// Sorted by what they were actually worth, since that is the question being asked.
+		session.shardCounts().entrySet().stream()
+			.sorted((a, b) -> Double.compare(
+				BazaarPrices.price(b.getKey()) * b.getValue(),
+				BazaarPrices.price(a.getKey()) * a.getValue()))
+			.limit(8)
+			.forEach(entry -> source.sendFeedback(Component.literal("    %-14s %2dx %s = %s".formatted(
+				entry.getKey().name(), entry.getValue(),
+				BazaarPrices.format(Math.round(BazaarPrices.price(entry.getKey()))),
+				BazaarPrices.format(Math.round(BazaarPrices.price(entry.getKey()) * entry.getValue()))))
+				.withStyle(ChatFormatting.WHITE)));
 	}
 
 	private static void missing(FabricClientCommandSource source) {

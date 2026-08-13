@@ -1,5 +1,7 @@
 package dev.rok.crittermod.data;
 
+import java.util.Locale;
+
 /**
  * One of the 37 Critter species catchable in the Critter Safari.
  *
@@ -19,6 +21,18 @@ public record Critter(String name, SafariBiome biome, Rarity rarity, int spawnQu
 	/** True when a fixed number spawn per run, so "all of them" is a meaningful target. */
 	public boolean hasQuota() {
 		return spawnQuota > 0;
+	}
+
+	/**
+	 * The bazaar product this species' shard trades as.
+	 *
+	 * <p>Derived rather than tabulated: every one of the 37 is {@code SHARD_} followed by
+	 * the species name upper-cased with spaces underscored, checked against the live
+	 * product list. A species Hypixel later names differently would simply have no price,
+	 * which is what {@code 0} means everywhere this is used.
+	 */
+	public String bazaarId() {
+		return "SHARD_" + name.toUpperCase(Locale.ROOT).replace(' ', '_');
 	}
 
 	public enum Rarity {
