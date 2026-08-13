@@ -46,6 +46,16 @@ public final class SafariSession {
 	 */
 	private final Map<Critter, Integer> nearbyCounts = new LinkedHashMap<>();
 
+	/**
+	 * Shards you actually received, by species — both from your own catches and from
+	 * loot share, since both land in your inventory.
+	 *
+	 * <p>Kept per species rather than as one total because a shard is only worth what its
+	 * own species trades for: a run of Foxtrots and a run of Doomspirals are not the same
+	 * money. A catch is not one shard either, so the catch counts cannot stand in for it.
+	 */
+	private final Map<Critter, Integer> shards = new LinkedHashMap<>();
+
 	private int ownShards;
 	private int sharedShards;
 	private long lastEventMillis;
@@ -65,11 +75,13 @@ public final class SafariSession {
 			case OWN_CATCH -> {
 				ownCatches.merge(critter, 1, Integer::sum);
 				ownShards += event.shards();
+				shards.merge(critter, event.shards(), Integer::sum);
 			}
 			case SHARED_CATCH -> {
 				sharedCatches.computeIfAbsent(critter, c -> new TreeMap<>())
 					.merge(event.catcher(), 1, Integer::sum);
 				sharedShards += event.shards();
+				shards.merge(critter, event.shards(), Integer::sum);
 			}
 			case ATTEMPT -> attempts.merge(critter, 1, Integer::sum);
 			case FAILED -> failures.merge(critter, 1, Integer::sum);
@@ -303,8 +315,19 @@ public final class SafariSession {
 		return ownShards;
 	}
 
+	/**
+	 * Every shard that reached you this run, yours and loot-shared alike.
+	 *
+	 * <p>Not "shards the party got": a partymate's own catches are never itemised to this
+	 * client, so only what was shared with you is knowable.
+	 */
 	public int totalShards() {
 		return ownShards + sharedShards;
+	}
+
+	/** The same shards, split by species, for anything pricing them. */
+	public Map<Critter, Integer> shardCounts() {
+		return Map.copyOf(shards);
 	}
 
 	public String selfName() {

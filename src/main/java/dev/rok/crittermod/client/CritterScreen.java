@@ -52,6 +52,8 @@ public final class CritterScreen extends Screen {
 	private static final int CAUGHT_BY_PARTY = 0xFF55FFFF;
 	private static final int UNCAUGHT = 0xFF777777;
 	private static final int HEADING = 0xFFFFAA00;
+	/** Gold, as coins are everywhere else in SkyBlock. */
+	private static final int COINS = 0xFFFFD700;
 	private static final int LABEL = 0xFFBBBBBB;
 	private static final int DIM = 0xFF888888;
 	private static final int WHITE = 0xFFFFFFFF;
@@ -93,6 +95,14 @@ public final class CritterScreen extends Screen {
 		super(Component.literal("Critter Safari"));
 		this.session = SessionManager.currentOrLast();
 		this.live = SessionManager.current() != null;
+		// The screen is the one place the prices are read outside the Safari, so opening
+		// it is the thing that asks for them.
+		BazaarPrices.refreshIfStale();
+	}
+
+	/** Whether the money columns and lines are wanted at all. */
+	private static boolean showValue() {
+		return ConfigManager.get().profit.enabled;
 	}
 
 	@Override
@@ -103,14 +113,16 @@ public final class CritterScreen extends Screen {
 		// and "Shuddersquid" ran into their own counts at a fixed width.
 		columnWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(measureColumnWidth(), available / columns));
 		panelWidth = columnWidth * columns + PANEL_PADDING * 2;
+		// The value line is one more row in the header, and one more in the Stats summary.
+		int valueRows = showValue() ? 1 : 0;
 		panelHeight = switch (tab) {
 			// Header block, the longest biome column (Haunted has 10), then the player table.
-			case RUN -> 46 + (2 + 10) * LINE_HEIGHT
+			case RUN -> 46 + (2 + valueRows + 10) * LINE_HEIGHT
 				+ ((session == null ? 0 : session.uniquePerPlayer().size()) + 2) * LINE_HEIGHT + 40;
 			// A summary block, then one line per run shown.
 			case HISTORY -> 46 + (HISTORY_ROWS + 2) * LINE_HEIGHT + 46;
 			// A summary block, then the species columns.
-			case STATS -> 46 + (4 + 10) * LINE_HEIGHT + 46;
+			case STATS -> 46 + (4 + valueRows + 10) * LINE_HEIGHT + 46;
 		};
 		panelLeft = Math.max(4, (width - panelWidth) / 2);
 		panelTop = Math.max(10, (height - panelHeight) / 2);
@@ -207,7 +219,39 @@ public final class CritterScreen extends Screen {
 		y = drawSummaryBar(graphics, font, left, y, "Party", session.partyUnique(), total,
 			session.dexComplete() ? CAUGHT_BY_YOU : WHITE);
 		y = drawSummaryBar(graphics, font, left, y, "You", session.ownUnique(), total, CAUGHT_BY_PARTY);
+		if (showValue()) y = drawValue(graphics, font, left, y);
 		return y;
+	}
+
+	/**
+	 * What the shards this run has given you are worth.
+	 *
+	 * <p>Yours and loot-shared together, since both land in your inventory — and only
+	 * yours, because a partymate's own catches are never itemised to this client.
+	 */
+	private int drawValue(GuiGraphicsExtractor graphics, Font font, int x, int y) {
+		graphics.text(font, Component.literal("Value"), x, y, LABEL);
+
+		int shards = session.totalShards();
+		String text;
+		int colour = COINS;
+		if (!BazaarPrices.known()) {
+			text = shards == 0 ? "no shards yet" : "%d shards  ·  bazaar prices not loaded".formatted(shards);
+			colour = DIM;
+		} else {
+			long coins = BazaarPrices.valueOf(session);
+			text = "%s coins  ·  %d shard%s".formatted(
+				BazaarPrices.format(coins), shards, shards == 1 ? "" : "s");
+			// Per hour only once there is enough of a run to divide by; a minute in, the
+			// rate says more about the last catch than about the run.
+			long elapsed = live ? session.elapsedMillis(System.currentTimeMillis())
+				: session.durationMillis();
+			if (elapsed >= 60_000 && coins > 0) {
+				text += "  ·  %s/h".formatted(BazaarPrices.format(coins * 3_600_000L / elapsed));
+			}
+		}
+		graphics.text(font, Component.literal(text), x + 40, y, colour);
+		return y + LINE_HEIGHT + 2;
 	}
 
 	private int drawSummaryBar(GuiGraphicsExtractor graphics, Font font, int x, int y,
@@ -335,19 +379,28 @@ public final class CritterScreen extends Screen {
 			return;
 		}
 
-		graphics.text(font, Component.literal("%d run%s  ·  %s played  ·  %d caught  ·  best %d/%d".formatted(
+		boolean value = showValue();
+		String summary = "%d run%s  ·  %s played  ·  %d caught  ·  best %d/%d".formatted(
 			runs.size(), runs.size() == 1 ? "" : "s", formatHours(RunHistory.totalTimeMillis()),
-			RunHistory.totalCatches(), RunHistory.bestDex(), Critters.total())), left, y, LABEL);
+			RunHistory.totalCatches(), RunHistory.bestDex(), Critters.total());
+		if (value && BazaarPrices.known()) {
+			summary += "  ·  %s coins".formatted(BazaarPrices.format(BazaarPrices.totalValue(runs)));
+		}
+		graphics.text(font, Component.literal(summary), left, y, LABEL);
 		y += LINE_HEIGHT + 5;
 
 		// Fixed columns: the proportional font makes padded text impossible to align.
+		int columns = value ? 5 : 4;
 		int timeWidth = Math.min(120, panelWidth / 3);
-		int cell = Math.max(46, (panelWidth - PANEL_PADDING * 2 - timeWidth) / 4);
+		int cell = Math.max(40, (panelWidth - PANEL_PADDING * 2 - timeWidth) / columns);
 		graphics.text(font, Component.literal("When"), left, y, LABEL);
 		graphics.text(font, Component.literal("Length"), left + timeWidth, y, LABEL);
 		graphics.text(font, Component.literal("Party"), left + timeWidth + cell, y, LABEL);
 		graphics.text(font, Component.literal("You"), left + timeWidth + cell * 2, y, LABEL);
 		graphics.text(font, Component.literal("Caught"), left + timeWidth + cell * 3, y, LABEL);
+		if (value) {
+			graphics.text(font, Component.literal("Coins"), left + timeWidth + cell * 4, y, LABEL);
+		}
 		y += LINE_HEIGHT + 2;
 
 		int total = Critters.total();
@@ -363,6 +416,14 @@ public final class CritterScreen extends Screen {
 				left + timeWidth + cell * 2, y, CAUGHT_BY_PARTY);
 			graphics.text(font, Component.literal(String.valueOf(run.partyTotal())),
 				left + timeWidth + cell * 3, y, DIM);
+			if (value) {
+				// A run saved before the shards were kept per species can never be priced,
+				// so it says so rather than showing a zero it does not mean.
+				boolean priced = run.hasShardData() && BazaarPrices.known();
+				graphics.text(font, Component.literal(
+						priced ? BazaarPrices.format(BazaarPrices.valueOf(run)) : "—"),
+					left + timeWidth + cell * 4, y, priced ? COINS : UNCAUGHT);
+			}
 			y += LINE_HEIGHT;
 		}
 	}
@@ -398,7 +459,12 @@ public final class CritterScreen extends Screen {
 		graphics.text(font, Component.literal("%d shards  ·  %.1f catches a run  ·  %d full dex  ·  %d never caught"
 			.formatted(RunHistory.totalShards(), (double) RunHistory.totalCatches() / runs,
 				RunHistory.perfectRuns(), never)), left, y, LABEL);
-		y += LINE_HEIGHT + 5;
+		y += LINE_HEIGHT;
+
+		if (showValue()) {
+			y = drawValueTotals(graphics, font, left, y);
+		}
+		y += 5;
 
 		SafariBiome[] biomes = SafariBiome.values();
 		for (int i = 0; i < biomes.length; i++) {
@@ -422,6 +488,38 @@ public final class CritterScreen extends Screen {
 				rowY += LINE_HEIGHT;
 			}
 		}
+	}
+
+	/**
+	 * Money across the saved runs: everything they were worth, and what that is a run.
+	 *
+	 * <p>Averaged over the runs that can be priced rather than over all of them, and it
+	 * says how many those are — runs saved before the shards were kept per species would
+	 * otherwise drag the average down as free zeroes.
+	 */
+	private int drawValueTotals(GuiGraphicsExtractor graphics, Font font, int x, int y) {
+		List<RunRecord> runs = RunHistory.runs();
+		int priced = BazaarPrices.pricedRuns(runs);
+
+		if (!BazaarPrices.known()) {
+			graphics.text(font, Component.literal(BazaarPrices.lastError() == null
+					? "Waiting for bazaar prices…"
+					: "No bazaar prices: " + BazaarPrices.lastError()),
+				x, y, DIM);
+			return y + LINE_HEIGHT;
+		}
+		if (priced == 0) {
+			graphics.text(font, Component.literal(
+				"No priced runs yet — runs saved from now on keep what their shards were."),
+				x, y, DIM);
+			return y + LINE_HEIGHT;
+		}
+
+		long total = BazaarPrices.totalValue(runs);
+		String text = "%s coins  ·  %s a run  ·  %d of %d runs priced".formatted(
+			BazaarPrices.format(total), BazaarPrices.format(total / priced), priced, runs.size());
+		graphics.text(font, Component.literal(text), x, y, COINS);
+		return y + LINE_HEIGHT;
 	}
 
 	/** Date and time of day, which is how you recognise a run you remember. */

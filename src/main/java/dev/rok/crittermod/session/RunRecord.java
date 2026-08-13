@@ -28,6 +28,14 @@ public class RunRecord {
 	public Map<String, Integer> shared = new LinkedHashMap<>();
 	/** Species name -> capsules thrown at it. */
 	public Map<String, Integer> attempts = new LinkedHashMap<>();
+	/**
+	 * Species name -> shards that reached you, yours and loot-shared together.
+	 *
+	 * <p>Absent from runs saved before this was kept, which is why {@link #hasShardData()}
+	 * exists: those runs know how many shards they gave but not of what, so they can never
+	 * be priced and are left out of the money totals rather than guessed at.
+	 */
+	public Map<String, Integer> shards = new LinkedHashMap<>();
 	public int ownShards;
 	public int totalShards;
 
@@ -43,6 +51,7 @@ public class RunRecord {
 		session.ownCatchCounts().forEach((critter, count) -> record.own.put(critter.name(), count));
 		session.sharedCatchCounts().forEach((critter, count) -> record.shared.put(critter.name(), count));
 		session.attemptCounts().forEach((critter, count) -> record.attempts.put(critter.name(), count));
+		session.shardCounts().forEach((critter, count) -> record.shards.put(critter.name(), count));
 		record.ownShards = session.ownShards();
 		record.totalShards = session.totalShards();
 		return record;
@@ -50,6 +59,16 @@ public class RunRecord {
 
 	public long durationMillis() {
 		return Math.max(0, ended - started);
+	}
+
+	/** Whether this run knows which species its shards came from, and so can be priced. */
+	public boolean hasShardData() {
+		return shards != null && !shards.isEmpty();
+	}
+
+	/** How many {@code critter} shards this run put in your inventory. */
+	public int shards(Critter critter) {
+		return shards == null ? 0 : shards.getOrDefault(critter.name(), 0);
 	}
 
 	/** How many times anyone in the party caught {@code critter} in this run. */

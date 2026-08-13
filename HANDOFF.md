@@ -11,8 +11,10 @@ client already receives and entities the client already has, and shows what this
 has caught **since walking in** — which the in-game Critterdex cannot, because it counts
 what you have caught ever.
 
-Nothing is sent to any server. The only outbound traffic is chat messages the player
-opted into (`/pc`, `/ac`), queued through `ChatQueue`.
+Nothing about the player is sent anywhere. Two things leave the client: chat messages the
+player opted into (`/pc`, `/ac`), queued through `ChatQueue`, and a GET of Hypixel's public
+bazaar endpoint for shard prices — no key, no account, no player data, behind the **Profit
+→ Track shard value** setting, and only while there is somewhere to show the number.
 
 ## Branches
 
@@ -77,6 +79,7 @@ ChatParser.playerSaid(line)    a player typed it → only TraderWatch sees it
 | `WaypointRenderer` | Draws those boxes. **Diverges between branches.** |
 | `EncounterAlerts` | Banners, chat lines, and `post()` — the shared "send to party/all" helper. |
 | `ChatParser` | Every chat pattern, and the player-said gate. |
+| `BazaarPrices` | The only network call. Polls the bazaar off-thread, prices a run's shards. |
 
 ## Rules that were learned the hard way
 
@@ -107,6 +110,19 @@ default.
 **Fail open on "cannot tell".** Where a gate depends on knowing the biome or the
 location, let the thing fire when it cannot be determined. Silence looks identical to
 the mod being broken.
+
+**A catch is not a shard, and a shard is not a coin.** Every catch gives a random number
+of shards, and each species' shard trades for a wildly different amount, so nothing about
+money can be derived from the catch counts. `SafariSession` keeps shards per species and
+`RunRecord` saves that map; runs saved before it existed carry only a shard total, and
+`hasShardData()` is how the views leave them out of the money instead of counting them as
+free zeroes.
+
+**Bazaar prices come off the top of the book, not `quick_status`.** Hypixel's quick status
+is a volume-weighted average over the whole order book, so a single junk order at one coin
+drags a shard's reported price to nothing. `BazaarPrices` reads the best entry of
+`sell_summary` (instant sell) and `buy_summary` (sell offer), which is what SkyHanni does
+and why. The names are the reverse of what they read like.
 
 **Verify data before trusting it.** The Hideonwall perches, the Snooper walls and the
 biome map were all checked against `SafariAreaMap` or real logs before being shipped.
