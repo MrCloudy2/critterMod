@@ -30,6 +30,8 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 - Stats tab: totals per species across every run, time played, catches a run, full-dex runs
 - Shard value: what a run gave, priced per species at live bazaar prices — coins now, coins
   a run, coins an hour, and the total across every saved run
+- Runs saved before shard tracking existed are priced by running `/critters import` once,
+  which reads their shards back out of the chat logs
 - Log replay: reconstruct past runs from chat logs, in game or offline
 
 **On screen**
@@ -95,7 +97,7 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 | `/critters text` | The run summary as chat text |
 | `/critters reset` | Clear the current run |
 | `/critters history` | Replay this instance's logs, list past runs |
-| `/critters import` | Fill the saved history from those logs, once |
+| `/critters import` | Fill the saved history from those logs, and backfill older runs' shards so they can be priced |
 | `/critters testalert` | Fire every alert now, to check them |
 | `/critters waypoints` | What is marked right now |
 | `/critters debug` | Dump area detection sources |

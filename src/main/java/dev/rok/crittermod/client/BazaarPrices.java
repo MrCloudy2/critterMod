@@ -315,11 +315,6 @@ public final class BazaarPrices {
 		return total;
 	}
 
-	/** How many of {@code runs} can be priced at all — the divisor for an average. */
-	public static int pricedRuns(List<RunRecord> runs) {
-		return (int) runs.stream().filter(RunRecord::hasShardData).count();
-	}
-
 	/**
 	 * Coins as they are said out loud: {@code 1.2M}, {@code 340k}, {@code 8,120}.
 	 *

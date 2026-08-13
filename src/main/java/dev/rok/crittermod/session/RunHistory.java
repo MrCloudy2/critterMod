@@ -99,27 +99,76 @@ public final class RunHistory {
 		save();
 	}
 
+	/** What an import did: runs that were new, and old ones it could fill in. */
+	public record Imported(int added, int filled) {
+		public boolean changedAnything() {
+			return added > 0 || filled > 0;
+		}
+	}
+
 	/**
-	 * Adds runs read from somewhere else, skipping any that are already held.
+	 * Adds runs read from somewhere else, and fills in what the ones already held are
+	 * missing.
 	 *
-	 * <p>Matched on start time, so importing the same logs twice does not double the
-	 * history.
+	 * <p>A run saved before the shard breakdown existed knows how many shards it gave but
+	 * not of what, so it can never be priced. The logs still say, and the same parser
+	 * reads them, so re-importing backfills the breakdown onto the run that is already
+	 * there rather than adding a second copy of it.
 	 *
-	 * @return how many were actually new
+	 * <p>Nothing else is overwritten. A saved run's catch counts are what was actually
+	 * seen at the time; a replay of a log that rotated mid-run would only know less.
 	 */
-	public static int importRuns(List<SafariSession> sessions) {
+	public static Imported importRuns(List<SafariSession> sessions) {
 		int added = 0;
+		int filled = 0;
 		for (SafariSession session : sessions) {
 			RunRecord record = RunRecord.of(session);
 			if (record.partyTotal() < MIN_CATCHES) continue;
-			if (runs.stream().anyMatch(existing -> existing.started == record.started)) continue;
+
+			RunRecord existing = sameRun(record);
+			if (existing != null) {
+				if (!existing.hasShardData() && record.hasShardData()) {
+					existing.shards = record.shards;
+					filled++;
+				}
+				continue;
+			}
 			runs.add(record);
 			added++;
 		}
 		runs.sort((a, b) -> Long.compare(a.started, b.started));
 		while (runs.size() > MAX_RUNS) runs.removeFirst();
-		if (added > 0) save();
-		return added;
+		Imported result = new Imported(added, filled);
+		if (result.changedAnything()) save();
+		return result;
+	}
+
+	/**
+	 * The saved run {@code record} is a replay of, or {@code null} if it is a new one.
+	 *
+	 * <p>Matched on overlapping time rather than on an equal start: a live run opens when
+	 * you arrive, while a replayed one opens at its first chat line, so the same run is
+	 * saved under two start times seconds apart. Half of the shorter run has to be shared
+	 * before they count as the same, because runs come back to back — one starts seconds
+	 * after the last one ended, and anything looser welds two of them together.
+	 */
+	private static RunRecord sameRun(RunRecord record) {
+		RunRecord best = null;
+		long bestOverlap = 0;
+		for (RunRecord existing : runs) {
+			long shared = Math.min(existing.ended, record.ended)
+				- Math.max(existing.started, record.started);
+			if (shared <= 0 || shared <= bestOverlap) continue;
+			if (shared * 2 < Math.min(existing.durationMillis(), record.durationMillis())) continue;
+			best = existing;
+			bestOverlap = shared;
+		}
+		return best;
+	}
+
+	/** Saved runs that kept a shard breakdown, and so can be priced. */
+	public static int pricedRuns() {
+		return (int) runs.stream().filter(RunRecord::hasShardData).count();
 	}
 
 	// --- stats ---------------------------------------------------------------
