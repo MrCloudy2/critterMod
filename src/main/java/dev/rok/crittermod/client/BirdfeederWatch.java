@@ -11,7 +11,11 @@ import net.minecraft.core.BlockPos;
  * line. So a spawn is worth telling the party about: whoever is in another biome wants
  * to know there is something to come back for.
  *
- * <p>Two ways of noticing, because neither covers the other:
+ * <p>The Birdfeeder attracts three species — Bluebird, Parakeet and, rarely, a pair of
+ * Macaws. Only the Macaw is called out by default; the other two are behind a setting,
+ * since they arrive often enough to be wallpaper.
+ *
+ * <p>Two ways of noticing a Macaw, because neither covers the other:
  *
  * <ul>
  * <li>the Birdfeeder announces it — {@code Two Macaws were attracted to the Birdfeeder!}
@@ -23,24 +27,44 @@ import net.minecraft.core.BlockPos;
  * <p>A cooldown covers the overlap, so a Birdfeeder spawn you then walk up to is
  * announced once rather than twice.
  */
-public final class MacawWatch {
+public final class BirdfeederWatch {
 
 	private static final String NAME = "Macaw";
 	/** Long enough that the two ways of noticing the same spawn cannot both fire. */
 	private static final long COOLDOWN_MILLIS = 60_000;
 
+	/**
+	 * The Birdfeeder's own line, from its start, with the count and the species left
+	 * open: {@code A Bluebird was attracted to the Birdfeeder!}, {@code Two Macaws were
+	 * attracted to the Birdfeeder!}. Anchored, so a player quoting it cannot set it off.
+	 */
+	private static final java.util.regex.Pattern BIRDFEEDER = java.util.regex.Pattern.compile(
+		"^\\S+ ([A-Za-z ]+?)s? (?:were|was) attracted to the Birdfeeder!$");
+
 	private static boolean wasLoaded;
 	private static long lastAnnounced;
 
-	private MacawWatch() {
+	private BirdfeederWatch() {
 	}
 
 	/** Feeds one cleaned chat line. */
 	public static void onChatMessage(String line) {
-		// "Two Macaws were attracted to the Birdfeeder!" is the wording seen; matched on
-		// the two halves so a singular or a different count still lands.
-		if (line.contains(NAME) && line.contains("attracted to the Birdfeeder")) {
+		java.util.regex.Matcher matcher = BIRDFEEDER.matcher(line);
+		if (!matcher.matches()) return;
+
+		dev.rok.crittermod.data.Critter bird =
+			dev.rok.crittermod.data.Critters.byName(matcher.group(1).trim());
+		// A wording this loose will match anything shaped like the sentence, so the
+		// species has to be one this mod knows before it is announced as a spawn.
+		if (bird == null) return;
+
+		if (NAME.equals(bird.name())) {
 			announce(null);
+		} else if (ConfigManager.get().alerts.birdfeederAlert) {
+			// The commoner birds get the same call in their own rarity's colour, so a
+			// Bluebird cannot be mistaken for the thing you were waiting for.
+			FullScreenAlert.show(bird.name().toUpperCase() + "!", "at the Birdfeeder",
+				bird.biome().displayName(), bird.rarity().colour());
 		}
 	}
 

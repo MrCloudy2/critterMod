@@ -2,22 +2,20 @@ package dev.rok.crittermod;
 
 import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
-import dev.rok.crittermod.client.CritterHighlighter;
 import dev.rok.crittermod.client.CritterHud;
 import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.CritterEntities;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.DarknessFilter;
 import dev.rok.crittermod.client.FloorDrops;
-import dev.rok.crittermod.client.HideyhoSolver;
 import dev.rok.crittermod.client.HotspotWatch;
-import dev.rok.crittermod.client.MacawWatch;
+import dev.rok.crittermod.client.BirdfeederWatch;
 import dev.rok.crittermod.client.MissingHud;
 import dev.rok.crittermod.client.MoundTracker;
 import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.RecatchSpots;
 import dev.rok.crittermod.client.SafariLocation;
-import dev.rok.crittermod.client.SparklingAlert;
+import dev.rok.crittermod.client.FullScreenAlert;
 import dev.rok.crittermod.client.SparklingWatch;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
@@ -67,14 +65,22 @@ public class CritterMod implements ClientModInitializer {
 			for (String part : message.getString().split("\\r?\\n|\\\\n")) {
 				String line = ChatParser.clean(part);
 				if (line.isEmpty()) continue;
+
+				// Anything a player can type, a player can quote. Only the shared-trade
+				// reader wants what people say — it is looking for this mod's own
+				// announcement — so everything else sees the game's messages alone.
+				if (ChatParser.playerSaid(line)) {
+					TraderWatch.onChatMessage(line);
+					continue;
+				}
+
 				SafariLocation.onChatMessage(line);
 				SessionManager.onChatMessage(line);
 				EncounterAlerts.onChatMessage(line);
 				TraderWatch.onChatMessage(line);
 				MoundTracker.onChatMessage(line);
 				RecatchSpots.onChatMessage(line);
-				HideyhoSolver.onChatMessage(line);
-				MacawWatch.onChatMessage(line);
+				BirdfeederWatch.onChatMessage(line);
 				HotspotWatch.onChatMessage(line);
 			}
 		});
@@ -87,9 +93,7 @@ public class CritterMod implements ClientModInitializer {
 			SessionManager.tick();
 			CritterSpotter.tick();
 			NestTracker.tick();
-			CritterHighlighter.tick();
-			HideyhoSolver.tick();
-			MacawWatch.tick();
+			BirdfeederWatch.tick();
 			SparklingWatch.tick();
 			FloorDrops.tick();
 			RecatchSpots.tick();
@@ -149,8 +153,8 @@ public class CritterMod implements ClientModInitializer {
 			new EncounterAlerts());
 		HudElementRegistry.attachElementBefore(
 			VanillaHudElements.CHAT,
-			Identifier.fromNamespaceAndPath(MOD_ID, "sparkling_alert"),
-			new SparklingAlert());
+			Identifier.fromNamespaceAndPath(MOD_ID, "full_screen_alert"),
+			new FullScreenAlert());
 
 		WaypointRenderer.register();
 

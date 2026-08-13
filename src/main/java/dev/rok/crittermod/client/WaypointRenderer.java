@@ -80,7 +80,7 @@ public final class WaypointRenderer {
 	private static void render(LevelRenderContext context) {
 		Minecraft client = Minecraft.getInstance();
 		if (client.player == null || client.gui.hud.isHidden()) return;
-		if (!SafariLocation.inSafari()) return;
+		if (!ConfigManager.get().display.showsHere()) return;
 
 		List<Markers.Marker> markers = Markers.collect();
 		if (markers.isEmpty()) return;

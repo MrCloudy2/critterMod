@@ -133,21 +133,25 @@ public final class CritterCommand {
 			.then(ClientCommands.literal("testalert").executes(ctx -> {
 				// Walks every stage without waiting for a real encounter, so banners,
 				// sounds and party messages can all be checked anywhere.
-				EncounterAlerts.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
-				EncounterAlerts.onChatMessage("You hear the sound of massive footsteps echoing through the Icy Biome... What could it be?");
-				EncounterAlerts.onChatMessage("The Wumpa has awoken.");
-				EncounterAlerts.onChatMessage("The cave opens up again...");
-				EncounterAlerts.onChatMessage("Your ritual summoned a Doomspiral into this world. Stay still.");
-				EncounterAlerts.onChatMessage("The Doomspiral retreats back underground...");
-				for (int i = 0; i < 3; i++) EncounterAlerts.onCatch("Gemzie");
-				EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
-				EncounterAlerts.onAllButMacaw();
-				EncounterAlerts.onAllDone();
+				EncounterAlerts.whileTesting(() -> {
+					EncounterAlerts.onChatMessage("A rumbling sound can be heard, and the door at the back of the chamber opens...");
+					EncounterAlerts.onChatMessage("You hear the sound of massive footsteps echoing through the Icy Biome... What could it be?");
+					EncounterAlerts.onChatMessage("The Wumpa has awoken.");
+					EncounterAlerts.onChatMessage("The cave opens up again...");
+					EncounterAlerts.onChatMessage("Your ritual summoned a Doomspiral into this world. Stay still.");
+					EncounterAlerts.onChatMessage("The Doomspiral retreats back underground...");
+					for (int i = 0; i < 3; i++) EncounterAlerts.onCatch("Gemzie");
+					EncounterAlerts.onBiomeComplete(SafariBiome.CAVERN);
+					EncounterAlerts.onAllButMacaw();
+					EncounterAlerts.onAllDone();
+				});
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: Say, do you have a use for a Nozzlenose Shard? I found it lying around...");
 				TraderWatch.onChatMessage("[NPC] Hunter Harry: I'll give you it in exchange for a Yogi Berry!");
-				MacawWatch.onChatMessage("Two Macaws were attracted to the Birdfeeder!");
+				BirdfeederWatch.onChatMessage("A Bluebird was attracted to the Birdfeeder!");
+				BirdfeederWatch.onChatMessage("Two Macaws were attracted to the Birdfeeder!");
 				HotspotWatch.onChatMessage("HOTSPOT! Your Hunting Hotspot is the Icy Biome!");
-				SparklingAlert.show("Rockmite", "Cavern -96 40 42");
+				FullScreenAlert.show("SPARKLING!", "Rockmite", "Cavern -96 40 42",
+					FullScreenAlert.SPARKLING);
 				// As a partymate running this mod would announce it, so the reading side
 				// can be checked without a second player.
 				TraderWatch.onChatMessage(
@@ -231,7 +235,7 @@ public final class CritterCommand {
 			config.display.highlightTroodonWalls ? "troodon " : "",
 			config.display.highlightNests ? "nests " : "",
 			config.display.highlightTrades ? "trades " : "",
-			config.display.hideyhoSolver ? "hideyho " : "",
+			config.display.highlightHideonwalls ? "perches " : "",
 			config.display.recatchHelper ? "recatch " : "",
 			config.display.floorDropStyle() == CritterConfig.MarkStyle.OFF ? ""
 				: "drops:" + config.display.floorDropStyle().name().toLowerCase() + " ",
@@ -273,10 +277,6 @@ public final class CritterCommand {
 		source.sendFeedback(Component.literal("  pinned      " + (RecatchSpots.pinned() == null
 			? "nothing" : "%s at %.0fm".formatted(RecatchSpots.pinnedCritter().name(),
 				RecatchSpots.distance()))).withStyle(ChatFormatting.DARK_GRAY));
-		BlockPos hideyho = HideyhoSolver.position();
-		source.sendFeedback(Component.literal("  hideyho     " + (hideyho == null ? "not loaded"
-			: "%d %d %d".formatted(hideyho.getX(), hideyho.getY(), hideyho.getZ())))
-			.withStyle(ChatFormatting.DARK_GRAY));
 	}
 
 	private static void openSettings() {

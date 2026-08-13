@@ -10,6 +10,14 @@ import java.util.List;
 /** The positions worth highlighting, each behind its own setting. */
 public final class Markers {
 
+	/**
+	 * Species awkward enough to spot that a box around them earns its place.
+	 *
+	 * <p>Bloodbats are small, dark, and sit against Haunted geometry the same colour as
+	 * they are.
+	 */
+	private static final java.util.Set<String> HARD_TO_FIND = java.util.Set.of("Bloodbat");
+
 	/** How a marker is drawn. */
 	public enum Style {
 		/** Through the terrain, with its name and distance floating above it. */
@@ -65,15 +73,25 @@ public final class Markers {
 			}
 		}
 
-		// It promises to stay in the Haunted biome, and says so in chat every round.
-		if (display.hideyhoSolver && biome == SafariBiome.HAUNTED) {
-			BlockPos hideyho = HideyhoSolver.position();
-			// Said plainly when the mark is a memory rather than a sighting: it is where
-			// it was when the client last had it, which is where it still is unless it
-			// has re-hidden — and its own chat lines are what clear it.
-			if (hideyho != null) {
-				markers.add(block(hideyho, HideyhoSolver.live() ? "Hideyho" : "Hideyho (last seen)",
-					Colours.argb(display.hideyhoColour, 0xFFFF55FF)));
+		// Boxed where it stands, never through the terrain: this marks something you
+		// could see anyway, which is the whole difference between helping you spot it
+		// and telling you what is behind a wall.
+		if (display.highlightHardToFind) {
+			for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+				if (!HARD_TO_FIND.contains(sighting.critter().name())) continue;
+				// The name tag alone gives nothing to box; the mob under it is the thing.
+				if (sighting.mob() == null) continue;
+				markers.add(new Marker(sighting.mob().getBoundingBox(), sighting.critter().name(),
+					Colours.argb(display.hardToFindColour, 0xFFFF5555), Style.HIGHLIGHT));
+			}
+		}
+
+		// Fixed perches rather than anything read from the world: an empty one looks the
+		// same as an occupied one, so the mark means "check here".
+		if (display.highlightHideonwalls && biome == SafariBiome.HAUNTED) {
+			for (BlockPos pos : HideonwallSpots.positions()) {
+				markers.add(block(pos, "Hideonwall perch",
+					Colours.argb(display.hideonwallColour, 0xFFAA55FF)));
 			}
 		}
 

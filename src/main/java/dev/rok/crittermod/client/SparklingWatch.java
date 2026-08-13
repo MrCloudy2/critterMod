@@ -14,11 +14,11 @@ import java.util.UUID;
  * caught a SPARKLING Rockmite!} — which is too late to be of use. Finding one before
  * that is done by eye today; parties resort to "theres a sparkling somewhere in icy".
  *
- * <p>This reads the name tag, on the assumption that a sparkling one is named for it.
- * That assumption is the weak part: if the tag turns out to read the same as any other
- * critter, nothing here will ever fire, and the particles around it are the evidence to
- * use instead — see the notes on identifying them. Nothing else in the mod depends on
- * this, so a wrong assumption costs a feature rather than breaking a run.
+ * <p>This reads the name tag, on the assumption that a sparkling one is named for it —
+ * and a name tag renders through terrain in vanilla, so this only calls out something
+ * already on screen. If the tag turns out to read the same as any other critter, nothing
+ * here fires; nothing else depends on it, so a wrong assumption costs a feature rather
+ * than breaking a run.
  */
 public final class SparklingWatch {
 
@@ -44,7 +44,8 @@ public final class SparklingWatch {
 		String where = describe(pos);
 
 		if (config.alerts.sparklingAlert) {
-			SparklingAlert.show(sighting.critter().name(), where);
+			FullScreenAlert.show("SPARKLING!", sighting.critter().name(), where,
+				FullScreenAlert.SPARKLING);
 		}
 		EncounterAlerts.post(config.party.sparkling(),
 			"SPARKLING %s! (%s)".formatted(sighting.critter().name(), where));
@@ -68,6 +69,6 @@ public final class SparklingWatch {
 	/** A new run has its own sparklings; the last one's are gone. */
 	public static void reset() {
 		announced.clear();
-		SparklingAlert.clear();
+		FullScreenAlert.clear();
 	}
 }

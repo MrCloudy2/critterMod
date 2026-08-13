@@ -19,7 +19,7 @@ import java.util.List;
  * is and how big it is.
  *
  * <p>Four features want this — the nearby-spawn counter, the Bloodbat outlines, the
- * Hideyho solver and the recatch helper — and each used to sweep the entity list for
+ * the recatch helper and the sparkling call — and each used to sweep the entity list for
  * itself. One sweep, read by all of them.
  */
 public final class CritterEntities {
@@ -38,9 +38,9 @@ public final class CritterEntities {
 	/**
 	 * One labelled critter. {@code mob} is null when nothing was found under the label.
 	 *
-	 * <p>{@code sparkling} is read off the label naming it, which is the assumption this
-	 * rests on — the particles around one would be firmer evidence, but their type is not
-	 * known yet. See {@code /critters particles} groundwork in the notes.
+	 * <p>{@code sparkling} is read off the label naming it. A name tag is visible through
+	 * terrain in vanilla anyway, so this reads something already on screen rather than
+	 * revealing anything.
 	 */
 	public record Sighting(Critter critter, Entity label, Entity mob, boolean sparkling) {
 		/** The entity to point at: the mob if there is one, otherwise the label itself. */

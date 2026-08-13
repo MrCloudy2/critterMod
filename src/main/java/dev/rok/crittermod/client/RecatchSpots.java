@@ -90,6 +90,11 @@ public final class RecatchSpots {
 			Player player = Minecraft.getInstance().player;
 			Map<Critter, Double> best = new HashMap<>();
 			for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+				// A capsule mid-capture carries the critter's name too, so it turns up as
+				// a sighting of that species — and pinning it puts the mark on the ball
+				// rather than on the spot the critter will come back to. A real critter
+				// has a mob under its name tag; the capsule has nothing.
+				if (sighting.mob() == null) continue;
 				AABB box = sighting.body().getBoundingBox();
 				double score = aimScore(player, box);
 				// Several of a species can be in view at once, and only one of them was

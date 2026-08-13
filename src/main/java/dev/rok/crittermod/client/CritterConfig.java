@@ -48,6 +48,25 @@ public class CritterConfig extends Config {
 		}
 	}
 
+	/** Where the panels and the in-world marks are shown. */
+	public enum Scope {
+		/** Inside the Safari only — nothing at the entrance over in Torrhus Canyon. */
+		SAFARI,
+		/** Inside and at the entrance, which is where a run is about to start. */
+		SAFARI_AND_ENTRANCE,
+		/** Wherever you are, Safari or not. */
+		EVERYWHERE;
+
+		/** Whether this scope covers the place the player is standing. */
+		public boolean covers(SafariLocation.Where where) {
+			return switch (this) {
+				case EVERYWHERE -> true;
+				case SAFARI_AND_ENTRANCE -> where != SafariLocation.Where.ELSEWHERE;
+				case SAFARI -> where == SafariLocation.Where.INSIDE;
+			};
+		}
+	}
+
 	/** How a set of positions is drawn, for the settings that offer the choice. */
 	public enum MarkStyle {
 		/** Not drawn at all. */
@@ -108,10 +127,26 @@ public class CritterConfig extends Config {
 		@Expose
 		public boolean hudEnabled = true;
 
-		@ConfigOption(name = "Only in the Safari", desc = "Hide the HUD outside the Critter Safari and its entrance.")
-		@ConfigEditorBoolean
+		@ConfigOption(
+			name = "Show where",
+			desc = "Where the panels and the in-world marks appear.\n" +
+				"§7The entrance is a separate area over in Torrhus Canyon, and its name also\n" +
+				"§7carries \"Safari\" — so it is its own choice rather than something you get\n" +
+				"§7whether you wanted it or not.")
+		@ConfigEditorDropdown(values = {"Only in the Safari", "Safari and entrance", "Everywhere"})
 		@Expose
-		public boolean onlyInSafari = true;
+		public int showWhere = 1;
+
+		/** The chosen scope, guarded against a config file holding something out of range. */
+		public Scope scope() {
+			return showWhere >= 0 && showWhere < Scope.values().length
+				? Scope.values()[showWhere] : Scope.SAFARI_AND_ENTRANCE;
+		}
+
+		/** Whether the display should be up where the player is standing right now. */
+		public boolean showsHere() {
+			return scope().covers(SafariLocation.where());
+		}
 
 		@ConfigOption(
 			name = "Count unique only",
@@ -129,11 +164,12 @@ public class CritterConfig extends Config {
 			name = "Show nearby spawns",
 			desc = "Mark a missing species with how many are loaded around you right now.\n" +
 				"§7Read off their name tags, refreshed twice a second.\n" +
-				"§7This is not a total and cannot be: the client never sees the far side of\n" +
-				"§7the map, and a partymate catching something out of range is never observed.")
+				"§7Off by default: it counts ones you cannot see as readily as ones you can.\n" +
+				"§7It is not a total either — the client never sees the far side of the map,\n" +
+				"§7and a partymate catching something out of range is never observed.")
 		@ConfigEditorBoolean
 		@Expose
-		public boolean countSpawns = true;
+		public boolean countSpawns = false;
 
 		@ConfigOption(
 			name = "Hotspot line",
@@ -175,6 +211,15 @@ public class CritterConfig extends Config {
 		public boolean highlightTrades = false;
 
 		@ConfigOption(
+			name = "Highlight Hideonwall perches",
+			desc = "Mark the eight places a Hideonwall turns up, while you are in the Haunted biome.\n" +
+				"§7Fixed spots, not sightings: an empty perch looks exactly like an occupied\n" +
+				"§7one, so the mark means check here rather than one is here.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean highlightHideonwalls = false;
+
+		@ConfigOption(
 			name = "Highlight mounds",
 			desc = "Outline detected Rockmite mounds, while you are in the Cavern.\n" +
 				"§7Matched on interaction hitbox size, which is weaker evidence than the\n" +
@@ -182,16 +227,6 @@ public class CritterConfig extends Config {
 		@ConfigEditorBoolean
 		@Expose
 		public boolean highlightMounds = false;
-
-		@ConfigOption(
-			name = "Hideyho solver",
-			desc = "Mark where Hideyho is hiding, while you are in the Haunted biome.\n" +
-				"§7Hiding only moves it: its name tag stays loaded on the client the whole\n" +
-				"§7time, which is why the missing panel still counts one while nobody can see\n" +
-				"§7it. So this is where it actually is, not a list of known hiding spots.")
-		@ConfigEditorBoolean
-		@Expose
-		public boolean hideyhoSolver = false;
 
 		@ConfigOption(
 			name = "Recatch helper",
@@ -225,8 +260,9 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Highlight hard-to-find critters",
-			desc = "Outline the mobs of species that are awkward to spot, Bloodbats especially.\n" +
-				"§7Uses the client-side glow flag, so they show through walls.")
+			desc = "Box the mobs of species that are awkward to spot, Bloodbats especially.\n" +
+				"§7Drawn where it stands and depth-tested, so it marks one you could see\n" +
+				"§7anyway rather than showing you what is behind a wall.")
 		@ConfigEditorBoolean
 		@Expose
 		public boolean highlightHardToFind = true;
@@ -341,17 +377,23 @@ public class CritterConfig extends Config {
 		@Expose
 		public String tradeColour = colour(0x55, 0xFF, 0xFF);
 
-		@ConfigOption(name = "Hideyho", desc = "")
-		@ConfigEditorColour
-		@ConfigAccordionId(id = COLOURS)
-		@Expose
-		public String hideyhoColour = colour(0xFF, 0x55, 0xFF);
-
 		@ConfigOption(name = "Rockmite mounds", desc = "")
 		@ConfigEditorColour
 		@ConfigAccordionId(id = COLOURS)
 		@Expose
 		public String moundColour = colour(0xCC, 0x77, 0x44);
+
+		@ConfigOption(name = "Hard-to-find critters", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String hardToFindColour = colour(0xFF, 0x55, 0x55);
+
+		@ConfigOption(name = "Hideonwall perches", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String hideonwallColour = colour(0xAA, 0x55, 0xFF);
 
 		@ConfigOption(name = "Recatch spot", desc = "")
 		@ConfigEditorColour
@@ -426,6 +468,18 @@ public class CritterConfig extends Config {
 		public boolean alertSound = false;
 
 		@ConfigOption(
+			name = "Only in that biome",
+			desc = "Keep each encounter's ready and done calls to whoever is in its biome.\n" +
+				"§7Gemzie is the Cavern's, Wumpa the Icy biome's, Doomspiral the Haunted's.\n" +
+				"§7In a party split a biome each, only one person is standing in it — without\n" +
+				"§7this, everyone is interrupted and party chat gets four copies of the same\n" +
+				"§7line.\n" +
+				"§7When the biome cannot be worked out at all, the call still fires.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean encountersInBiomeOnly = true;
+
+		@ConfigOption(
 			name = "Gemzie alerts",
 			desc = "Banner and sound as the Gemzie encounter progresses.\n" +
 				"§7Chamber opens, then the three catches that close it.")
@@ -479,6 +533,16 @@ public class CritterConfig extends Config {
 		public boolean sparklingAlert = true;
 
 		@ConfigOption(
+			name = "Every bird at the Birdfeeder",
+			desc = "Call the Bluebird and the Parakeet too, not just the Macaw.\n" +
+				"§7Off by default: those two come often enough to be wallpaper, where the\n" +
+				"§7Macaw is the one a run may never give. Each is shown in its own rarity's\n" +
+				"§7colour, so one is not mistaken for the other.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean birdfeederAlert = false;
+
+		@ConfigOption(
 			name = "Hotspot",
 			desc = "Report your Hunting Hotspot in chat when the run names it.")
 		@ConfigEditorBoolean
@@ -487,7 +551,7 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Macaw spawned",
-			desc = "Banner and chat line the moment a Macaw turns up.\n" +
+			desc = "Full-screen call and a chat line the moment a Macaw turns up.\n" +
 				"§7The one species a run is not guaranteed to give at all, so a spawn is\n" +
 				"§7news. Noticed from the Birdfeeder's own announcement, which arrives\n" +
 				"§7wherever you are, and from one appearing in the world, which comes with\n" +

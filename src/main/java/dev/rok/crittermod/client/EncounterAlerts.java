@@ -1,5 +1,7 @@
 package dev.rok.crittermod.client;
 
+import dev.rok.crittermod.data.Critter;
+import dev.rok.crittermod.data.Critters;
 import dev.rok.crittermod.data.SafariBiome;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.ChatFormatting;
@@ -58,11 +60,28 @@ public final class EncounterAlerts implements HudElement {
 	/** Gemzies still to catch in the open chamber; 0 when no chamber is active. */
 	private static int gemzieRemaining;
 
+	/** True only while the test command is firing, so the biome gate cannot swallow it. */
+	private static boolean testing;
+
 	private static String message;
 	private static int colour;
 	private static long shownAtMillis;
 
 	public enum Stage {READY, STARTED, DONE}
+
+	/**
+	 * Runs {@code test} with every gate that depends on where the player is standing
+	 * lifted, so {@code /critters testalert} shows all three encounters wherever it is
+	 * run from rather than only the one whose biome you happen to be in.
+	 */
+	public static void whileTesting(Runnable test) {
+		testing = true;
+		try {
+			test.run();
+		} finally {
+			testing = false;
+		}
+	}
 
 	/**
 	 * Reacts to a cleaned chat line.
@@ -156,7 +175,11 @@ public final class EncounterAlerts implements HudElement {
 		if (!config.alerts.macawAlert) return;
 
 		String detail = where == null ? "" : " (" + where + ")";
-		banner("MACAW SPAWNED", READY_COLOUR, 1.6f);
+		// The full-screen call rather than the banner strip: a Macaw is the one species
+		// a run may not give at all, so it is worth the same interruption a sparkling is.
+		FullScreenAlert.show("MACAW!", "Macaw spawned",
+			where == null ? "somewhere in the Forest" : where, FullScreenAlert.MACAW);
+		sound(1.6f);
 		chat("Macaw spawned!" + detail, ChatFormatting.GOLD);
 
 		post(config.party.macaw(), "Macaw spawned!" + detail);
@@ -176,6 +199,7 @@ public final class EncounterAlerts implements HudElement {
 
 	private static void fire(String boss, Stage stage, String detail, float pitch) {
 		if (!alertsOn(boss)) return;
+		if (!inItsBiome(boss)) return;
 		// Gemzie chambers repeat every few minutes and its ready/done pair can be
 		// seconds apart, so the anti-repeat cooldown must not apply to it.
 		if (!boss.equals("Gemzie") && onCooldown(boss + ":" + stage)) return;
@@ -189,6 +213,26 @@ public final class EncounterAlerts implements HudElement {
 		chat(text + " — " + detail, ChatFormatting.YELLOW);
 
 		post(broadcastFor(boss), "%s %s".formatted(boss, stage.name().toLowerCase()));
+	}
+
+	/**
+	 * Whether the encounter is happening where the player is.
+	 *
+	 * <p>Each of the three belongs to one biome, and in a party split a biome each only
+	 * one person is standing in it. Without this every client calls every stage, so a
+	 * Wumpa waking up interrupts three people who cannot reach it and puts four identical
+	 * lines in party chat.
+	 *
+	 * <p>Fails open: when the biome cannot be worked out — at the entrance, or before the
+	 * position resolves — the alert fires. Silence on a "cannot tell" would look exactly
+	 * like the mod being broken.
+	 */
+	private static boolean inItsBiome(String boss) {
+		if (testing || !ConfigManager.get().alerts.encountersInBiomeOnly) return true;
+		Critter critter = Critters.byName(boss);
+		SafariBiome here = SafariLocation.biome();
+		if (critter == null || here == null) return true;
+		return critter.biome() == here;
 	}
 
 	/** Whether this encounter's banners are wanted. Each is settable on its own. */
@@ -233,9 +277,11 @@ public final class EncounterAlerts implements HudElement {
 		message = text;
 		colour = bannerColour;
 		shownAtMillis = System.currentTimeMillis();
+		sound(pitch);
+	}
 
-		// Silent unless asked for: the banner is already in the middle of the screen,
-		// and a run fires plenty of these.
+	/** Silent unless asked for: a run fires plenty of these. */
+	private static void sound(float pitch) {
 		if (!ConfigManager.get().alerts.alertSound) return;
 		Minecraft client = Minecraft.getInstance();
 		if (client.player != null) {
