@@ -105,6 +105,11 @@ public final class CritterScreen extends Screen {
 		return ConfigManager.get().profit.enabled;
 	}
 
+	/** Saved runs that cannot be priced, because they kept no shard breakdown. */
+	private static int unpricedRuns() {
+		return RunHistory.size() - RunHistory.pricedRuns();
+	}
+
 	@Override
 	protected void init() {
 		int columns = SafariBiome.values().length;
@@ -113,8 +118,10 @@ public final class CritterScreen extends Screen {
 		// and "Shuddersquid" ran into their own counts at a fixed width.
 		columnWidth = Math.max(MIN_COLUMN_WIDTH, Math.min(measureColumnWidth(), available / columns));
 		panelWidth = columnWidth * columns + PANEL_PADDING * 2;
-		// The value line is one more row in the header, and one more in the Stats summary.
+		// The value line is one more row in the header, and one more in the Stats summary —
+		// two there while runs are still waiting on an import to be priceable.
 		int valueRows = showValue() ? 1 : 0;
+		int statsValueRows = valueRows + (showValue() && unpricedRuns() > 0 ? 1 : 0);
 		panelHeight = switch (tab) {
 			// Header block, the longest biome column (Haunted has 10), then the player table.
 			case RUN -> 46 + (2 + valueRows + 10) * LINE_HEIGHT
@@ -122,7 +129,7 @@ public final class CritterScreen extends Screen {
 			// A summary block, then one line per run shown.
 			case HISTORY -> 46 + (HISTORY_ROWS + 2) * LINE_HEIGHT + 46;
 			// A summary block, then the species columns.
-			case STATS -> 46 + (4 + valueRows + 10) * LINE_HEIGHT + 46;
+			case STATS -> 46 + (4 + statsValueRows + 10) * LINE_HEIGHT + 46;
 		};
 		panelLeft = Math.max(4, (width - panelWidth) / 2);
 		panelTop = Math.max(10, (height - panelHeight) / 2);
@@ -385,6 +392,10 @@ public final class CritterScreen extends Screen {
 			RunHistory.totalCatches(), RunHistory.bestDex(), Critters.total());
 		if (value && BazaarPrices.known()) {
 			summary += "  ·  %s coins".formatted(BazaarPrices.format(BazaarPrices.totalValue(runs)));
+			// Says why some rows read "—", right next to the column they read it in.
+			if (unpricedRuns() > 0) {
+				summary += "  ·  %d unpriced (/critters import)".formatted(unpricedRuns());
+			}
 		}
 		graphics.text(font, Component.literal(summary), left, y, LABEL);
 		y += LINE_HEIGHT + 5;
@@ -499,7 +510,7 @@ public final class CritterScreen extends Screen {
 	 */
 	private int drawValueTotals(GuiGraphicsExtractor graphics, Font font, int x, int y) {
 		List<RunRecord> runs = RunHistory.runs();
-		int priced = BazaarPrices.pricedRuns(runs);
+		int priced = RunHistory.pricedRuns();
 
 		if (!BazaarPrices.known()) {
 			graphics.text(font, Component.literal(BazaarPrices.lastError() == null
@@ -508,18 +519,24 @@ public final class CritterScreen extends Screen {
 				x, y, DIM);
 			return y + LINE_HEIGHT;
 		}
-		if (priced == 0) {
-			graphics.text(font, Component.literal(
-				"No priced runs yet — runs saved from now on keep what their shards were."),
-				x, y, DIM);
-			return y + LINE_HEIGHT;
+
+		if (priced > 0) {
+			long total = BazaarPrices.totalValue(runs);
+			String text = "%s coins  ·  %s a run  ·  %d of %d runs priced".formatted(
+				BazaarPrices.format(total), BazaarPrices.format(total / priced), priced, runs.size());
+			graphics.text(font, Component.literal(text), x, y, COINS);
+			y += LINE_HEIGHT;
 		}
 
-		long total = BazaarPrices.totalValue(runs);
-		String text = "%s coins  ·  %s a run  ·  %d of %d runs priced".formatted(
-			BazaarPrices.format(total), BazaarPrices.format(total / priced), priced, runs.size());
-		graphics.text(font, Component.literal(text), x, y, COINS);
-		return y + LINE_HEIGHT;
+		// The one thing to do about an unpriced run, said where the gap is visible.
+		int unpriced = runs.size() - priced;
+		if (unpriced > 0) {
+			graphics.text(font, Component.literal(
+				"%d run%s kept no shard breakdown — run /critters import to read it out of your logs."
+					.formatted(unpriced, unpriced == 1 ? "" : "s")), x, y, DIM);
+			y += LINE_HEIGHT;
+		}
+		return y;
 	}
 
 	/** Date and time of day, which is how you recognise a run you remember. */

@@ -116,7 +116,16 @@ of shards, and each species' shard trades for a wildly different amount, so noth
 money can be derived from the catch counts. `SafariSession` keeps shards per species and
 `RunRecord` saves that map; runs saved before it existed carry only a shard total, and
 `hasShardData()` is how the views leave them out of the money instead of counting them as
-free zeroes.
+free zeroes. `/critters import` backfills the breakdown onto those runs, which is the only
+way an old run ever gets priced — and it cannot help a run whose log has rotated away.
+
+**A run is saved under two different start times.** A live run opens when you arrive; a
+replayed one opens at its first chat line, seconds later or earlier. `RunHistory.sameRun`
+therefore matches on overlapping windows, not on an equal `started` — the exact match it
+used to do meant importing after playing added a second copy of every live-tracked run.
+The overlap has to cover half the shorter run, because runs come back to back: one starts
+seconds after the last one ended, and anything looser welds two of them together. Checked
+against 57 real saved runs and 53 replayed ones.
 
 **Bazaar prices come off the top of the book, not `quick_status`.** Hypixel's quick status
 is a volume-weighted average over the whole order book, so a single junk order at one coin
