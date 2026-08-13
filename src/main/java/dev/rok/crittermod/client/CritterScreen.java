@@ -110,6 +110,17 @@ public final class CritterScreen extends Screen {
 		return RunHistory.size() - RunHistory.pricedRuns();
 	}
 
+	/**
+	 * Whether there is any point telling the player to import.
+	 *
+	 * <p>Only until the logs have been read once. What is left unpriced after that is a
+	 * run whose log has since rotated away — importing again will never find it, so it is
+	 * simply an unpriced run rather than something still to be done about.
+	 */
+	private static boolean suggestImport() {
+		return unpricedRuns() > 0 && !ConfigManager.get().profit.importedOnce;
+	}
+
 	@Override
 	protected void init() {
 		int columns = SafariBiome.values().length;
@@ -121,7 +132,7 @@ public final class CritterScreen extends Screen {
 		// The value line is one more row in the header, and one more in the Stats summary —
 		// two there while runs are still waiting on an import to be priceable.
 		int valueRows = showValue() ? 1 : 0;
-		int statsValueRows = valueRows + (showValue() && unpricedRuns() > 0 ? 1 : 0);
+		int statsValueRows = valueRows + (showValue() && suggestImport() ? 1 : 0);
 		panelHeight = switch (tab) {
 			// Header block, the longest biome column (Haunted has 10), then the player table.
 			case RUN -> 46 + (2 + valueRows + 10) * LINE_HEIGHT
@@ -392,9 +403,12 @@ public final class CritterScreen extends Screen {
 			RunHistory.totalCatches(), RunHistory.bestDex(), Critters.total());
 		if (value && BazaarPrices.known()) {
 			summary += "  ·  %s coins".formatted(BazaarPrices.format(BazaarPrices.totalValue(runs)));
-			// Says why some rows read "—", right next to the column they read it in.
+			// Says why some rows read "—", right next to the column they read it in. The
+			// way to fix it is only offered until the logs have been read once.
 			if (unpricedRuns() > 0) {
-				summary += "  ·  %d unpriced (/critters import)".formatted(unpricedRuns());
+				summary += suggestImport()
+					? "  ·  %d unpriced (/critters import)".formatted(unpricedRuns())
+					: "  ·  %d unpriced".formatted(unpricedRuns());
 			}
 		}
 		graphics.text(font, Component.literal(summary), left, y, LABEL);
@@ -528,9 +542,10 @@ public final class CritterScreen extends Screen {
 			y += LINE_HEIGHT;
 		}
 
-		// The one thing to do about an unpriced run, said where the gap is visible.
-		int unpriced = runs.size() - priced;
-		if (unpriced > 0) {
+		// The one thing to do about an unpriced run, said once and then dropped: after the
+		// logs have been read, what is left is unpriced for good.
+		if (suggestImport()) {
+			int unpriced = runs.size() - priced;
 			graphics.text(font, Component.literal(
 				"%d run%s kept no shard breakdown — run /critters import to read it out of your logs."
 					.formatted(unpriced, unpriced == 1 ? "" : "s")), x, y, DIM);

@@ -479,6 +479,19 @@ public class CritterConfig extends Config {
 				? PriceSource.values()[priceSource] : PriceSource.INSTANT_SELL;
 		}
 
+		/**
+		 * Whether the logs have been read for old runs' shards yet. Not a setting — no
+		 * {@code @ConfigOption}, so it never shows in the GUI, the same way the HUD
+		 * positions are kept.
+		 *
+		 * <p>It exists so the "run /critters import" prompt is shown once and then stops.
+		 * After an import, a run that is still unpriced is one whose log has rotated away,
+		 * and no amount of importing will ever bring it back — it is simply unpriced, and
+		 * being told to fix it forever would be a lie.
+		 */
+		@Expose
+		public boolean importedOnce = false;
+
 		@ConfigOption(
 			name = "Subtract bazaar tax",
 			desc = "Take the 1.25% bazaar tax off, since both prices are a sell.\n" +

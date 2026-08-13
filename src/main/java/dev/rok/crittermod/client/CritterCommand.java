@@ -759,17 +759,19 @@ public final class CritterCommand {
 				List<SafariSession> sessions = LogScanner.scan(logs, null);
 				source.getClient().execute(() -> {
 					RunHistory.Imported result = RunHistory.importRuns(sessions);
+					// The logs have now been read, so the screens stop suggesting it.
+					ConfigManager.get().profit.importedOnce = true;
+					ConfigManager.save();
 					source.sendFeedback(prefixed(
 						"Imported %d new run(s), filled in the shards of %d; %d saved in total."
 							.formatted(result.added(), result.filled(), RunHistory.size()),
 						ChatFormatting.YELLOW));
 					int unpriced = RunHistory.size() - RunHistory.pricedRuns();
 					if (unpriced > 0) {
-						// Almost always a run whose log has since been rotated away, which
-						// nothing here can recover — worth saying rather than leaving it
-						// looking like the import did not work.
+						// A run whose log has since been rotated away, which nothing here can
+						// recover — said once, so it does not look like the import failed.
 						source.sendFeedback(Component.literal(
-							"  %d run(s) still have no shard breakdown, so they cannot be priced."
+							"  %d run(s) have no log left to read their shards from, so they stay unpriced."
 								.formatted(unpriced)).withStyle(ChatFormatting.DARK_GRAY));
 					}
 				});
