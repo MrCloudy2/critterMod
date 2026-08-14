@@ -258,8 +258,8 @@ public final class CritterScreen extends Screen {
 			colour = DIM;
 		} else {
 			long coins = BazaarPrices.valueOf(session);
-			text = "%s coins  ·  %d shard%s".formatted(
-				BazaarPrices.format(coins), shards, shards == 1 ? "" : "s");
+			text = "%s  ·  %d shard%s".formatted(
+				BazaarPrices.coinsText(session), shards, shards == 1 ? "" : "s");
 			// Per hour only once there is enough of a run to divide by; a minute in, the
 			// rate says more about the last catch than about the run.
 			long elapsed = live ? session.elapsedMillis(System.currentTimeMillis())

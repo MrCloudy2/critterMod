@@ -272,40 +272,73 @@ public final class BazaarPrices {
 		return lastError;
 	}
 
-	/** What one {@code critter} shard is worth under the chosen mode, tax taken off. */
-	public static double price(Critter critter) {
+	/** What one {@code critter} shard fetches on {@code source}'s side, tax taken off. */
+	public static double price(Critter critter, CritterConfig.PriceSource source) {
 		Price price = prices.get(critter.bazaarId());
 		if (price == null) return 0;
-		double raw = ConfigManager.get().profit.priceSource() == CritterConfig.PriceSource.SELL_OFFER
+		double raw = source == CritterConfig.PriceSource.SELL_OFFER
 			? price.sellOffer() : price.instantSell();
 		return ConfigManager.get().profit.subtractTax ? raw * (1 - TAX) : raw;
 	}
 
+	/** The same, at whichever side the settings pick — the figure everything shows. */
+	public static double price(Critter critter) {
+		return price(critter, ConfigManager.get().profit.priceSource());
+	}
+
 	/** What a pile of shards is worth. Species with no price simply add nothing. */
-	public static long valueOf(Map<Critter, Integer> shards) {
+	public static long valueOf(Map<Critter, Integer> shards, CritterConfig.PriceSource source) {
 		double total = 0;
 		for (Map.Entry<Critter, Integer> entry : shards.entrySet()) {
-			total += price(entry.getKey()) * entry.getValue();
+			total += price(entry.getKey(), source) * entry.getValue();
 		}
 		return Math.round(total);
 	}
 
 	/** What the shards of a live or just-finished run are worth. */
+	public static long valueOf(SafariSession session, CritterConfig.PriceSource source) {
+		return session == null ? 0 : valueOf(session.shardCounts(), source);
+	}
+
 	public static long valueOf(SafariSession session) {
-		return session == null ? 0 : valueOf(session.shardCounts());
+		return valueOf(session, ConfigManager.get().profit.priceSource());
 	}
 
 	/** What a saved run's shards are worth, or {@code 0} if it kept no breakdown. */
 	public static long valueOf(RunRecord run) {
 		if (run == null || !run.hasShardData()) return 0;
+		CritterConfig.PriceSource source = ConfigManager.get().profit.priceSource();
 		double total = 0;
 		for (Map.Entry<String, Integer> entry : run.shards.entrySet()) {
 			// A saved run holds species by name, so one dropped from the roster since is
 			// simply skipped — the same thing the rest of the history does with it.
 			Critter critter = Critters.byName(entry.getKey());
-			if (critter != null) total += price(critter) * entry.getValue();
+			if (critter != null) total += price(critter, source) * entry.getValue();
 		}
 		return Math.round(total);
+	}
+
+	/**
+	 * A run's value as it is written out, in the one place that decides the wording.
+	 *
+	 * <p>One figure normally — instant sell unless the settings say otherwise. With
+	 * <b>Show both prices</b> on, the other side follows it, named, because the two are
+	 * far apart: selling into the buy orders now and listing an offer and waiting are
+	 * different amounts of money for the same shards, and the gap is the point.
+	 */
+	public static String coinsText(SafariSession session) {
+		CritterConfig.PriceSource chosen = ConfigManager.get().profit.priceSource();
+		String text = format(valueOf(session, chosen)) + " coins";
+		if (!ConfigManager.get().profit.showBothPrices) return text;
+
+		CritterConfig.PriceSource other = chosen == CritterConfig.PriceSource.SELL_OFFER
+			? CritterConfig.PriceSource.INSTANT_SELL : CritterConfig.PriceSource.SELL_OFFER;
+		return "%s  ·  %s %s".formatted(text, format(valueOf(session, other)), name(other));
+	}
+
+	/** How a price side is referred to in a sentence. */
+	public static String name(CritterConfig.PriceSource source) {
+		return source == CritterConfig.PriceSource.SELL_OFFER ? "as sell offers" : "instant sell";
 	}
 
 	/** Every priceable run added up. Runs with no breakdown are left out, not zeroed. */

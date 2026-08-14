@@ -335,8 +335,7 @@ public final class CritterCommand {
 		if (ConfigManager.get().profit.enabled && BazaarPrices.known()) {
 			source.sendFeedback(Component.literal("  Value ")
 				.withStyle(ChatFormatting.GRAY)
-				.append(Component.literal("%s coins".formatted(
-					BazaarPrices.format(BazaarPrices.valueOf(session))))
+				.append(Component.literal(BazaarPrices.coinsText(session))
 					.withStyle(ChatFormatting.GOLD))
 				.append(Component.literal("  ·  %d shards".formatted(session.totalShards()))
 					.withStyle(ChatFormatting.DARK_GRAY)));
@@ -383,9 +382,19 @@ public final class CritterCommand {
 		SafariSession session = SessionManager.currentOrLast();
 		if (session == null || !BazaarPrices.known()) return;
 
-		source.sendFeedback(Component.literal("  this run: %s coins from %d shards".formatted(
-			BazaarPrices.format(BazaarPrices.valueOf(session)), session.totalShards()))
-			.withStyle(ChatFormatting.GOLD));
+		// Both sides here whatever the settings say: this is the command for asking what
+		// the shards are worth, and the gap between selling now and listing an offer is
+		// most of the answer.
+		source.sendFeedback(Component.literal("  this run: %d shards".formatted(session.totalShards()))
+			.withStyle(ChatFormatting.GRAY));
+		for (CritterConfig.PriceSource side : CritterConfig.PriceSource.values()) {
+			boolean chosen = side == config.profit.priceSource();
+			source.sendFeedback(Component.literal("    %-13s %s%s".formatted(
+				BazaarPrices.name(side).replace("as ", ""),
+				BazaarPrices.format(BazaarPrices.valueOf(session, side)),
+				chosen ? "  <-" : ""))
+				.withStyle(chosen ? ChatFormatting.GOLD : ChatFormatting.DARK_GRAY));
+		}
 		// Sorted by what they were actually worth, since that is the question being asked.
 		session.shardCounts().entrySet().stream()
 			.sorted((a, b) -> Double.compare(
