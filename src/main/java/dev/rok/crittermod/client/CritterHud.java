@@ -23,6 +23,8 @@ public final class CritterHud implements HudElement {
 	private static final int DIM = 0xFF888888;
 	private static final int WHITE = 0xFFFFFFFF;
 	private static final int DONE = 0xFF55FF55;
+	/** Gold, as coins are everywhere else in SkyBlock. */
+	private static final int COINS = 0xFFFFD700;
 
 	@Override
 	public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
@@ -82,6 +84,13 @@ public final class CritterHud implements HudElement {
 				session.partyUnique(biome), max,
 				0xFF000000 | biome.colour(),
 				complete ? DONE : 0xFF000000 | biome.colour());
+		}
+
+		// Under the biome bars: what the run has actually earned so far. Left off until
+		// there is a shard and a price to put on it — "0 coins" says nothing true.
+		if (config.profit.enabled && config.profit.showOnHud
+			&& session.totalShards() > 0 && BazaarPrices.known()) {
+			panel.pair("Value", BazaarPrices.coinsText(session), LABEL, COINS);
 		}
 
 		if (config.display.showPerPlayer) {
