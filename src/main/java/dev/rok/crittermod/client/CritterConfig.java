@@ -479,6 +479,25 @@ public class CritterConfig extends Config {
 				? PriceSource.values()[priceSource] : PriceSource.INSTANT_SELL;
 		}
 
+		@ConfigOption(
+			name = "Show both prices",
+			desc = "Put the other side of the spread next to the run's value.\n" +
+				"§7\"§f1.2M coins  ·  2.4M as sell offers§7\" — the same shards, sold two ways.\n" +
+				"§7They are nowhere near each other, and which one you are looking at decides\n" +
+				"§7whether a run was worth doing at the price you would actually take.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean showBothPrices = false;
+
+		@ConfigOption(
+			name = "Value on the progress HUD",
+			desc = "Show what this run has earned, under the biome bars on the top-left panel.\n" +
+				"§7On while a run has given you a shard and the prices have loaded; the panel\n" +
+				"§7says nothing about money before that rather than showing a zero.")
+		@ConfigEditorBoolean
+		@Expose
+		public boolean showOnHud = true;
+
 		/**
 		 * Whether the logs have been read for old runs' shards yet. Not a setting — no
 		 * {@code @ConfigOption}, so it never shows in the GUI, the same way the HUD

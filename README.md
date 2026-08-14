@@ -30,13 +30,16 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 - Stats tab: totals per species across every run, time played, catches a run, full-dex runs
 - Shard value: what a run gave, priced per species at live bazaar prices — coins now, coins
   a run, coins an hour, and the total across every saved run
+- Instant sell by default, sell offers if you would rather list and wait, or both side by
+  side — they are a long way apart
 - Runs saved before shard tracking existed are priced by running `/critters import` once,
   which reads their shards back out of the chat logs
 - Log replay: reconstruct past runs from chat logs, in game or offline
 
 **On screen**
 
-- Progress panel: run timer, party and personal dex bars, a bar per biome
+- Progress panel: run timer, party and personal dex bars, a bar per biome, and what the
+  run has earned so far
 - Missing panel: what is still uncaught in the biome you are standing in
 - Hunter trade box: the offers found this run, nearest first
 - Hotspot line: which biome the run made yours
