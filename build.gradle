@@ -107,6 +107,9 @@ modrinth {
 	syncBodyFrom = rootProject.file('README.md').text
 	changelog = providers.provider {
 		def notes = rootProject.file('CHANGELOG.md')
-		notes.exists() ? notes.text : "See https://github.com/MrCloudy2/critterMod/releases/tag/v${project.mod_version}"
+		// The tag is the version alone — the +mc build metadata says which jar this is,
+		// and both jars ride the same tag, so it has to come off or the link 404s.
+		def tag = "v${project.mod_version}".replaceAll(/\+.*$/, '')
+		notes.exists() ? notes.text : "See https://github.com/MrCloudy2/critterMod/releases/tag/${tag}"
 	}
 }
