@@ -1,6 +1,7 @@
 package dev.rok.crittermod;
 
 import dev.rok.crittermod.client.BazaarPrices;
+import dev.rok.crittermod.client.BeeSpots;
 import dev.rok.crittermod.client.ChatQueue;
 import dev.rok.crittermod.client.CritterCommand;
 import dev.rok.crittermod.client.CritterHud;
@@ -12,14 +13,15 @@ import dev.rok.crittermod.client.FloorDrops;
 import dev.rok.crittermod.client.HotspotWatch;
 import dev.rok.crittermod.client.BirdfeederWatch;
 import dev.rok.crittermod.client.MissingHud;
+import dev.rok.crittermod.client.MoundSpotter;
 import dev.rok.crittermod.client.MoundTracker;
-import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.RecatchSpots;
 import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.FullScreenAlert;
 import dev.rok.crittermod.client.SparklingWatch;
 import dev.rok.crittermod.client.TradeHud;
 import dev.rok.crittermod.client.TraderWatch;
+import dev.rok.crittermod.client.WallTracker;
 import dev.rok.crittermod.client.WaypointRenderer;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.parse.ChatParser;
@@ -93,7 +95,9 @@ public class CritterMod implements ClientModInitializer {
 			CritterEntities.tick();
 			SessionManager.tick();
 			CritterSpotter.tick();
-			NestTracker.tick();
+			MoundSpotter.tick();
+			BeeSpots.tick();
+			WallTracker.tick();
 			BirdfeederWatch.tick();
 			SparklingWatch.tick();
 			FloorDrops.tick();
@@ -121,10 +125,7 @@ public class CritterMod implements ClientModInitializer {
 			SessionManager.onWorldChange();
 		});
 
-		// Punching a bee nest changes nothing about the block, so the punch itself is
-		// the only signal that it has been done.
 		AttackBlockCallback.EVENT.register((player, level, hand, pos, direction) -> {
-			NestTracker.onAttack(pos);
 			// A drop being picked up would clear itself a few seconds later anyway;
 			// dropping it on the interaction just makes the mark go when you expect.
 			FloorDrops.onInteract(pos);

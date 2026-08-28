@@ -5,9 +5,14 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 
+import net.minecraft.world.phys.Vec3;
+
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 /**
@@ -29,6 +34,18 @@ import java.util.TreeMap;
  * <p>{@link #describeAll()} lists every nearby interaction box grouped by size and says
  * how many of each pass each rule — that is what the bounds should be set from, not a
  * single reading.
+ *
+ * <p><strong>Found by sight, then remembered.</strong> A candidate is only taken up once
+ * there is a clear line to it, so nothing is marked on the strength of the client having
+ * been sent an entity through a wall. After that it is logged and keeps its waypoint
+ * through the terrain like the preset marks do — having seen where a mound is, you know
+ * where it is, and making you keep it in view to keep the mark would be losing
+ * information you had legitimately.
+ *
+ * <p>A logged mound is dropped only when it is <em>seen</em> to be gone: within scanning
+ * range, absent from the live sweep, and in line of sight. One a partymate breaks across
+ * the Cavern therefore stays marked until you look, which is the same rule the walls
+ * follow.
  */
 public final class MoundSpotter {
 
@@ -55,23 +72,70 @@ public final class MoundSpotter {
 	private MoundSpotter() {
 	}
 
-	/** Both the HUD and the waypoints ask every frame; the answer changes far slower. */
-	private static final long CACHE_MILLIS = 500;
-	private static List<BlockPos> cached = List.of();
-	private static long cachedAt;
+	/** Mounds do not move, and one is not broken between one tick and the next. */
+	private static final int SCAN_INTERVAL_TICKS = 10;
 
-	/** Interaction entities near the player whose hitbox matches a mound. */
+	/** Mounds seen this run and not yet seen to be gone, in the order they were found. */
+	private static final Set<BlockPos> confirmed = new LinkedHashSet<>();
+	/** Rebuilt only when {@link #confirmed} changes; the HUD and markers ask every frame. */
+	private static List<BlockPos> cached = List.of();
+	private static int ticks;
+
+	/** Mounds found by looking at them, still standing as far as anyone here knows. */
 	public static List<BlockPos> mounds() {
-		long now = System.currentTimeMillis();
-		if (now - cachedAt < CACHE_MILLIS) return cached;
-		cachedAt = now;
-		cached = scan();
 		return cached;
 	}
 
-	private static List<BlockPos> scan() {
+	/** Takes up newly seen mounds, and drops the ones seen to have gone. */
+	public static void tick() {
+		if (++ticks < SCAN_INTERVAL_TICKS) return;
+		ticks = 0;
+
+		CritterConfig.DisplayConfig display = ConfigManager.get().display;
+		if (!display.highlightMounds && !display.showMoundCount) return;
+		if (!SafariLocation.inSafari()) return;
+
 		Minecraft client = Minecraft.getInstance();
-		List<BlockPos> found = new ArrayList<>();
+		if (client.level == null || client.player == null) return;
+
+		List<Entity> live = scan();
+		Set<BlockPos> livePositions = new HashSet<>();
+		boolean changed = false;
+
+		for (Entity candidate : live) {
+			BlockPos pos = candidate.blockPosition();
+			livePositions.add(pos);
+			if (confirmed.contains(pos)) continue;
+			if (!Visibility.canSee(candidate)) continue;
+			confirmed.add(pos);
+			changed = true;
+		}
+
+		// Gone, and seen to be gone. Range matters as much as sight here: outside the
+		// sweep's reach a mound is absent from it whether or not it is still standing, so
+		// removing on absence alone would quietly clear the far half of the Cavern.
+		changed |= confirmed.removeIf(pos -> !livePositions.contains(pos)
+			&& inScanRange(client.player.position(), pos)
+			&& Visibility.canSee(pos));
+
+		if (changed) cached = List.copyOf(confirmed);
+	}
+
+	/** Every run places its own mounds; the last one's are gone with it. */
+	public static void reset() {
+		confirmed.clear();
+		cached = List.of();
+	}
+
+	private static boolean inScanRange(Vec3 player, BlockPos pos) {
+		return player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5)
+			<= SCAN_RADIUS * SCAN_RADIUS;
+	}
+
+	/** The interaction entities near the player whose hitbox and placing match a mound. */
+	private static List<Entity> scan() {
+		Minecraft client = Minecraft.getInstance();
+		List<Entity> found = new ArrayList<>();
 		if (client.level == null || client.player == null) return found;
 
 		List<Entity> candidates = new ArrayList<>();
@@ -90,7 +154,7 @@ public final class MoundSpotter {
 
 		for (Entity candidate : candidates) {
 			if (wrapsACreature(candidate, creatures)) continue;
-			found.add(candidate.blockPosition());
+			found.add(candidate);
 		}
 		return found;
 	}

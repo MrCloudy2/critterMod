@@ -37,11 +37,25 @@ public final class CritterEntities {
 	/**
 	 * One labelled critter. {@code mob} is null when nothing was found under the label.
 	 *
-	 * <p>{@code sparkling} is read off the label naming it. A name tag is visible through
-	 * terrain in vanilla anyway, so this reads something already on screen rather than
-	 * revealing anything.
+	 * <p>{@code sparkling} is read off the label naming it.
+	 *
+	 * <p>Two flags keep this honest, because the client is handed every critter within
+	 * Hypixel's tracking range regardless of what is between you and it:
+	 *
+	 * <ul>
+	 * <li>{@code visible} — on screen and unobstructed. What anything that
+	 *     <em>announces</em> should use.
+	 * <li>{@code unobstructed} — nothing in the way, but possibly behind you. For things
+	 *     that are counted rather than announced, where a number dropping to zero as you
+	 *     turned round would look like a bug.
+	 * </ul>
+	 *
+	 * <p>An earlier version reasoned that name tags render through terrain and so nothing
+	 * was being revealed; that is only true of entities the game is actually drawing,
+	 * which is a much smaller set than the one scanned here.
 	 */
-	public record Sighting(Critter critter, Entity label, Entity mob, boolean sparkling) {
+	public record Sighting(Critter critter, Entity label, Entity mob, boolean sparkling,
+						   boolean visible, boolean unobstructed) {
 		/** The entity to point at: the mob if there is one, otherwise the label itself. */
 		public Entity body() {
 			return mob != null ? mob : label;
@@ -112,8 +126,17 @@ public final class CritterEntities {
 
 		List<Sighting> result = new ArrayList<>(labels.size());
 		for (int i = 0; i < labels.size(); i++) {
-			result.add(new Sighting(species.get(i), labels.get(i),
-				nearest(candidates, labels.get(i)), sparkling.get(i)));
+			Entity label = labels.get(i);
+			Entity mob = nearest(candidates, label);
+			// Worked out once per sweep rather than per reader: the answer has to be the
+			// same for all of them within a sweep — the sparkling call announces once per
+			// critter, so a wavering answer would either lose the announcement or repeat
+			// it. The ray is the expensive half and is shared between the two flags.
+			Entity body = mob != null ? mob : label;
+			boolean unobstructed = Visibility.hasLineTo(body);
+			boolean visible = unobstructed && Visibility.inView(body.getBoundingBox());
+			result.add(new Sighting(species.get(i), label, mob, sparkling.get(i),
+				visible, unobstructed));
 		}
 		return result;
 	}

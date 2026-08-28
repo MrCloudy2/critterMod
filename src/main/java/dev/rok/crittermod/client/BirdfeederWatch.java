@@ -19,9 +19,10 @@ import net.minecraft.core.BlockPos;
  *
  * <ul>
  * <li>the Birdfeeder announces it — {@code Two Macaws were attracted to the Birdfeeder!}
- *     — which arrives whether or not you are anywhere near;
- * <li>a Macaw label appearing in the world, which covers one that turns up without the
- *     Birdfeeder line and comes with coordinates to send.
+ *     — which arrives whether or not you are anywhere near, and carries no position,
+ *     because everyone in the party was told the same thing at the same time;
+ * <li>seeing one, which covers a Macaw that turns up without the Birdfeeder line and is
+ *     the only path that sends coordinates. Sight is required for exactly that reason.
  * </ul>
  *
  * <p>A cooldown covers the overlap, so a Birdfeeder spawn you then walk up to is
@@ -71,6 +72,11 @@ public final class BirdfeederWatch {
 	public static void tick() {
 		BlockPos where = null;
 		for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+			// Only one in sight. This path sends coordinates to the whole party, so
+			// firing on anything merely loaded would hand three other people a position
+			// nobody had any way of knowing — the one leak in here that reached past the
+			// player running the mod.
+			if (!sighting.visible()) continue;
 			if (NAME.equals(sighting.critter().name())) {
 				where = sighting.body().blockPosition();
 				break;

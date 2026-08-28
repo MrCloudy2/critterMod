@@ -15,7 +15,7 @@ import java.util.Map;
  * can simply be counted — the sweep lives in {@link CritterEntities} and this tallies
  * what it found, by species.
  *
- * <p>This reports only what is loaded <em>right now</em>. It is not a total and cannot
+ * <p>This counts only what is <em>in sight</em> right now. It is not a total and cannot
  * be: the client never sees the far side of the map, and a partymate catching something
  * out of render distance is never observed. Counting distinct entity ids over time does
  * not fix that and adds its own error — a critter that escapes a capsule returns as a
@@ -36,6 +36,10 @@ public final class CritterSpotter {
 
 		Map<Critter, Integer> present = new HashMap<>();
 		for (CritterEntities.Sighting sighting : CritterEntities.all()) {
+			// Nothing in the way, but not required to be on screen: this is a number on a
+			// panel, and one that emptied every time you turned round would read as the
+			// tracker having broken rather than as you having looked away.
+			if (!sighting.unobstructed()) continue;
 			present.merge(sighting.critter(), 1, Integer::sum);
 		}
 		// Replaced wholesale rather than merged, so anything caught or despawned since
