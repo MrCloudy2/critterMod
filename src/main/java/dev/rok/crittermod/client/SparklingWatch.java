@@ -14,11 +14,14 @@ import java.util.UUID;
  * caught a SPARKLING Rockmite!} — which is too late to be of use. Finding one before
  * that is done by eye today; parties resort to "theres a sparkling somewhere in icy".
  *
- * <p>This reads the name tag, on the assumption that a sparkling one is named for it —
- * and a name tag renders through terrain in vanilla, so this only calls out something
- * already on screen. If the tag turns out to read the same as any other critter, nothing
- * here fires; nothing else depends on it, so a wrong assumption costs a feature rather
- * than breaking a run.
+ * <p>This reads the name tag, on the assumption that a sparkling one is named for it. If
+ * the tag turns out to read the same as any other critter, nothing here fires; nothing
+ * else depends on it, so a wrong assumption costs a feature rather than breaking a run.
+ *
+ * <p>It calls out only one the player can see, per {@link Visibility}. That is the whole
+ * feature, kept honest: a sparkling across an open cavern is easy to walk past and worth
+ * a banner, while one behind twenty blocks of rock is not something this should know
+ * about. The earlier version fired on anything loaded.
  */
 public final class SparklingWatch {
 
@@ -31,6 +34,10 @@ public final class SparklingWatch {
 	public static void tick() {
 		for (CritterEntities.Sighting sighting : CritterEntities.all()) {
 			if (!sighting.sparkling()) continue;
+			// Only one you can actually see. Checked before the announced set is touched,
+			// so one spotted through a wall is passed over rather than marked as done and
+			// then never called when you come round the corner to it.
+			if (!sighting.visible()) continue;
 			// Keyed on the label rather than the mob: the label is what named it, and it
 			// is the entity that survives the pairing being ambiguous.
 			if (!announced.add(sighting.label().getUUID())) continue;

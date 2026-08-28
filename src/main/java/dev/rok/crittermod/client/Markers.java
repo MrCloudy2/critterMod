@@ -56,11 +56,16 @@ public final class Markers {
 				Colours.argb(display.troodonWallColour, 0xFF55AAFF));
 		}
 
-		if (display.highlightNests && biome == SafariBiome.FOREST) {
-			for (NestTracker.Nest nest : NestTracker.nests()) {
-				if (!nest.unpunched()) continue;
-				markers.add(block(nest.pos(), "Nest",
-					Colours.argb(display.nestColour, 0xFF55FF55)));
+		// Preset spots, like the perches and the walls — but each one carries what looking
+		// at it established, so the colour says whether there is anything there. Cleared
+		// ones are simply not marked: you went, you looked, there was no hive.
+		if (display.highlightBeeNests && biome == SafariBiome.FOREST) {
+			for (BeeSpots.Spot spot : BeeSpots.spots()) {
+				if (spot.status() == BeeSpots.Status.CLEARED) continue;
+				boolean found = spot.status() == BeeSpots.Status.NEST;
+				markers.add(block(spot.pos(), found ? "Bee nest" : "Bee spot",
+					found ? Colours.argb(display.beeNestColour, 0xFFFFCC22)
+						: Colours.argb(display.beeSpotColour, 0xFF55FF55)));
 			}
 		}
 
@@ -110,14 +115,17 @@ public final class Markers {
 
 		// Drops turn up in every biome, so each one is gated on its own position rather
 		// than the feature being gated wholesale: standing near a border would otherwise
-		// mark drops on the far side of it. The style is the setting itself.
-		CritterConfig.MarkStyle drops = display.floorDropStyle();
-		if (drops != CritterConfig.MarkStyle.OFF && biome != null) {
-			Style style = drops == CritterConfig.MarkStyle.WAYPOINT ? Style.WAYPOINT : Style.HIGHLIGHT;
+		// mark drops on the far side of it.
+		//
+		// Always a highlight, never a waypoint. A drop is put wherever the run put it, so
+		// unlike the walls and perches above there is nothing preset about it, and a box
+		// drawn through the terrain would be handing over a position that could not have
+		// been worked out any other way.
+		if (display.floorDropStyle() != CritterConfig.MarkStyle.OFF && biome != null) {
 			for (BlockPos pos : FloorDrops.positions()) {
 				if (SafariAreaMap.biomeAt(pos.getX(), pos.getY(), pos.getZ()) != biome) continue;
 				markers.add(new Marker(new AABB(pos), "Floor drop",
-					Colours.argb(display.floorDropColour, 0xFF55FFAA), style));
+					Colours.argb(display.floorDropColour, 0xFF55FFAA), Style.HIGHLIGHT));
 			}
 		}
 		return markers;
@@ -129,15 +137,18 @@ public final class Markers {
 	}
 
 	/**
-	 * Marks the walls of one set that are still standing.
+	 * Marks the walls of one set that have not been seen to be gone.
 	 *
-	 * <p>A broken wall leaves air behind, and air is also what an unloaded chunk reports,
-	 * so only walls confirmed to still hold a block are marked — never a guess.
+	 * <p>Everything but {@code BROKEN}, rather than only {@code INTACT}: the positions are
+	 * preset, so a mark on one costs nothing even before its chunk has loaded, and the
+	 * only thing that should take a mark away is having looked at the wall and found it
+	 * broken. Marking only confirmed-standing walls used to hide the ones a partymate had
+	 * broken out of sight, which is the same as being told about it.
 	 */
 	private static void addWalls(List<Marker> markers, WallTracker walls, SafariBiome biome, int colour) {
 		if (biome != walls.biome()) return;
 		for (WallTracker.Wall wall : walls.walls()) {
-			if (wall.state() != WallTracker.State.INTACT) continue;
+			if (wall.state() == WallTracker.State.BROKEN) continue;
 			markers.add(block(wall.pos(), walls.name() + " wall", colour));
 		}
 	}

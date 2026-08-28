@@ -43,8 +43,8 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 - Missing panel: what is still uncaught in the biome you are standing in
 - Hunter trade box: the offers found this run, nearest first
 - Hotspot line: which biome the run made yours
-- Counts of Snooper walls, Troodon walls, bee nests and Rockmite mounds left
-- Nearby spawn counts, optional
+- Counts of Snooper walls, Troodon walls and Rockmite mounds left
+- Counts of what is in sight around you, optional
 - Every box movable, resizable and scaleable, with a drag-to-place editor
 - Shown only in the Safari, in the Safari and its entrance, or everywhere
 
@@ -52,11 +52,11 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 
 - Snooper walls, in the Cavern
 - Troodon walls, in the Icy biome
-- Bee nests you have not punched, in the Forest
+- The eleven bee spots, in the Forest — look at one and the mark says whether it is a nest
 - Rockmite mounds, in the Cavern
 - The eight Hideonwall perches, in the Haunted biome
 - Hunter trade spots
-- Floor drops — nothing, a highlight, or a full waypoint
+- Floor drops, highlighted where you can see them
 - Recatch spots: where a critter was when you threw at it
 - Bloodbat boxes, on by default
 - A colour picker per kind, with alpha and chroma

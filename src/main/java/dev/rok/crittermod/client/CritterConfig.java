@@ -75,14 +75,18 @@ public class CritterConfig extends Config {
 		SELL_OFFER
 	}
 
-	/** How a set of positions is drawn, for the settings that offer the choice. */
+	/**
+	 * How a set of positions is drawn, for the settings that offer the choice.
+	 *
+	 * <p>There was a third, through-the-terrain option. It is gone: the settings that use
+	 * this mark things found by scanning the world rather than preset positions, and
+	 * drawing one of those through a wall shows what could not otherwise be known.
+	 */
 	public enum MarkStyle {
 		/** Not drawn at all. */
 		OFF,
 		/** A box where it is, visible only when you could see the thing anyway. */
-		HIGHLIGHT,
-		/** A box through the terrain, named, with its distance — the full waypoint. */
-		WAYPOINT
+		HIGHLIGHT
 	}
 
 	@Override
@@ -174,11 +178,12 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Show nearby spawns",
-			desc = "Mark a missing species with how many are loaded around you right now.\n" +
-				"§7Read off their name tags, refreshed twice a second.\n" +
-				"§7Off by default: it counts ones you cannot see as readily as ones you can.\n" +
-				"§7It is not a total either — the client never sees the far side of the map,\n" +
-				"§7and a partymate catching something out of range is never observed.")
+			desc = "Mark a missing species with how many are in sight around you right now.\n" +
+				"§7Read off their name tags, refreshed twice a second, and counted only\n" +
+				"§7where there is a clear line to them — one behind a wall is not counted,\n" +
+				"§7though one behind you is, so the number does not empty when you turn.\n" +
+				"§7It is not a total — the client never sees the far side of the map, and a\n" +
+				"§7partymate catching something out of range is never observed.")
 		@ConfigEditorBoolean
 		@Expose
 		public boolean countSpawns = false;
@@ -212,10 +217,16 @@ public class CritterConfig extends Config {
 		@Expose
 		public boolean highlightTroodonWalls = false;
 
-		@ConfigOption(name = "Highlight bee nests", desc = "Mark bee nests you have not punched yet, while you are in the Forest.")
+		@ConfigOption(
+			name = "Highlight bee nests",
+			desc = "Mark the eleven places a bee block sits, while you are in the Forest.\n" +
+				"§7Preset spots, all marked from the start, because the positions are fixed\n" +
+				"§7and give nothing away. What is at one does — so you have to look at it, and\n" +
+				"§7what you see settles the mark: a §lbee nest§r§7 recolours it, a beehive or an\n" +
+				"§7empty spot clears it. Nothing is read through a wall.")
 		@ConfigEditorBoolean
 		@Expose
-		public boolean highlightNests = false;
+		public boolean highlightBeeNests = false;
 
 		@ConfigOption(name = "Highlight shard trades", desc = "Mark where a Hunter offered a trade.")
 		@ConfigEditorBoolean
@@ -233,9 +244,12 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Highlight mounds",
-			desc = "Outline detected Rockmite mounds, while you are in the Cavern.\n" +
+			desc = "Mark Rockmite mounds you have seen, while you are in the Cavern.\n" +
 				"§7Matched on interaction hitbox size, which is weaker evidence than the\n" +
-				"§7walls' fixed positions — check the outlines land on real mounds.")
+				"§7walls' fixed positions — check the marks land on real mounds.\n" +
+				"§7Taken up only with a clear line to it, so nothing is marked through a\n" +
+				"§7wall. Once found it stays marked until you see it has gone, so you can\n" +
+				"§7walk a lap and then come back to them.")
 		@ConfigEditorBoolean
 		@Expose
 		public boolean highlightMounds = false;
@@ -254,20 +268,27 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Floor drops",
-			desc = "Mark the drops lying on the floor of the biome you are in.\n" +
+			desc = "Box the drops lying on the floor of the biome you are in.\n" +
 				"§7Hypixel makes one out of three string item displays in a single block,\n" +
 				"§7which is what this looks for — the same test Skyblocker uses.\n" +
-				"§7§lHighlight§r§7 draws a box where it is, seen only when you could see the\n" +
-				"§7drop anyway. §lWaypoint§r§7 draws it through the terrain, named and with\n" +
-				"§7its distance.")
-		@ConfigEditorDropdown(values = {"Nothing", "Highlight", "Waypoint"})
+				"§7Drawn where it is and depth-tested, so it marks a drop you could see\n" +
+				"§7anyway. There is no through-the-terrain option: a drop lands wherever the\n" +
+				"§7run put it, so pointing at one through a wall would be telling you\n" +
+				"§7something you had no way of knowing.")
+		@ConfigEditorDropdown(values = {"Nothing", "Highlight"})
 		@Expose
 		public int floorDrops = 0;
 
-		/** The chosen style, guarded against a config file holding something out of range. */
+		/**
+		 * The chosen style, guarded against a config file holding something out of range.
+		 *
+		 * <p>The dropdown used to offer a third, through-the-terrain option, and settings
+		 * files still hold a 2 for it. That is read as a highlight rather than falling
+		 * through to off, so anyone who had drops marked keeps having them marked.
+		 */
 		public MarkStyle floorDropStyle() {
-			return floorDrops >= 0 && floorDrops < MarkStyle.values().length
-				? MarkStyle.values()[floorDrops] : MarkStyle.OFF;
+			if (floorDrops <= 0) return MarkStyle.OFF;
+			return MarkStyle.HIGHLIGHT;
 		}
 
 		@ConfigOption(
@@ -319,16 +340,6 @@ public class CritterConfig extends Config {
 		public boolean showTroodonWalls = true;
 
 		@ConfigOption(
-			name = "Bee nests",
-			desc = "List the bee nests still to punch, under the Forest missing list.\n" +
-				"§7Honeybugs come from these. They have no fixed positions, so they are found\n" +
-				"§7by sweeping nearby blocks — the count is nests you have come across, not\n" +
-				"§7every nest on the map.")
-		@ConfigEditorBoolean
-		@Expose
-		public boolean showNests = true;
-
-		@ConfigOption(
 			name = "Hunter trade tracker",
 			desc = "Box listing the Hunter NPC offers found this run, nearest first.\n" +
 				"§7The chat report scrolls away; this keeps them to hand.")
@@ -377,11 +388,17 @@ public class CritterConfig extends Config {
 		@Expose
 		public String troodonWallColour = colour(0x55, 0xAA, 0xFF);
 
-		@ConfigOption(name = "Bee nests", desc = "")
+		@ConfigOption(name = "Bee spots, unchecked", desc = "")
 		@ConfigEditorColour
 		@ConfigAccordionId(id = COLOURS)
 		@Expose
-		public String nestColour = colour(0x55, 0xFF, 0x55);
+		public String beeSpotColour = colour(0x55, 0xFF, 0x55);
+
+		@ConfigOption(name = "Bee nest found", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String beeNestColour = colour(0xFF, 0xCC, 0x22);
 
 		@ConfigOption(name = "Hunter trades", desc = "")
 		@ConfigEditorColour
@@ -525,10 +542,12 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Diagnostic commands",
-			desc = "Register /critters debug, entities, nearby and block.\n" +
+			desc = "Register /critters debug and /critters block.\n" +
 				"§7Tools for working out how the Safari represents things; of no use in a\n" +
-				"§7normal run. Takes effect on the next world join, since commands are\n" +
-				"§7registered as you connect.")
+				"§7normal run. Debug reports this mod's own state, block reports what your\n" +
+				"§7crosshair is on — neither says anything about what you cannot see.\n" +
+				"§7Takes effect on the next world join, since commands are registered as\n" +
+				"§7you connect.")
 		@ConfigEditorBoolean
 		@Expose
 		public boolean debugCommands = false;

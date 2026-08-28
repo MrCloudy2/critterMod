@@ -71,7 +71,8 @@ ChatParser.playerSaid(line)    a player typed it → only TraderWatch sees it
 | Class | Job |
 |---|---|
 | `SafariLocation` | **Single source of truth for where you are.** Answers `ELSEWHERE`/`ENTRANCE`/`INSIDE`, plus the biome. Everything else asks it; nothing else works it out. |
-| `CritterEntities` | One sweep per 5 ticks producing `Sighting(critter, label, mob, sparkling)`. The spawn counter, Bloodbat outlines, Hideyho tracker, recatch pin and sparkling call all read it. |
+| `CritterEntities` | One sweep per 5 ticks producing `Sighting(critter, label, mob, sparkling, visible)`. The spawn counter, Bloodbat outlines, recatch pin and sparkling call all read it. `visible` is computed once per sweep so every reader agrees within it. |
+| `Visibility` | Raycast from the player's eyes to a mob or a block position. The gate between "the client knows" and "the player could know". |
 | `SessionManager` | Owns the live run. Opens on **arrival**, closes on island change. |
 | `SafariSession` | The tally. Pure — no Minecraft imports, so it replays offline. |
 | `RunHistory` | Finished runs, written to `config/crittermod-runs.json` when the next one starts. |
@@ -92,6 +93,29 @@ exactly.
 **Anything a player can type, a player can quote.** Watchers that scan for a phrase must
 sit behind `ChatParser.playerSaid`. The one exception is the shared-trade reader, which
 is deliberately looking for this mod's own announcement in party chat.
+
+**Detected things are found by sight, then remembered.** Mounds and beehives both work
+this way: nothing is taken up without a clear line to it, but once you have looked, the
+mark persists through terrain and is only dropped when you *see* it has gone. Seeing
+where something is and then keeping it is not the same as being told what is behind a
+wall — and requiring it stay in view to stay marked would take back information you had
+legitimately. Removal needs range as well as sight: outside the sweep's reach a mound is
+absent from it whether or not it is still standing.
+
+**Preset is free, detected is not.** A fixed position — a wall, a Hideonwall perch — can
+be marked through terrain, because it is map knowledge anyone could write down. Anything
+*read out of the world* is different: `entitiesForRendering()` hands back everything the
+server tracks regardless of walls, and blocks load far past sight, so reporting either
+one raw tells the player what is behind a wall. Those go through `Visibility` first,
+which asks two different questions — `canSee` (on screen *and* unobstructed) for
+anything that announces, `hasLineTo` (unobstructed, any facing) for anything merely
+counted, since a number that emptied when you turned round would read as a bug. This is
+SkyHanni's split: `EntityUtils.canBeSeen` does frustum-then-ray with an `ignoreFrustum`
+escape hatch, and the frustum comes off the game's own camera rather than a hand-rolled
+dot product. This is why the sparkling call, the spawn counts and the walls' broken state are
+all sight-gated while their positions are not, and why floor drops highlight but never
+waypoint. Do not add a feature that reports detected state without deciding which side
+of this line it is on.
 
 **The entry banner names whoever warped the party in, not you.** It is not a reliable
 "I entered" signal — a non-leader never sees their own name. Runs open on *arrival* at
@@ -176,7 +200,18 @@ setting.
   mixin to confirm it was written and then removed — see the commit history.
 - **The capsule fix is half done.** Sightings with no mob under the name tag are
   ignored, which should exclude a capsule mid-capture. The sturdier half — pinning where
-  the critter was *before* the throw — needs a `/critters entities` dump taken while a
-  capsule is up.
+  the critter was *before* the throw — needed a `/critters entities` dump taken while a
+  capsule is up, and that command is gone, so it wants another way of getting the data.
+- **Bee spots are done but unplayed.** `BeeSpots` replaced the old `NestTracker`: eleven
+  preset Forest positions, all marked from the start, each resolved only by looking at
+  it — `BEE_NEST` recolours the mark, `BEEHIVE` or anything else clears it. **The nest is
+  the one you want and the hive is the decoy**, which is the opposite of what the first
+  version assumed, so do not "fix" it back. Note vanilla's inconsistent spelling:
+  `Blocks.BEEHIVE` is one word, `Blocks.BEE_NEST` is two. All eleven were checked
+  against `SafariAreaMap` and all resolve to Forest. What is untested is whether eleven
+  is the complete set, and whether a spot ever holds neither block.
+- **Mounds are sight-found and latched** as of the same pass, so `MoundSpotter.mounds()`
+  is what you have looked at, not what is loaded. `describeAll()` still sweeps live and
+  reports sizes only — no positions — so the two counts differ on purpose.
 - **26.2 is untested.** The waypoints and the full-screen alert are the likeliest to be
   wrong, since both sit on the rendering that changed shape.

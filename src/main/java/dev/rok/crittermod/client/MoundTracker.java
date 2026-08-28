@@ -3,8 +3,8 @@ package dev.rok.crittermod.client;
 /**
  * Counts the Rockmite mounds broken this run, and how many held anything.
  *
- * <p>Mounds announce themselves in chat, so unlike the nests and walls nothing has to
- * be read out of the world at all:
+ * <p>Mounds announce themselves in chat, so unlike the walls nothing has to be read out
+ * of the world at all — which also means nothing here needs a sight check:
  *
  * <pre>
  * The mound falls apart, but nothing is inside...

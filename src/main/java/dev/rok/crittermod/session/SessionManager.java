@@ -1,6 +1,7 @@
 package dev.rok.crittermod.session;
 
 import dev.rok.crittermod.CritterMod;
+import dev.rok.crittermod.client.BeeSpots;
 import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.FloorDrops;
@@ -9,8 +10,8 @@ import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.TraderWatch;
 import dev.rok.crittermod.client.BirdfeederWatch;
 import dev.rok.crittermod.client.SparklingWatch;
+import dev.rok.crittermod.client.MoundSpotter;
 import dev.rok.crittermod.client.MoundTracker;
-import dev.rok.crittermod.client.NestTracker;
 import dev.rok.crittermod.client.RecatchSpots;
 import dev.rok.crittermod.client.WallTracker;
 import dev.rok.crittermod.data.Critter;
@@ -226,7 +227,9 @@ public final class SessionManager {
 		announcedAllDone = false;
 		EncounterAlerts.reset();
 		TraderWatch.reset();
-		NestTracker.reset();
+		BeeSpots.reset();
+		WallTracker.resetAll();
+		MoundSpotter.reset();
 		MoundTracker.reset();
 		RecatchSpots.reset();
 		BirdfeederWatch.reset();

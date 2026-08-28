@@ -30,18 +30,12 @@ import net.minecraft.world.phys.Vec3;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeMap;
 import java.util.Map;
 
 /** {@code /critters} — reports the current run in chat. */
 public final class CritterCommand {
-
-	/** Wide enough to cover a biome's worth of spawns without scanning the whole map. */
-	private static final double ENTITY_SCAN_RADIUS = 48.0;
-	/** Close enough that whatever you are stood on is at the top of the list. */
-	private static final double NEARBY_SCAN_RADIUS = 8.0;
 
 	private CritterCommand() {
 	}
@@ -177,17 +171,13 @@ public final class CritterCommand {
 
 		// Diagnostics exist to work out how the Safari represents things and are noise
 		// in a normal run, so they are only registered when asked for.
+		// There were two more here, listing every loaded entity with its coordinates.
+		// They were the most direct advantage in the mod — a text version of exactly what
+		// the sight gates elsewhere exist to prevent — so they are gone. What survives
+		// reports the mod's own state, or what the crosshair is already on.
 		if (ConfigManager.get().advanced.debugCommands) {
 			root.then(ClientCommands.literal("debug").executes(ctx -> {
 					debug(ctx.getSource());
-					return 1;
-				}))
-				.then(ClientCommands.literal("entities").executes(ctx -> {
-					entities(ctx.getSource());
-					return 1;
-				}))
-				.then(ClientCommands.literal("nearby").executes(ctx -> {
-					nearby(ctx.getSource());
 					return 1;
 				}))
 				.then(ClientCommands.literal("block").executes(ctx -> {
@@ -237,7 +227,7 @@ public final class CritterCommand {
 		source.sendFeedback(Component.literal("  on: %s%s%s%s%s%s%s%s".formatted(
 			config.display.highlightSnooperWalls ? "snooper " : "",
 			config.display.highlightTroodonWalls ? "troodon " : "",
-			config.display.highlightNests ? "nests " : "",
+			config.display.highlightBeeNests ? "beenests " : "",
 			config.display.highlightTrades ? "trades " : "",
 			config.display.highlightHideonwalls ? "perches " : "",
 			config.display.recatchHelper ? "recatch " : "",
@@ -253,17 +243,18 @@ public final class CritterCommand {
 			.withStyle(ChatFormatting.WHITE));
 
 		List<String> sizes = MoundSpotter.describeAll();
-		source.sendFeedback(Component.literal("  interaction hitboxes nearby (mound-sized: "
+		// The sweep below is live and mound-sized; the count is what has been looked at
+		// and logged. They differ on purpose, and the gap is the sight gate doing its job.
+		source.sendFeedback(Component.literal("  interaction hitboxes nearby (logged mounds: "
 			+ MoundSpotter.mounds().size() + ")").withStyle(ChatFormatting.YELLOW));
 		sizes.stream().limit(12).forEach(line ->
 			source.sendFeedback(Component.literal(line).withStyle(
 				line.contains("<-") ? ChatFormatting.GREEN : ChatFormatting.WHITE)));
 
-		long nests = NestTracker.nests().stream().filter(NestTracker.Nest::unpunched).count();
 		source.sendFeedback(Component.literal(
-			"  candidates  snooper %d · troodon %d · nests %d · trades %d".formatted(
+			"  candidates  snooper %d · troodon %d · trades %d".formatted(
 				WallTracker.SNOOPER.intactCount(), WallTracker.TROODON.intactCount(),
-				nests, TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
+				TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
 		// Reported whether or not the solver is on, since "is it even loaded while
 		// hidden" is the thing worth checking.
 		// The farthest label loaded says what Hypixel's entity tracking range is, which
@@ -547,120 +538,6 @@ public final class CritterCommand {
 
 	private static String nameOf(SafariBiome biome) {
 		return biome == null ? "none" : biome.displayName();
-	}
-
-	/**
-	 * Dumps nearby entities so critter mobs can be identified from real data.
-	 *
-	 * <p>Groundwork for counting how many of a species actually spawned this run: most
-	 * species spawn a randomised number, so no static table can say how many there are
-	 * to catch. Seeing them as entities could.
-	 */
-	private static void entities(FabricClientCommandSource source) {
-		Minecraft client = source.getClient();
-		if (client.level == null) {
-			source.sendError(prefixed("No world loaded.", ChatFormatting.RED));
-			return;
-		}
-
-		Vec3 origin = source.getPlayer().position();
-		List<String> matched = new ArrayList<>();
-		// Named things that are not a species are the interesting ones: shells and the
-		// like have to announce themselves somehow, and this is where they would show.
-		Map<String, Integer> otherNames = new TreeMap<>();
-		Map<String, Integer> byType = new TreeMap<>();
-		int total = 0;
-
-		for (Entity entity : client.level.entitiesForRendering()) {
-			double distance = Math.sqrt(entity.position().distanceToSqr(origin));
-			if (distance > ENTITY_SCAN_RADIUS) continue;
-			total++;
-
-			String type = entity.getType().toString();
-			type = type.substring(type.lastIndexOf('.') + 1);
-			byType.merge(type, 1, Integer::sum);
-
-			String custom = entity.hasCustomName() ? stripCodes(entity.getCustomName().getString()) : "";
-			String display = stripCodes(entity.getDisplayName().getString());
-			String label = !custom.isEmpty() ? custom : display;
-			if (label.isEmpty()) continue;
-
-			Critter critter = Critters.byName(label);
-			if (critter != null) {
-				matched.add("  %-13s %-9s %.0fm  uuid %s".formatted(
-					critter.name(), type, distance, entity.getUUID().toString().substring(0, 8)));
-				continue;
-			}
-			// Unnamed entities fall back to their type as a display name; that is noise.
-			if (label.equalsIgnoreCase(type.replace('_', ' '))) continue;
-			otherNames.merge(label + "  [" + type + "]", 1, Integer::sum);
-		}
-
-		source.sendFeedback(header("Entities within %.0f blocks: %d".formatted(ENTITY_SCAN_RADIUS, total)));
-		source.sendFeedback(Component.literal("  species name tags: " + matched.size())
-			.withStyle(ChatFormatting.YELLOW));
-		matched.stream().limit(14).forEach(line ->
-			source.sendFeedback(Component.literal(line).withStyle(ChatFormatting.WHITE)));
-
-		source.sendFeedback(Component.literal("  other named entities: " + otherNames.size())
-			.withStyle(ChatFormatting.YELLOW));
-		otherNames.entrySet().stream().limit(20).forEach(e ->
-			source.sendFeedback(Component.literal("  %dx %s".formatted(e.getValue(), e.getKey()))
-				.withStyle(ChatFormatting.AQUA)));
-
-		source.sendFeedback(Component.literal("  types: " + byType).withStyle(ChatFormatting.DARK_GRAY));
-	}
-
-	/**
-	 * Dumps the closest entities of any type, so the objects critters hide inside can
-	 * be identified, such as the shells Rockmites sit in.
-	 *
-	 * <p>{@code /critters entities} only sees named spawns within its radius, so a
-	 * species missing from it may simply have been out of range rather than spawning
-	 * some other way — one 48-block snapshot per biome covers very little of the map.
-	 * Where a species really does arrive from an object instead, such as a Rockmite in
-	 * a shell, that object shows up here as an unnamed interaction or display entity.
-	 * Stand on one and run this to see what it is.
-	 */
-	private static void nearby(FabricClientCommandSource source) {
-		Minecraft client = source.getClient();
-		if (client.level == null) {
-			source.sendError(prefixed("No world loaded.", ChatFormatting.RED));
-			return;
-		}
-
-		Vec3 origin = source.getPlayer().position();
-		record Near(double distance, String line) {
-		}
-		List<Near> found = new ArrayList<>();
-
-		for (Entity entity : client.level.entitiesForRendering()) {
-			double distance = Math.sqrt(entity.position().distanceToSqr(origin));
-			if (distance > NEARBY_SCAN_RADIUS) continue;
-
-			String type = entity.getType().toString();
-			type = type.substring(type.lastIndexOf('.') + 1);
-			String custom = entity.hasCustomName() ? stripCodes(entity.getCustomName().getString()) : "";
-			String display = stripCodes(entity.getDisplayName().getString());
-			// The display name falls back to the type for unnamed entities, which is
-			// noise here; only show it when it says something the type does not.
-			String label = !custom.isEmpty() ? custom
-				: display.equalsIgnoreCase(type.replace('_', ' ')) ? "" : display;
-
-			found.add(new Near(distance, "  %-16s %4.1fm  %d %d %d  %s".formatted(
-				type, distance,
-				entity.blockPosition().getX(), entity.blockPosition().getY(),
-				entity.blockPosition().getZ(),
-				label.isEmpty() ? "-" : label)));
-		}
-
-		found.sort((a, b) -> Double.compare(a.distance(), b.distance()));
-		source.sendFeedback(header("Closest entities within %.0f blocks".formatted(NEARBY_SCAN_RADIUS)));
-		found.stream().limit(18).forEach(n ->
-			source.sendFeedback(Component.literal(n.line()).withStyle(ChatFormatting.WHITE)));
-		if (found.isEmpty()) {
-			source.sendFeedback(Component.literal("  nothing in range").withStyle(ChatFormatting.DARK_GRAY));
-		}
 	}
 
 	/**

@@ -116,7 +116,6 @@ public final class MissingHud implements HudElement {
 
 		appendWalls(panel, biome, WallTracker.SNOOPER, ConfigManager.get().display.showSnooperWalls);
 		appendWalls(panel, biome, WallTracker.TROODON, ConfigManager.get().display.showTroodonWalls);
-		appendNests(panel, biome);
 		appendMounds(panel, biome);
 		return panel;
 	}
@@ -125,10 +124,9 @@ public final class MissingHud implements HudElement {
 	 * Counts the mounds still standing near you, and optionally how many have been
 	 * broken this run.
 	 *
-	 * <p>The standing count is of mounds detected around you, not of mounds in the
-	 * Cavern — they are found by their hitbox within scanning range — so it is left out
-	 * entirely when none are in range rather than shown as a zero that would read as
-	 * "none left".
+	 * <p>The standing count is of mounds <em>you have looked at</em> and not yet seen
+	 * broken, not of mounds in the Cavern — so it is left out entirely when the count is
+	 * zero rather than shown as a zero that would read as "none left".
 	 */
 	private static void appendMounds(HudPanel panel, SafariBiome biome) {
 		if (biome != SafariBiome.CAVERN) return;
@@ -149,29 +147,6 @@ public final class MissingHud implements HudElement {
 		panel.blank();
 		panel.pair("Mounds broken", "%d → %d Rockmite".formatted(
 			MoundTracker.broken(), MoundTracker.rockmites()), WALL, DIM);
-	}
-
-	/**
-	 * Counts the bee nests still to punch. Honeybugs come from these, and unlike the
-	 * walls they have to be found by sweeping rather than read off fixed positions —
-	 * so the count is of nests come across, not of nests on the map.
-	 */
-	private static void appendNests(HudPanel panel, SafariBiome biome) {
-		if (biome != SafariBiome.FOREST) return;
-		if (!ConfigManager.get().display.showNests) return;
-
-		List<NestTracker.Nest> nests = NestTracker.nests();
-		if (nests.isEmpty()) return;
-
-		long unpunched = nests.stream().filter(NestTracker.Nest::unpunched).count();
-		panel.blank();
-		if (unpunched == 0) {
-			panel.line("all %d nests punched".formatted(nests.size()), DONE);
-			return;
-		}
-		// Just the count: the waypoints know where they are, and a list of coordinates
-		// was only ever a way of getting there without them.
-		panel.pair("Bee nests to punch", String.valueOf(unpunched), WALL, DIM);
 	}
 
 	/**

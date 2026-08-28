@@ -20,3 +20,6 @@ run/
 .project
 bin/
 particles.html
+
+# gradle task output, not source
+logs/
