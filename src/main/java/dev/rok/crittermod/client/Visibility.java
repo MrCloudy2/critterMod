@@ -122,7 +122,7 @@ public final class Visibility {
 	 * failing open here cannot let anything through that the ray would have stopped.
 	 */
 	static boolean inView(AABB box) {
-		Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
+		Camera camera = Minecraft.getInstance().gameRenderer.mainCamera();
 		if (camera == null) return true;
 		Frustum frustum = camera.getCullFrustum();
 		return frustum == null || frustum.isVisible(box);
