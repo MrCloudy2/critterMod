@@ -1,5 +1,6 @@
 package dev.rok.crittermod;
 
+import dev.rok.crittermod.client.BallDiagnostic;
 import dev.rok.crittermod.client.BazaarPrices;
 import dev.rok.crittermod.client.BeeSpots;
 import dev.rok.crittermod.client.ChatQueue;
@@ -10,6 +11,7 @@ import dev.rok.crittermod.client.CritterEntities;
 import dev.rok.crittermod.client.CritterSpotter;
 import dev.rok.crittermod.client.DarknessFilter;
 import dev.rok.crittermod.client.FloorDrops;
+import dev.rok.crittermod.client.HideonwallSpots;
 import dev.rok.crittermod.client.HotspotWatch;
 import dev.rok.crittermod.client.BirdfeederWatch;
 import dev.rok.crittermod.client.MissingHud;
@@ -85,6 +87,7 @@ public class CritterMod implements ClientModInitializer {
 				RecatchSpots.onChatMessage(line);
 				BirdfeederWatch.onChatMessage(line);
 				HotspotWatch.onChatMessage(line);
+				HideonwallSpots.onChatMessage(line);
 			}
 		});
 
@@ -96,7 +99,10 @@ public class CritterMod implements ClientModInitializer {
 			SessionManager.tick();
 			CritterSpotter.tick();
 			MoundSpotter.tick();
+			// Every tick, not on an interval: a capsule crosses a perch inside one.
+			HideonwallSpots.tick();
 			BeeSpots.tick();
+			BallDiagnostic.tick();
 			WallTracker.tick();
 			BirdfeederWatch.tick();
 			SparklingWatch.tick();
@@ -126,6 +132,8 @@ public class CritterMod implements ClientModInitializer {
 		});
 
 		AttackBlockCallback.EVENT.register((player, level, hand, pos, direction) -> {
+			// Only arms the spot; the bee that follows is what actually retires it.
+			BeeSpots.onAttack(pos);
 			// A drop being picked up would clear itself a few seconds later anyway;
 			// dropping it on the interaction just makes the mark go when you expect.
 			FloorDrops.onInteract(pos);

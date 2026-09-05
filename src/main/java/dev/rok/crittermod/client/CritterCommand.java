@@ -171,10 +171,10 @@ public final class CritterCommand {
 
 		// Diagnostics exist to work out how the Safari represents things and are noise
 		// in a normal run, so they are only registered when asked for.
-		// There were two more here, listing every loaded entity with its coordinates.
-		// They were the most direct advantage in the mod — a text version of exactly what
-		// the sight gates elsewhere exist to prevent — so they are gone. What survives
-		// reports the mod's own state, or what the crosshair is already on.
+		// The old entities/nearby pair listed every loaded entity with its coordinates and
+		// were the most direct advantage in the mod. What is here instead reports the mod's
+		// own state, what the crosshair is already on, and — for identifying a thrown
+		// capsule — what appears during a short window, with no positions attached.
 		if (ConfigManager.get().advanced.debugCommands) {
 			root.then(ClientCommands.literal("debug").executes(ctx -> {
 					debug(ctx.getSource());
@@ -182,6 +182,10 @@ public final class CritterCommand {
 				}))
 				.then(ClientCommands.literal("block").executes(ctx -> {
 					block(ctx.getSource());
+					return 1;
+				}))
+				.then(ClientCommands.literal("entities").executes(ctx -> {
+					BallDiagnostic.start();
 					return 1;
 				}));
 		}
@@ -255,6 +259,14 @@ public final class CritterCommand {
 			"  candidates  snooper %d · troodon %d · trades %d".formatted(
 				WallTracker.SNOOPER.intactCount(), WallTracker.TROODON.intactCount(),
 				TraderWatch.found().size())).withStyle(ChatFormatting.DARK_GRAY));
+		// The projectile count is the thing to read here: perches are crossed off by a
+		// capsule flying through them, and if Hypixel's capsule is not a Projectile at
+		// all this stays at zero however many you throw. That separates "not hit yet"
+		// from "cannot see the capsule".
+		source.sendFeedback(Component.literal("  perches     " + HideonwallSpots.describe())
+			.withStyle(ChatFormatting.DARK_GRAY));
+		source.sendFeedback(Component.literal("  bee spots   " + BeeSpots.describe())
+			.withStyle(ChatFormatting.DARK_GRAY));
 		// Reported whether or not the solver is on, since "is it even loaded while
 		// hidden" is the thing worth checking.
 		// The farthest label loaded says what Hypixel's entity tracking range is, which

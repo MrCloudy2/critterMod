@@ -52,7 +52,8 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 
 - Snooper walls, in the Cavern
 - Troodon walls, in the Icy biome
-- The eleven bee spots, in the Forest — look at one and the mark says whether it is a nest
+- The eleven bee spots, in the Forest — look at one to see if it is a nest, and it clears
+  when you punch it and a bee comes out
 - Rockmite mounds, in the Cavern
 - The eight Hideonwall perches, in the Haunted biome
 - Hunter trade spots
@@ -77,6 +78,7 @@ MoulConfig is bundled inside the jar — nothing to install for it.
 - Every announcement chooses its own audience: nobody, party chat or all chat
 - The missing list, copied to the clipboard or posted to chat
 - Trades announced by other people running this mod read straight into your tracker
+- A trade taken is posted and drops off everyone's tracker
 
 **Other**
 

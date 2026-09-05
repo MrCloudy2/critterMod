@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.decoration.painting.Painting;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
@@ -12,6 +13,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Whether the player can actually see a thing, rather than merely having it loaded.
@@ -52,6 +56,11 @@ public final class Visibility {
 	 */
 	private static final double MAX_RANGE = 128.0;
 
+	/** Paintings do not move, so the list is worth keeping for a moment. */
+	private static final long PAINTING_CACHE_MILLIS = 1_000;
+	private static List<AABB> paintings = List.of();
+	private static long paintingsAt;
+
 	private Visibility() {
 	}
 
@@ -85,7 +94,9 @@ public final class Visibility {
 		if (eye.distanceToSqr(box.getCenter()) > MAX_RANGE * MAX_RANGE) return false;
 
 		for (Vec3 point : samples(box)) {
-			if (clip(client.level, player, eye, point).getType() == HitResult.Type.MISS) return true;
+			if (clip(client.level, player, eye, point).getType() != HitResult.Type.MISS) continue;
+			if (behindAPainting(eye, point)) continue;
+			return true;
 		}
 		return false;
 	}
@@ -110,7 +121,40 @@ public final class Visibility {
 		if (eye.distanceToSqr(centre) > MAX_RANGE * MAX_RANGE) return false;
 
 		BlockHitResult hit = clip(client.level, player, eye, centre);
-		return hit.getType() == HitResult.Type.MISS || hit.getBlockPos().equals(pos);
+		boolean clearOfBlocks = hit.getType() == HitResult.Type.MISS || hit.getBlockPos().equals(pos);
+		return clearOfBlocks && !behindAPainting(eye, centre);
+	}
+
+	/**
+	 * Whether a painting stands in the way.
+	 *
+	 * <p>Paintings are entities, not blocks, so {@code level.clip} goes straight through
+	 * one as if it were not there. That matters because Hideonwalls sit behind them: the
+	 * ray would happily report a clear line to a perch the player cannot see any part of,
+	 * and the mark would claim one had been spotted when nothing had.
+	 */
+	private static boolean behindAPainting(Vec3 from, Vec3 to) {
+		for (AABB painting : paintings()) {
+			if (painting.clip(from, to).isPresent()) return true;
+		}
+		return false;
+	}
+
+	/** Every loaded painting's box, rebuilt at most once a second. */
+	private static List<AABB> paintings() {
+		long now = System.currentTimeMillis();
+		if (now - paintingsAt < PAINTING_CACHE_MILLIS) return paintings;
+		paintingsAt = now;
+
+		Minecraft client = Minecraft.getInstance();
+		List<AABB> found = new ArrayList<>();
+		if (client.level != null) {
+			for (Entity entity : client.level.entitiesForRendering()) {
+				if (entity instanceof Painting) found.add(entity.getBoundingBox());
+			}
+		}
+		paintings = List.copyOf(found);
+		return paintings;
 	}
 
 	/**

@@ -34,6 +34,13 @@ import java.util.Set;
  * <p>One pin at a time: capsules are thrown one at a time, and a second throw is the
  * answer to where the interesting spot now is.
  *
+ * <p><strong>Nothing is cleared while a throw is still resolving.</strong> Hypixel spawns
+ * a second armour stand carrying the critter's own name at the capture site, beside one
+ * named {@code CAPTURING} — both confirmed from a real capture. To the sweep that reads
+ * as the critter being back in the world several blocks from the pin, which is exactly
+ * the condition that retires a pin, so the box vanished before the throw had resolved.
+ * The window from the throw to its outcome is therefore held.
+ *
  * <p>Not every species is worth it. Commons are caught on the throw, so there is no
  * second attempt to prepare for; Hideyho, Wumpa and Doomspiral do not come straight
  * back; and a Snoozle never went anywhere in the first place — see
@@ -68,6 +75,8 @@ public final class RecatchSpots {
 	private static Critter pinnedCritter;
 	private static AABB pinnedBox;
 	private static long pinnedAt;
+	/** True between a throw and its outcome, while the capture-site copies are about. */
+	private static boolean resolving;
 
 	private RecatchSpots() {
 	}
@@ -95,6 +104,10 @@ public final class RecatchSpots {
 				// rather than on the spot the critter will come back to. A real critter
 				// has a mob under its name tag; the capsule has nothing.
 				if (sighting.mob() == null) continue;
+				// While a throw is unresolved the capture site wears the species name as
+				// well, so anything claiming to be the pinned species right now is not
+				// evidence of where it really is.
+				if (resolving && sighting.critter().equals(pinnedCritter)) continue;
 				AABB box = sighting.body().getBoundingBox();
 				double score = aimScore(player, box);
 				// Several of a species can be in view at once, and only one of them was
@@ -112,6 +125,11 @@ public final class RecatchSpots {
 			clear();
 			return;
 		}
+
+		// Held until the throw has an outcome. The pin is at its most useful in exactly
+		// this window — it is what the next capsule is aimed at — so retiring it here is
+		// the one thing that must not happen.
+		if (resolving) return;
 
 		// Back and running: the critter is loaded again and has left the spot, so the
 		// spot is now just a place it used to be.
@@ -132,14 +150,24 @@ public final class RecatchSpots {
 		if (event == null || event.critter() == null) return;
 
 		switch (event.type()) {
-			case ATTEMPT -> pin(event.critter());
+			case ATTEMPT -> {
+				pin(event.critter());
+				// Only if a pin was actually made: commons and the set pieces are turned
+				// away by pin(), and flagging those as resolving would leave the flag set
+				// with nothing to hold.
+				resolving = pinnedBox != null;
+			}
 			// The throw failed, so it is coming back to where it was. Hold the pin and
 			// restart the clock rather than letting the throw's timer run it out.
 			case FAILED -> {
-				if (event.critter().equals(pinnedCritter)) pinnedAt = System.currentTimeMillis();
+				if (!event.critter().equals(pinnedCritter)) break;
+				resolving = false;
+				pinnedAt = System.currentTimeMillis();
 			}
 			case OWN_CATCH -> {
-				if (event.critter().equals(pinnedCritter)) clear();
+				if (!event.critter().equals(pinnedCritter)) break;
+				resolving = false;
+				clear();
 			}
 			default -> {
 			}
@@ -199,6 +227,7 @@ public final class RecatchSpots {
 	public static void clear() {
 		pinnedCritter = null;
 		pinnedBox = null;
+		resolving = false;
 	}
 
 	/** Forgotten between runs; a spot from the last one is meaningless in this one. */
