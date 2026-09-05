@@ -424,6 +424,12 @@ public class CritterConfig extends Config {
 		@Expose
 		public String hideonwallColour = colour(0xAA, 0x55, 0xFF);
 
+		@ConfigOption(name = "Hideonwall found", desc = "")
+		@ConfigEditorColour
+		@ConfigAccordionId(id = COLOURS)
+		@Expose
+		public String hideonwallFoundColour = colour(0x55, 0xFF, 0x55);
+
 		@ConfigOption(name = "Recatch spot", desc = "")
 		@ConfigEditorColour
 		@ConfigAccordionId(id = COLOURS)
@@ -542,10 +548,12 @@ public class CritterConfig extends Config {
 
 		@ConfigOption(
 			name = "Diagnostic commands",
-			desc = "Register /critters debug and /critters block.\n" +
+			desc = "Register /critters debug, block and entities.\n" +
 				"§7Tools for working out how the Safari represents things; of no use in a\n" +
-				"§7normal run. Debug reports this mod's own state, block reports what your\n" +
-				"§7crosshair is on — neither says anything about what you cannot see.\n" +
+				"§7normal run. §lDebug§r§7 reports this mod's own state, §lblock§r§7 what your\n" +
+				"§7crosshair is on, and §lentities§r§7 watches ten seconds for anything that\n" +
+				"§7appears — throw a capsule during it to find out what one is made of.\n" +
+				"§7None of them says where anything is.\n" +
 				"§7Takes effect on the next world join, since commands are registered as\n" +
 				"§7you connect.")
 		@ConfigEditorBoolean
@@ -730,7 +738,13 @@ public class CritterConfig extends Config {
 		@Expose
 		public int hotspotBroadcast = 1;
 
-		@ConfigOption(name = "Hunter trades", desc = "Where the roaming Hunter NPCs' offers are posted.")
+		@ConfigOption(
+			name = "Hunter trades",
+			desc = "Where the roaming Hunter NPCs' offers are posted, and where it is posted\n" +
+				"§7when one is taken.\n" +
+				"§7One audience for both: an offer and that same offer going away are two\n" +
+				"§7halves of the same thing, and nobody wants one in party chat and the\n" +
+				"§7other in all chat.")
 		@ConfigEditorDropdown(values = {"Nobody", "Party chat", "All chat"})
 		@Expose
 		public int traderBroadcast = 1;
@@ -790,6 +804,7 @@ public class CritterConfig extends Config {
 		public Broadcast trades() {
 			return broadcast(traderBroadcast);
 		}
+
 
 		/** Guards against a config file holding an index that is no longer a choice. */
 		private static Broadcast broadcast(int index) {

@@ -51,6 +51,43 @@ public final class TraderWatch {
 	private static final Pattern SHARED_TRADE = Pattern.compile(
 		"^(.+?) \\((?:([A-Za-z]+) )?(-?\\d+) (-?\\d+) (-?\\d+)\\): (.+?) Shard for (.+)$");
 
+	/**
+	 * The one line that says a trade has been taken, whoever took it.
+	 *
+	 * <p>Each Hunter thanks you in their own words — Dennis stutters, Billy says "Done
+	 * deal!", Melissa "Yippee!" — and Harry sometimes says nothing at all, so none of
+	 * those is the signal. This plain line follows every completed trade in the logs and
+	 * is the same for all four.
+	 *
+	 * <p>It names the species, not the shard: {@code You have been given a Wumpa!} is what
+	 * arrives after taking a Wumpa Shard.
+	 */
+	private static final Pattern TRADE_TAKEN =
+		Pattern.compile("^You have been given an? (.+)!$");
+
+	/**
+	 * The same thing in Hypixel's current wording, which is what actually arrives today:
+	 * {@code You received a Billygoat Shard!}
+	 *
+	 * <p>Both are kept because both have been seen in real logs — the older one through
+	 * August, this one now — and there is no telling which a given trade will use.
+	 *
+	 * <p>Anchored at the start, which is the whole defence against {@code LOOT SHARE! You
+	 * received a Billygoat Shard from someone catching a Billygoat!}. That line is far
+	 * commoner than this one and matching it would retire a trade every time a partymate
+	 * caught anything.
+	 */
+	private static final Pattern SHARD_RECEIVED =
+		Pattern.compile("^You received (?:an? |\\d+x )?(.+) Shard!$");
+
+	/**
+	 * This mod's own "taken" announcement, read back off party chat.
+	 *
+	 * <p>Deliberately unlike {@link #SHARED_TRADE}, which carries coordinates in brackets,
+	 * so neither pattern can match the other's line.
+	 */
+	private static final Pattern SHARED_TAKEN = Pattern.compile("^Trade taken: (.+) Shard$");
+
 	private static final TraderParser PARSER = new TraderParser();
 	private static final Map<String, Long> announced = new HashMap<>();
 	/** Speaker -> where their offer was found, until the price line completes it. */
@@ -113,6 +150,7 @@ public final class TraderWatch {
 	/** Feeds one cleaned chat line; records and announces when a trade becomes complete. */
 	public static void onChatMessage(String line) {
 		if (acceptShared(line)) return;
+		if (takeTrade(line)) return;
 
 		TraderParser.TradeOffer offer = PARSER.parse(line);
 
@@ -157,6 +195,63 @@ public final class TraderWatch {
 	}
 
 	/**
+	 * Drops a trade that has just been taken, and says so.
+	 *
+	 * <p>An offer is one item for one shard, so once someone has taken it there is
+	 * nothing left at that Hunter — leaving it on the tracker sends the party walking to
+	 * an NPC with nothing to give. Announcing it is what lets the rest of the party's
+	 * trackers drop it too; {@link #acceptTaken} is the other half.
+	 *
+	 * @return true if the line was a completed trade and should not be parsed further
+	 */
+	private static boolean takeTrade(String line) {
+		Matcher matcher = TRADE_TAKEN.matcher(line);
+		if (!matcher.matches()) {
+			matcher = SHARD_RECEIVED.matcher(line);
+			if (!matcher.matches()) return false;
+		}
+
+		// The species has to be one this mod knows, which is also what keeps this off any
+		// other line shaped like the sentence.
+		Critter critter = Critters.byName(matcher.group(1).trim());
+		if (critter == null) return false;
+
+		// Dropped whatever the announcement setting is: this client saw the trade taken,
+		// so its own tracker is wrong from here on either way.
+		if (!drop(critter)) return true;
+
+		EncounterAlerts.post(ConfigManager.get().party.trades(),
+			"Trade taken: " + critter.name() + " Shard");
+		return true;
+	}
+
+	/**
+	 * Drops a trade a partymate announced taking.
+	 *
+	 * @return true if the line was one of ours and should not be parsed further
+	 */
+	private static boolean acceptTaken(String said) {
+		Matcher matcher = SHARED_TAKEN.matcher(said);
+		if (!matcher.matches()) return false;
+
+		Critter critter = Critters.byName(matcher.group(1).trim());
+		if (critter != null) drop(critter);
+		return true;
+	}
+
+	/**
+	 * Forgets the tracked offer of a species' shard.
+	 *
+	 * <p>Matched on the species rather than the NPC, because that is all the announcement
+	 * carries — and two Hunters offering the same shard at once has not been seen.
+	 *
+	 * @return true if anything was actually removed
+	 */
+	private static boolean drop(Critter critter) {
+		return found.removeIf(trade -> trade.critter().equals(critter));
+	}
+
+	/**
 	 * Takes a trade a partymate's copy of this mod announced.
 	 *
 	 * <p>Their client saw the dialog and worked out where the NPC was; that is exactly
@@ -170,12 +265,19 @@ public final class TraderWatch {
 	private static boolean acceptShared(String line) {
 		Matcher party = PARTY_LINE.matcher(line);
 		if (!party.matches()) return false;
-		if (!ConfigManager.get().party.acceptSharedTrades) return false;
 
 		// Our own announcement comes back to us; the local copy is already recorded and
 		// was placed from the entity rather than from text.
 		String sender = party.group(1);
 		if (sender.equals(Minecraft.getInstance().getUser().getName())) return true;
+
+		// Ahead of the setting below, deliberately. That one is about taking partymates'
+		// offers; this is about an offer going away, which matters just as much for one
+		// this client found by itself — a trade someone else has taken is stale whether
+		// or not their finds are wanted.
+		if (acceptTaken(party.group(2))) return true;
+
+		if (!ConfigManager.get().party.acceptSharedTrades) return false;
 
 		Matcher trade = SHARED_TRADE.matcher(party.group(2));
 		if (!trade.matches()) return false;

@@ -80,6 +80,9 @@ ChatParser.playerSaid(line)    a player typed it → only TraderWatch sees it
 | `WaypointRenderer` | Draws those boxes. **Diverges between branches.** |
 | `EncounterAlerts` | Banners, chat lines, and `post()` — the shared "send to party/all" helper. |
 | `ChatParser` | Every chat pattern, and the player-said gate. |
+| `TraderWatch` | Hunter offers: found, shared to party, and dropped once taken. `You have been given a X!` is the only NPC-independent completion line — each Hunter thanks you differently and Harry sometimes not at all. |
+| `HideonwallSpots` | Eight preset perches, resolved by sight or by a capsule through them. Green when one is on it. |
+| `BallDiagnostic` | `/critters entities` — 10s window reporting what appeared, no positions. How the capsule was identified. |
 | `BazaarPrices` | The only network call. Polls the bazaar off-thread, prices a run's shards. |
 
 ## Rules that were learned the hard way
@@ -116,6 +119,24 @@ dot product. This is why the sparkling call, the spawn counts and the walls' bro
 all sight-gated while their positions are not, and why floor drops highlight but never
 waypoint. Do not add a feature that reports detected state without deciding which side
 of this line it is on.
+
+**Hypixel builds everything out of zero-size props, and the item name is the only
+label.** A thrown capsule is an `item_display` showing an item called "Critter Capsule" —
+not a `Projectile`, which is why an earlier version of the perch code never fired once.
+A critter's body is often an armour stand; its name tag is a separate zero-size stand.
+`getDeltaMovement()` reads **flat zero** for all of it, because Hypixel moves props by
+teleport packet, so any speed test has to use position deltas between ticks. Capsules
+travel 2.0–2.6 blocks a tick, measured, so hit tests against their path must be swept.
+
+**A capture spawns a decoy wearing the critter's name.** Mid-throw, an armour stand named
+for the species appears at the capture site next to one named `CAPTURING`. It reads as the
+critter being back in the world somewhere else, which retired the recatch pin before the
+throw resolved. `RecatchSpots` therefore holds everything between the throw and its
+outcome. Both stands were confirmed from a real capture with `/critters entities`.
+
+**Paintings block sight but not rays.** Hideonwalls sit behind paintings, and a painting is
+an entity, so `level.clip` goes straight through one. `Visibility` tests painting boxes
+separately; without that it reports a clear view of things nothing can be seen of.
 
 **The entry banner names whoever warped the party in, not you.** It is not a reliable
 "I entered" signal — a non-leader never sees their own name. Runs open on *arrival* at
@@ -209,7 +230,10 @@ setting.
   version assumed, so do not "fix" it back. Note vanilla's inconsistent spelling:
   `Blocks.BEEHIVE` is one word, `Blocks.BEE_NEST` is two. All eleven were checked
   against `SafariAreaMap` and all resolve to Forest. What is untested is whether eleven
-  is the complete set, and whether a spot ever holds neither block.
+  is the complete set, and whether a spot ever holds neither block. A nest also clears
+  on `A Honeybuzz appeared, angry at you for stealing its honey!` following a punch on
+  that spot within 3s — the punch alone is not the signal, because a spent nest can be
+  hit forever and gives nothing.
 - **Mounds are sight-found and latched** as of the same pass, so `MoundSpotter.mounds()`
   is what you have looked at, not what is loaded. `describeAll()` still sweeps live and
   reports sizes only — no positions — so the two counts differ on purpose.

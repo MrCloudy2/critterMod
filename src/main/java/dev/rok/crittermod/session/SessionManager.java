@@ -5,6 +5,7 @@ import dev.rok.crittermod.client.BeeSpots;
 import dev.rok.crittermod.client.ConfigManager;
 import dev.rok.crittermod.client.EncounterAlerts;
 import dev.rok.crittermod.client.FloorDrops;
+import dev.rok.crittermod.client.HideonwallSpots;
 import dev.rok.crittermod.client.HotspotWatch;
 import dev.rok.crittermod.client.SafariLocation;
 import dev.rok.crittermod.client.TraderWatch;
@@ -228,6 +229,7 @@ public final class SessionManager {
 		EncounterAlerts.reset();
 		TraderWatch.reset();
 		BeeSpots.reset();
+		HideonwallSpots.reset();
 		WallTracker.resetAll();
 		MoundSpotter.reset();
 		MoundTracker.reset();
