@@ -39,7 +39,7 @@ public final class TraderWatch {
 	 * {@code Party > [VIP] Someone: <what they said>}. The rank is optional.
 	 */
 	private static final Pattern PARTY_LINE =
-		Pattern.compile("^Party > (?:\\[[^]]+] )?(\\w+): (.+)$");
+		Pattern.compile("^(?i:Party) > (?:\\[[^]]+] )?(\\w+): (.+)$");
 
 	/**
 	 * This mod's own trade announcement, read back off party chat:

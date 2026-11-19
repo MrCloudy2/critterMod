@@ -48,7 +48,7 @@ public final class ChatParser {
 	 * back in turn.
 	 */
 	private static final Pattern PLAYER_SAID = Pattern.compile(
-		"^(?:Party|Guild|Officer|Co-op|Team|Friend) >.*"
+		"^(?i:Party|Guild|Officer|Co-op|Team|Friend) >.*"
 			+ "|^(?:From|To) .*"
 			+ "|^(?:\\[(?!NPC]|MOB])[^]]+]\\s*)?\\w{1,16}: .*");
 
